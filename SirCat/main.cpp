@@ -7,12 +7,13 @@
 //Last Changed: March 2, 2018
 
 #include <iostream>
+#include <cstdlib>
 
 bool getSteamRegistryValue(char steamDir[_MAX_PATH]);
 //Precondition: 
 //Postcondition: 
 
-void concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size, char returnArray[]);
+int concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size, char returnArray[]);
 //Precondition: 
 //Postcondition: 
 
@@ -28,9 +29,15 @@ int main()
 
 	if (getSteamRegistryValue(steamDir))
 	{
-		char testDirectory[_MAX_PATH];
 		char defaultFolder[] = "\\steamapps";
-		concatArray(steamDir, sizeof(steamDir), defaultFolder, sizeof(defaultFolder), testDirectory);
+		char testDirectory[_MAX_PATH];
+		int testDirectorySize = concatArray(steamDir, sizeof(steamDir), defaultFolder, sizeof(defaultFolder), testDirectory);
+
+		//
+		for (int i = 0; i < sizeof(steamDir); i++)
+		{
+			cout << i << ": " << /*static_cast<unsigned int>steamDir[i]*/testDirectory[i] << endl;
+		}
 
 		if (findCSGOInstallation(steamDir))
 		{
@@ -51,7 +58,7 @@ bool getSteamRegistryValue(char steamDir[_MAX_PATH])
 	//function will search for a registry value that Steam creates during installation
 	if (bool bGetRegistryValue = true)
 	{
-		steamDir = "C:\\Program Files (x86)\\Steam"; //why doesn't this work?
+		//steamDir = "C:\\Program Files (x86)\\Steam"; //why doesn't this work?
 
 		return true;
 	}
@@ -59,12 +66,45 @@ bool getSteamRegistryValue(char steamDir[_MAX_PATH])
 	return false;
 }
 
-void concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size, char returnArray[])
+int concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size, char returnArray[])
 {
+	using namespace std;
 
+	int concatPosition = cArray1Size;
+
+	for (int i = 0; i < cArray1Size; i++)
+	{
+		if (static_cast<unsigned int>(cArray1[i]) == -52);
+		{
+			concatPosition = i;
+			break;
+		}
+		cout << i << ": " << static_cast<unsigned int>(cArray1[i]);
+	}
+
+	/*for (int i = 0; i < cArray1Size; i++)
+	{
+		if (static_cast<unsigned int>(cArray1[i]) == -52) //dirty way of cutting off array upon the first unused indexed variable
+		{
+			concatPosition = i;
+			break;
+		}
+		returnArray[i] = cArray1[i];
+	}
+	for (int i = 0; i < cArray2Size && concatPosition + i < cArray1Size; i++)
+	{
+		if (static_cast<unsigned int>(cArray2[i]) == -52) //dirty way of cutting off array upon the first unused indexed variable
+		{
+			concatPosition += i;
+			break;
+		}
+			returnArray[concatPosition + 1] = cArray2[i];
+	}*/
+
+	return concatPosition;
 }
 
 bool findCSGOInstallation(char directory[_MAX_PATH])
 {
-
+	return true;
 }
