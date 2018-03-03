@@ -34,10 +34,10 @@ int main()
 		int testDirectorySize = concatArray(steamDir, sizeof(steamDir), defaultFolder, sizeof(defaultFolder), testDirectory);
 
 		//
-		for (int i = 0; i < sizeof(steamDir); i++)
-		{
-			cout << i << ": " << /*static_cast<unsigned int>steamDir[i]*/testDirectory[i] << endl;
-		}
+		//for (int i = 0; i < sizeof(steamDir); i++)
+		//{
+			//cout << i << ": " << /*static_cast<unsigned int>steamDir[i]*/testDirectory[i] << endl;
+		//}
 
 		if (findCSGOInstallation(steamDir))
 		{
@@ -58,7 +58,7 @@ bool getSteamRegistryValue(char steamDir[_MAX_PATH])
 	//function will search for a registry value that Steam creates during installation
 	if (bool bGetRegistryValue = true)
 	{
-		//steamDir = "C:\\Program Files (x86)\\Steam"; //why doesn't this work?
+		//steamDir[_MAX_PATH] = "C:\\Program Files (x86)\\Steam"; //why doesn't this work?
 
 		return true;
 	}
@@ -74,7 +74,7 @@ int concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size
 
 	for (int i = 0; i < cArray1Size; i++)
 	{
-		if (static_cast<unsigned int>(cArray1[i]) == -52);
+		if (static_cast<unsigned int>(cArray1[i]) == -52)
 		{
 			concatPosition = i;
 			break;
