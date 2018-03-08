@@ -27,7 +27,15 @@ int main()
 
 	char steamDir[_MAX_PATH];
 
-	if (getSteamRegistryValue(steamDir))
+	/*if (getSteamRegistryValue(steamDir))
+	{
+		for (int i = 0; i < sizeof(steamDir); i++)
+		{
+			cout << i << ": " << static_cast<int>(steamDir[i]) << endl;
+		}
+	}*/
+
+	/*if (getSteamRegistryValue(steamDir))
 	{
 		char defaultFolder[] = "\\steamapps";
 		char testDirectory[_MAX_PATH];
@@ -36,14 +44,14 @@ int main()
 		//
 		//for (int i = 0; i < sizeof(steamDir); i++)
 		//{
-			//cout << i << ": " << /*static_cast<unsigned int>steamDir[i]*/testDirectory[i] << endl;
+			//cout << i << ": " << static_cast<unsigned int>steamDir[i]testDirectory[i] << endl;
 		//}
 
 		if (findCSGOInstallation(steamDir))
 		{
 			//readWeaponFile();
 		}
-	}
+	}*/
 
 	char exitLetter;
 
@@ -55,10 +63,17 @@ int main()
 
 bool getSteamRegistryValue(char steamDir[_MAX_PATH])
 {
+	bool bGetRegistryValue = true;
+
 	//function will search for a registry value that Steam creates during installation
-	if (bool bGetRegistryValue = true)
+	if (bGetRegistryValue = true)
 	{
-		//steamDir[_MAX_PATH] = "C:\\Program Files (x86)\\Steam"; //why doesn't this work?
+		char tempSteamDir[] = "C:\\Program Files (x86)\\Steam";
+
+		for (int i = 0; i < sizeof(tempSteamDir); i++)
+		{
+			steamDir[i] = tempSteamDir[i];
+		}
 
 		return true;
 	}
