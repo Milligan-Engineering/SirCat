@@ -4,16 +4,16 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #07
 //Description: Program to calculate the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: March 2, 2018
+//Last Changed: March 8, 2018
 
 #include <iostream>
 #include <cstdlib>
 
-bool getSteamRegistryValue(char steamDir[_MAX_PATH]);
+bool getSteamDir(char steamDir[]);
 //Precondition: 
 //Postcondition: 
 
-int concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size, char returnArray[]);
+int concatCharArrays(char cArray1[], char cArray2[], char returnArray[], int sizeConcatArray);
 //Precondition: 
 //Postcondition: 
 
@@ -27,31 +27,23 @@ int main()
 
 	char steamDir[_MAX_PATH];
 
-	/*if (getSteamRegistryValue(steamDir))
-	{
-		for (int i = 0; i < sizeof(steamDir); i++)
-		{
-			cout << i << ": " << static_cast<int>(steamDir[i]) << endl;
-		}
-	}*/
-
-	/*if (getSteamRegistryValue(steamDir))
+	if (getSteamDir(steamDir))
 	{
 		char defaultFolder[] = "\\steamapps";
-		char testDirectory[_MAX_PATH];
-		int testDirectorySize = concatArray(steamDir, sizeof(steamDir), defaultFolder, sizeof(defaultFolder), testDirectory);
+		char defaultDir[_MAX_PATH];
 
-		//
-		//for (int i = 0; i < sizeof(steamDir); i++)
+		concatCharArrays(steamDir, defaultFolder, defaultDir, sizeof(defaultDir));
+
+		//for (int i = 0; defaultDir[i] != '\0'; i++)
 		//{
-			//cout << i << ": " << static_cast<unsigned int>steamDir[i]testDirectory[i] << endl;
+			//cout << i << ": " << (defaultDir[i]) << endl;
 		//}
 
 		if (findCSGOInstallation(steamDir))
 		{
 			//readWeaponFile();
 		}
-	}*/
+	}
 
 	char exitLetter;
 
@@ -61,7 +53,7 @@ int main()
 	return 0;
 }
 
-bool getSteamRegistryValue(char steamDir[_MAX_PATH])
+bool getSteamDir(char steamDir[])
 {
 	bool bGetRegistryValue = true;
 
@@ -81,42 +73,31 @@ bool getSteamRegistryValue(char steamDir[_MAX_PATH])
 	return false;
 }
 
-int concatArray(char cArray1[], int cArray1Size, char cArray2[], int cArray2Size, char returnArray[])
+int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int sizeConcatArray)
 {
 	using namespace std;
 
-	int concatPosition = cArray1Size;
+	int concatIndex = 0;
 
-	for (int i = 0; i < cArray1Size; i++)
+	for (int i = 0; cArray1[i] != '\0' && concatIndex < sizeConcatArray; i++)
 	{
-		if (static_cast<unsigned int>(cArray1[i]) == -52)
-		{
-			concatPosition = i;
-			break;
-		}
-		cout << i << ": " << static_cast<unsigned int>(cArray1[i]);
+		concatArray[concatIndex] = cArray1[i];
+		++concatIndex;
 	}
 
-	/*for (int i = 0; i < cArray1Size; i++)
+	for (int i = 0; cArray2[i] != '\0' && concatIndex < sizeConcatArray; i++)
 	{
-		if (static_cast<unsigned int>(cArray1[i]) == -52) //dirty way of cutting off array upon the first unused indexed variable
-		{
-			concatPosition = i;
-			break;
-		}
-		returnArray[i] = cArray1[i];
+		concatArray[concatIndex] = cArray2[i];
+		++concatIndex;
 	}
-	for (int i = 0; i < cArray2Size && concatPosition + i < cArray1Size; i++)
-	{
-		if (static_cast<unsigned int>(cArray2[i]) == -52) //dirty way of cutting off array upon the first unused indexed variable
-		{
-			concatPosition += i;
-			break;
-		}
-			returnArray[concatPosition + 1] = cArray2[i];
-	}*/
 
-	return concatPosition;
+	if (concatIndex < sizeConcatArray)
+	{
+		concatArray[concatIndex] = '\0';
+		++concatIndex;
+	}
+
+	return concatIndex;
 }
 
 bool findCSGOInstallation(char directory[_MAX_PATH])
