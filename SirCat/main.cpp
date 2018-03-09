@@ -27,7 +27,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 //Postcondition: 
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  char ignoreChars[], int numIgnoreChars);
+                  const char ignoreChars[], int numIgnoreChars);
 //Precondition: 
 //Postcondition: 
 
@@ -130,10 +130,8 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	return concatIndex;
 }
 
-char g_blankArray[] = "";
-
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  char ignoreChars[] = g_blankArray, int numIgnoreChars = 0)
+                  const char ignoreChars[] = "", int numIgnoreChars = 0)
 {
 	int instancesFound = 0;
 	string testString;
@@ -189,7 +187,7 @@ bool checkCsgoInstall(char testDir[])
 	if (!manifestFile.fail())
 	{
 		char searchResult[1][_MAX_PATH];
-		char ignoreChars[] = { '\t', '\"' }; //Ignore tabs and quotations for searchResult
+		const char ignoreChars[] = { '\t', '\"' }; //Ignore tabs and quotations for searchResult
 
 		if (static_cast<bool>(parseTextFile("\"installdir\"", manifestFile, searchResult, 1, ignoreChars, 2)))
 		{
