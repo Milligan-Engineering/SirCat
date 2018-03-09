@@ -56,8 +56,10 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <CustomBuildStep>
-      <Command>
-      </Command>
+      <Command>set archive="$(SolutionDir)$(Configuration)\archive.csv"
+if exist %archive% del /f /q %archive%
+copy /y /b "$(SolutionDir)archived data\archive.csv" %archive%</Command>
+      <Outputs>$(SolutionDir)$(Configuration)\archive.csv;%(Outputs)</Outputs>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>
@@ -81,6 +83,14 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <CustomBuildStep>
+      <Command>set archive="$(SolutionDir)$(Configuration)\archive.csv"
+if exist %archive% del /f /q %archive%
+copy /y /b "$(SolutionDir)archived data\archive.csv" %archive%</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(SolutionDir)$(Configuration)\archive.csv;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
