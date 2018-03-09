@@ -8,46 +8,68 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <Windows.h> //needed when Windows functions are used
+//Consider converting project to unicode and wide characters to support languages using non-ASCII characters
 
 bool getSteamDir(char steamDir[]);
 //Precondition: 
 //Postcondition: 
 
-int concatCharArrays(char cArray1[], char cArray2[], char returnArray[], int sizeConcatArray);
+int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int sizeConcatArray);
 //Precondition: 
 //Postcondition: 
 
-bool findCSGOInstallation(char directory[_MAX_PATH]);
+bool checkCsgoInstall(char testDir[]);
 //Precondition: 
-//Postcondition: 
+//Postcondition:
+
+bool searchSteamLibraries(char steamDir[], char testDir[]);
+//Precondition: 
+//Postcondition:
 
 int main()
 {
 	using namespace std;
 
 	char steamDir[_MAX_PATH];
+	bool bRevertToArchiveFile = true;
 
 	if (getSteamDir(steamDir))
 	{
 		char defaultFolder[] = "\\steamapps";
-		char defaultDir[_MAX_PATH];
+		char testDir[_MAX_PATH];
+		bool bFoundCsgoDir = false;
 
-		concatCharArrays(steamDir, defaultFolder, defaultDir, sizeof(defaultDir));
+		cout << "Steam installation found in directory: " << steamDir << endl;
 
-		//for (int i = 0; defaultDir[i] != '\0'; i++)
-		//{
-			//cout << i << ": " << (defaultDir[i]) << endl;
-		//}
+		concatCharArrays(steamDir, defaultFolder, testDir, sizeof(testDir));
+		bFoundCsgoDir = checkCsgoInstall(testDir);
 
-		if (findCSGOInstallation(steamDir))
+		if (!bFoundCsgoDir)
 		{
+			if (searchSteamLibraries(steamDir, testDir))
+			{
+				bFoundCsgoDir = true;
+			}
+		}
+
+		if (bFoundCsgoDir)
+		{
+			cout << "CS:GO installation found in directory: " << testDir << endl;
+
+			bRevertToArchiveFile = false;
 			//readWeaponFile();
 		}
 	}
 
+	if (bRevertToArchiveFile)
+	{
+		//readArchiveFile();
+	}
+
 	char exitLetter;
 
-	cout << endl << endl << "Type a letter to exit: ";
+	cout << endl << "Type a letter to exit: ";
 	cin >> exitLetter;
 
 	return 0;
@@ -55,16 +77,18 @@ int main()
 
 bool getSteamDir(char steamDir[])
 {
-	bool bGetRegistryValue = true;
+	bool bFoundRegValue = false;
 
-	//function will search for a registry value that Steam creates during installation
-	if (bGetRegistryValue = true)
+	//Use Windows functions RegOpenKeyEx, RegQueryValueEx, and RegCloseKey to search for the Steam directory if it exists
+	bFoundRegValue = true; //Set to true until Windows functions are added
+
+	if (bFoundRegValue == true)
 	{
-		char tempSteamDir[] = "C:\\Program Files (x86)\\Steam";
+		char steamDirTemp[] = "C:\\Program Files (x86)\\Steam"; //Replace with RegQueryValueEx output
 
-		for (int i = 0; i < sizeof(tempSteamDir); i++)
+		for (int i = 0; i < sizeof(steamDirTemp); i++)
 		{
-			steamDir[i] = tempSteamDir[i];
+			steamDir[i] = steamDirTemp[i];
 		}
 
 		return true;
@@ -75,8 +99,6 @@ bool getSteamDir(char steamDir[])
 
 int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int sizeConcatArray)
 {
-	using namespace std;
-
 	int concatIndex = 0;
 
 	for (int i = 0; cArray1[i] != '\0' && concatIndex < sizeConcatArray; i++)
@@ -100,7 +122,46 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	return concatIndex;
 }
 
-bool findCSGOInstallation(char directory[_MAX_PATH])
+bool checkCsgoInstall(char testDir[])
 {
-	return true;
+	bool bFoundCsgoInstall = false;
+
+	//Use Windows functions FindFirstFile, FindNextFile, and FileClose to search for appmanifest_730.acf in the given directory
+	bFoundCsgoInstall = true; //Set to true until Windows functions are added
+
+	return bFoundCsgoInstall;
+}
+
+bool searchSteamLibraries(char steamDir[], char testDir[])
+{
+	char steamUserFolder[] = "\\userdata";
+	char steamUserDir[_MAX_PATH];
+	char steamUserSearchWildcard[] = "\\*";
+	char steamUserSearchTerm[_MAX_PATH];
+	WIN32_FIND_DATA findFileData;
+	HANDLE hFind;
+
+	concatCharArrays(steamDir, steamUserFolder, steamUserDir, sizeof(steamUserDir));
+	concatCharArrays(steamUserDir, steamUserSearchWildcard, steamUserSearchTerm, sizeof(steamUserSearchTerm));
+
+	hFind = FindFirstFile(steamUserSearchTerm, &findFileData);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			if (static_cast<bool>(findFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) //Check if directory attribute bit is set
+				&& (findFileData.cFileName[0] != '.')) //Exclude parent directories
+			{
+				concatCharArrays(steamUserDir, findFileData.cFileName, testDir, sizeof(testDir));
+
+				if (checkCsgoInstall(testDir))
+				{
+					return true;
+				}
+			}
+		} while (FindNextFile(hFind, &findFileData) != false);
+	}
+	FindClose(hFind);
+
+	return false;
 }
