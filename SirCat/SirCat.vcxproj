@@ -56,10 +56,13 @@
       <ConformanceMode>true</ConformanceMode>
     </ClCompile>
     <CustomBuildStep>
-      <Command>set archive="$(SolutionDir)$(Configuration)\archive.csv"
-if exist %archive% del /f /q %archive%
-copy /y /b "$(SolutionDir)archived data\archive.csv" %archive%</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archive.csv;%(Outputs)</Outputs>
+      <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
+if exist %archivea% del /f /q %archivea%
+copy /y /b "$(SolutionDir)archived data\archiveBboxData.csv" %archivea%
+set archiveb="$(SolutionDir)$(Configuration)\archiveSirData.csv"
+if exist %archiveb% del /f /q %archiveb%
+copy /y /b "$(SolutionDir)archived data\archiveSirData.csv" %archiveb%</Command>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;%(Outputs)</Outputs>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>
@@ -84,12 +87,15 @@ copy /y /b "$(SolutionDir)archived data\archive.csv" %archive%</Command>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <CustomBuildStep>
-      <Command>set archive="$(SolutionDir)$(Configuration)\archive.csv"
-if exist %archive% del /f /q %archive%
-copy /y /b "$(SolutionDir)archived data\archive.csv" %archive%</Command>
+      <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
+if exist %archivea% del /f /q %archivea%
+copy /y /b "$(SolutionDir)archived data\archiveBboxData.csv" %archivea%
+set archiveb="$(SolutionDir)$(Configuration)\archiveSirData.csv"
+if exist %archiveb% del /f /q %archiveb%
+copy /y /b "$(SolutionDir)archived data\archiveSirData.csv" %archiveb%</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archive.csv;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
