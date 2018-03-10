@@ -33,18 +33,18 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original string.
 	//Returns the index of the last filled element in concatArray.
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX_PATH], int maxSearchResults,
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
                   const char ignoreChars[] = "", int numIgnoreChars = 0);
 //Precondition: searchTerm should not contain any whitespace characters.
 	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
-	//The two-dimensional array searchRes is modifiable.
-	//maxSearchResults is less than or equal to the first dimension in searchRes.
+	//The two-dimensional array searchResults is modifiable.
+	//maxSearchResults is less than or equal to the first dimension in searchResults.
 	//If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
 //Postcondition: searchFile is searched by looping through non-whitespace strings that are separated by whitespace characters.
-	//When a string matches searchTerm, a *searchRes[_MAX_PATH] array is filled with the line's remaining characters.
-	//Characters passed in ignoreChars are not copied to *searchRes[_MAX_PATH] and escaped backslashes are unescaped.
-	//searchRes is filled, up to maxSearchResults number of null-terminated strings *searchRes[_MAX_PATH].
-	//Returns the number of null-terminated strings *searchRes[_MAX_PATH] filled in the array of strings searchRes.
+	//When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled with the line's remaining characters.
+	//Characters passed in ignoreChars are not copied to *searchResults[_MAX_PATH] and escaped backslashes are unescaped.
+	//searchResults is filled, up to maxSearchResults number of null-terminated strings *searchResults[_MAX_PATH].
+	//Returns the number of null-terminated strings *searchResults[_MAX_PATH] filled in the array of strings searchResults.
 
 bool bCheckCsgoInstall(char testDir[_MAX_PATH]);
 //Precondition: The array testDir is modifiable.
@@ -58,13 +58,17 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH]);
 	//testDir is filled with one alternate library path at a time and passed to the bCheckCsgoInstall function.
 	//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alternate library path, and false otherwise.
 
+bool bReadWeaponFile(char csgoDir[_MAX_PATH]);
+//Precondition: 
+//Postcondition: 
+
 void readArchiveFile();
 //Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
 
 int takeOnlyOneChar();
 //Precondition: The returned value is intended to be a decimal digit.
-//Postcondition: Returns int equal to input char decimal digit if it is immediately followed by input of new-line, and 0 otherwise.
+//Postcondition: Returns int equal to input char decimal digit, if immediately followed by input of new-line, and 0 otherwise.
 
 int main()
 {
@@ -88,8 +92,8 @@ int main()
 					|| bSearchSteamLibs(testDir)) //CSGO found in alternate Steam library
 				{
 					cout << "CS:GO installation found in directory:\n" << testDir << endl << endl;
-
-					//readWeaponFile
+					
+					bReadWeaponFile(testDir);
 
 					//unpackModels
 
@@ -208,7 +212,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	return concatIndex;
 }
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX_PATH], int maxSearchResults,
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
                   const char ignoreChars[], int numIgnoreChars)
 {
 	int instancesFound = 0;
@@ -237,14 +241,14 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX
 
 				if (!bIgnoreChar)
 				{
-					searchRes[instancesFound][i] = character;
+					searchResults[instancesFound][i] = character;
 					++i;
 				}
 
 				characterLast = character;
 				searchFile.get(character);
 			}
-			searchRes[instancesFound][i] = '\0'; //Terminate string with null character
+			searchResults[instancesFound][i] = '\0'; //Terminate string with null character
 
 			++instancesFound;
 		}
@@ -257,28 +261,25 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX
 
 bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 {
-	char manifestName[] = "\\appmanifest_730.acf";
-	char manifestPath[_MAX_PATH];
-	ifstream manifest;
+	ifstream manifestFile;
 	bool bFoundCsgoInstall = false;
 
-	concatCharArrays(testDir, manifestName, manifestPath, _MAX_PATH);
-	manifest.open(manifestPath);
-	if (!manifest.fail())
-	{
-		char searchRes[1][_MAX_PATH];
-		const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
+	manifestFile.open(static_cast<string>(testDir) + static_cast<string>("\\appmanifest_730.acf"));
 
-		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchRes, 1, ignoreChars, 2)))
+	if (!manifestFile.fail())
+	{
+		char searchResult[1][_MAX_PATH];
+
+		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifestFile, searchResult, 1, "\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
 			char installSubDir[] = "\\common\\";
 
 			concatCharArrays(testDir, installSubDir, testDir, _MAX_PATH);
-			concatCharArrays(testDir, searchRes[0], testDir, _MAX_PATH);
+			concatCharArrays(testDir, searchResult[0], testDir, _MAX_PATH);
 		}
 
-		manifest.close();
+		manifestFile.close();
 	}
 
 	return bFoundCsgoInstall;
@@ -286,27 +287,23 @@ bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 
 bool bSearchSteamLibs(char testDir[_MAX_PATH])
 {
-	char libName[] = "\\libraryfolders.vdf";
-	char libPath[_MAX_PATH];
-	ifstream lib;
+	ifstream libFile;
 	bool bFoundCsgoInstall = false;
 
-	concatCharArrays(testDir, libName, libPath, _MAX_PATH);
-	lib.open(libPath);
+	libFile.open(static_cast<string>(testDir) + static_cast<string>("\\libraryfolders.vdf"));
 
-	if (!lib.fail())
+	if (!libFile.fail())
 	{
 		for (int i = 1; i < 10; i++)
 		{
 			char searchTerm[] = { '\"', static_cast<char>(i + static_cast<int>('0')), '\"', '\0' };
-			char searchRes[1][_MAX_PATH];
-			const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
+			char searchResult[1][_MAX_PATH];
 
-			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), lib, searchRes, 1, ignoreChars, 2)))
+			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1, "\t\"\0", 2)))
 			{
 				char steamappsFolder[] = "\\steamapps";
 
-				concatCharArrays(searchRes[0], steamappsFolder, testDir, _MAX_PATH);
+				concatCharArrays(searchResult[0], steamappsFolder, testDir, _MAX_PATH);
 				if (bCheckCsgoInstall(testDir))
 				{
 					bFoundCsgoInstall = true;
@@ -317,17 +314,38 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 				break;
 		}
 
-		lib.close();
+		libFile.close();
 	}
 
 	return bFoundCsgoInstall;
 }
 
+bool bReadWeaponFile(char csgoDir[_MAX_PATH])
+{
+	ifstream weaponFile;
+	bool bParsedWeaponFile = false;
+
+	weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
+	if (!weaponFile.fail())
+	{
+		char searchResult[1][_MAX_PATH];
+
+		if (static_cast<bool>(parseTextFile(static_cast<string>("CSGO_Type_Machinegun"), weaponFile, searchResult, 1)))
+		{
+			//Start collecting weapon data to parse
+		}
+		weaponFile.close();
+	}
+
+	return bParsedWeaponFile;
+}
+
 void readArchiveFile()
 {
 	ifstream archiveFile;
+	char character;
 	
-	archiveFile.open("archive.csv");
+	archiveFile.open("archiveSirData.csv");
 	if (archiveFile.fail())
 	{
 		char exitLetter;
@@ -338,9 +356,8 @@ void readArchiveFile()
 		exit(1);
 	}
 
-	char character;
-
 	cout << endl;
+
 	archiveFile.get(character);
 	while (!archiveFile.eof())
 	{
