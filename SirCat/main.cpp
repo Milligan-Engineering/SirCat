@@ -3,8 +3,8 @@
 //Author: Casey Williams
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #07
-//Description: Program to calculate the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: March 9, 2018
+//Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
+//Last Changed: March 10, 2018
 
 #include <fstream>
 #include <iostream>
@@ -15,58 +15,61 @@
 
 using namespace std;
 
-bool getSteamDir(char steamDir[_MAX_PATH]);
+bool bUserMenu(int &menuOption);
+//Postcondition: menuOption from the calling function is updated according to the user's input.
+	//Returns true if the program should continue or false if the program should exit.
+
+bool bGetSteamDir(char steamDir[_MAX_PATH]);
 //Precondition: The array steamDir is modifiable.
 //Postcondition: If a valid registry value for a Steam installation is found, steamDir is filled with the installation directory.
-//               Returns true if a valid registry value is found, and false otherwise.
+	//Returns true if a valid registry value is found, and false otherwise.
 
 int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int sizeConcatArray);
-//Precondition: The arrays cArray1 and cArray2 are null-terminated.
-//              The sum of filled elements of cArray1 and cArray2 is less than or equal to the size of array concatArray.
-//              concatArray is modifiable.
-//              sizeConcatArray is the size of concatArray.
+//Precondition: The strings cArray1 and cArray2 are null-terminated.
+	//The sum of filled elements of cArray1 and cArray2 is less than or equal to the size of array concatArray.
+	//concatArray is modifiable.
+	//sizeConcatArray is the size of concatArray.
 //Postcondition: concatArray is filled with the concatenation of cArray1 and cArray2, and terminated with a null character.
-//               cArray1 and cArray2 can be the same array as concatArray to append or prepend to the original input array.
-//               Returns the index of the last filled element in concatArray.
+	//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original string.
+	//Returns the index of the last filled element in concatArray.
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX_PATH], int maxSearchResults,
                   const char ignoreChars[] = "", int numIgnoreChars = 0);
 //Precondition: searchTerm should not contain any whitespace characters.
-//              The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
-//              The two-dimensional array searchResult is modifiable.
-//              maxSearchResults is less than or equal to the first dimension in searchResult.
-//              If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
+	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
+	//The two-dimensional array searchRes is modifiable.
+	//maxSearchResults is less than or equal to the first dimension in searchRes.
+	//If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
 //Postcondition: searchFile is searched by looping through non-whitespace strings that are separated by whitespace characters.
-//               When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled with the line's remaining characters.
-//               Characters passed in ignoreChars are not copied to *searchResults[_MAX_PATH] and escaped backslashes are unescaped.
-//               searchResult is filled, up to maxSearchResults number of *searchResults[_MAX_PATH] arrays.
-//               Returns the number of *searchResults[_MAX_PATH] arrays that are at least partially filled.
+	//When a string matches searchTerm, a *searchRes[_MAX_PATH] array is filled with the line's remaining characters.
+	//Characters passed in ignoreChars are not copied to *searchRes[_MAX_PATH] and escaped backslashes are unescaped.
+	//searchRes is filled, up to maxSearchResults number of null-terminated strings *searchRes[_MAX_PATH].
+	//Returns the number of null-terminated strings *searchRes[_MAX_PATH] filled in the array of strings searchRes.
 
-bool checkCsgoInstall(char testDir[_MAX_PATH]);
+bool bCheckCsgoInstall(char testDir[_MAX_PATH]);
 //Precondition: The array testDir is modifiable.
 //Postcondition: If a CS:GO manifest file is found in testDir, it is parsed for the CS:GO installation directory.
-//               If the installation directory is parsed from the manifest file, testDir is filled with it.
-//               Returns true if the installation directory is parsed from the manifest file, and false otherwise.
+	//If the installation directory is parsed from the manifest file, testDir is filled with it.
+	//Returns true if the installation directory is parsed from the manifest file, and false otherwise.
 
-bool searchSteamLibraries(char testDir[_MAX_PATH]);
+bool bSearchSteamLibs(char testDir[_MAX_PATH]);
 //Precondition: The array testDir is modifiable.
-//Postcondition: If Steam library folders file is found in testDir, it is parsed to enumerate up to 9 alternate library paths to search.
-//               testDir is filled with one alternate library path at a time and passed to the checkCsgoInstall function.
-//               Returns true and stops enumerating if checkCsgoInstall returns true for an alternate library path, and false otherwise.
+//Postcondition: If Steam library file is found in testDir, it is parsed to enumerate up to 9 alternate library paths to search.
+	//testDir is filled with one alternate library path at a time and passed to the bCheckCsgoInstall function.
+	//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alternate library path, and false otherwise.
 
 void readArchiveFile();
-//Precondition: The archive file exists and can be successfully connected to a file input stream with ifstream::open member function.
+//Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
 
 int takeOnlyOneChar();
 //Precondition: The returned value is intended to be a decimal digit.
-//Postcondition: Returns int equal to first input character if it is a decimal digit, and 0 otherwise, discarding the rest of the input.
+//Postcondition: Returns int equal to input char decimal digit if it is immediately followed by input of new-line, and 0 otherwise.
 
 int main()
 {
 	int menuOption = 0;
 	char testDir[_MAX_PATH];
-	bool bExit = false;
 
 	do
 	{
@@ -74,23 +77,28 @@ int main()
 
 		if (menuOption < 2)
 		{
-			if (getSteamDir(testDir))
+			if (bGetSteamDir(testDir))
 			{
 				char steamappsFolder[] = "\\steamapps";
 
 				cout << "Steam installation found in directory:\n" << testDir << endl << endl;
 
 				concatCharArrays(testDir, steamappsFolder, testDir, _MAX_PATH);
-				if (checkCsgoInstall(testDir) //CSGO found in default Steam library
-					|| searchSteamLibraries(testDir)) //CSGO found in alternate Steam library
+				if (bCheckCsgoInstall(testDir) //CSGO found in default Steam library
+					|| bSearchSteamLibs(testDir)) //CSGO found in alternate Steam library
 				{
 					cout << "CS:GO installation found in directory:\n" << testDir << endl << endl;
 
 					//readWeaponFile
+
 					//unpackModels
+
 					//decompileModels
+
 					//readModelFiles
+
 					//overwriteArchiveFile
+
 					bRevertToArchiveFile = false;
 				}
 			}
@@ -103,6 +111,7 @@ int main()
 			}
 
 			//hitboxList
+
 			//weaponList
 		}
 
@@ -115,41 +124,52 @@ int main()
 
 		//calcIdealFreq
 
-		bool bValidMenuOption;
-
-		do
-		{
-			bValidMenuOption = false;
-
-			cout << endl << endl;
-			cout << "1 - start over for a fresh calculation, starting from actual game data\n";
-			cout << "2 - modify hitbox and weapon data for another calculation\n";
-			cout << "3 - pick distance for another calculation with the same hitbox and weapon data\n";
-			cout << "4 - exit the program\n\n";
-			cout << "Please enter a choice from the preceding menu options: ";
-
-			switch (menuOption = takeOnlyOneChar())
-			{
-			case 1:
-			case 2:
-			case 3:
-				cout << endl << endl << endl << endl << endl;
-				bValidMenuOption = true;
-				break;
-			case 4:
-				bExit = true;
-				bValidMenuOption = true;
-				break;
-			default:
-				cout << endl << "That is not a valid menu option.\n\n";
-			}
-		} while (!bValidMenuOption);
-	} while (!bExit);
+	} while (bUserMenu(menuOption));
 
 	return 0;
 }
 
-bool getSteamDir(char steamDir[_MAX_PATH])
+bool bUserMenu(int &menuOption)
+{
+	bool bInvalidMenuOption;
+	bool bContinue = true;
+
+	do
+	{
+		bInvalidMenuOption = true;
+
+		cout << endl << endl;
+		cout << "1 - start over for a fresh calculation, starting from actual game data\n";
+		cout << "2 - modify hitbox and weapon data for another calculation\n";
+		cout << "3 - pick distance for another calculation with the same hitbox and weapon data\n";
+		cout << "4 - exit the program\n\n";
+		cout << "Please enter a choice from the preceding menu options: ";
+
+		switch (menuOption = takeOnlyOneChar()) //Change menuOption in calling function
+		{
+		case 1:
+		case 2:
+		case 3:
+			cout << endl << endl << endl; //Add some padding for new calculations
+			bInvalidMenuOption = false;
+			break;
+
+		case 4:
+			cout << endl; //End program with a new-line instruction
+			bContinue = false;
+			bInvalidMenuOption = false;
+			break;
+
+		default:
+			cout << endl << "That is not a valid menu option.\n\n";
+		}
+
+	} while (bInvalidMenuOption);
+
+	return bContinue;
+}
+
+bool bGetSteamDir(char steamDir[_MAX_PATH])
 {
 	bool bFoundRegValue = false;
 
@@ -188,7 +208,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	return concatIndex;
 }
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX_PATH], int maxSearchResults,
                   const char ignoreChars[], int numIgnoreChars)
 {
 	int instancesFound = 0;
@@ -217,14 +237,14 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 
 				if (!bIgnoreChar)
 				{
-					searchResults[instancesFound][i] = character;
+					searchRes[instancesFound][i] = character;
 					++i;
 				}
 
 				characterLast = character;
 				searchFile.get(character);
 			}
-			searchResults[instancesFound][i] = '\0';
+			searchRes[instancesFound][i] = '\0'; //Terminate string with null character
 
 			++instancesFound;
 		}
@@ -235,58 +255,59 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 	return instancesFound;
 }
 
-bool checkCsgoInstall(char testDir[_MAX_PATH])
+bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 {
-	char manifestFileName[] = "\\appmanifest_730.acf";
-	char manifestFilePath[_MAX_PATH];
-	ifstream manifestFile;
+	char manifestName[] = "\\appmanifest_730.acf";
+	char manifestPath[_MAX_PATH];
+	ifstream manifest;
 	bool bFoundCsgoInstall = false;
 
-	concatCharArrays(testDir, manifestFileName, manifestFilePath, _MAX_PATH);
-	manifestFile.open(manifestFilePath);
-	if (!manifestFile.fail())
+	concatCharArrays(testDir, manifestName, manifestPath, _MAX_PATH);
+	manifest.open(manifestPath);
+	if (!manifest.fail())
 	{
-		char searchResult[1][_MAX_PATH];
-		const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchResult
+		char searchRes[1][_MAX_PATH];
+		const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
 
-		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifestFile, searchResult, 1, ignoreChars, 2)))
+		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchRes, 1, ignoreChars, 2)))
 		{
 			bFoundCsgoInstall = true;
 			char installSubDir[] = "\\common\\";
 
 			concatCharArrays(testDir, installSubDir, testDir, _MAX_PATH);
-			concatCharArrays(testDir, searchResult[0], testDir, _MAX_PATH);
+			concatCharArrays(testDir, searchRes[0], testDir, _MAX_PATH);
 		}
 
-		manifestFile.close();
+		manifest.close();
 	}
 
 	return bFoundCsgoInstall;
 }
 
-bool searchSteamLibraries(char testDir[_MAX_PATH])
+bool bSearchSteamLibs(char testDir[_MAX_PATH])
 {
-	char libFoldersFileName[] = "\\libraryfolders.vdf";
-	char libFoldersFilePath[_MAX_PATH];
-	ifstream libFoldersFile;
+	char libName[] = "\\libraryfolders.vdf";
+	char libPath[_MAX_PATH];
+	ifstream lib;
 	bool bFoundCsgoInstall = false;
 
-	concatCharArrays(testDir, libFoldersFileName, libFoldersFilePath, _MAX_PATH);
-	libFoldersFile.open(libFoldersFilePath);
-	if (!libFoldersFile.fail())
+	concatCharArrays(testDir, libName, libPath, _MAX_PATH);
+	lib.open(libPath);
+
+	if (!lib.fail())
 	{
 		for (int i = 1; i < 10; i++)
 		{
 			char searchTerm[] = { '\"', static_cast<char>(i + static_cast<int>('0')), '\"', '\0' };
-			char searchResult[1][_MAX_PATH];
-			const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchResult
+			char searchRes[1][_MAX_PATH];
+			const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
 
-			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFoldersFile, searchResult, 1, ignoreChars, 2)))
+			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), lib, searchRes, 1, ignoreChars, 2)))
 			{
 				char steamappsFolder[] = "\\steamapps";
 
-				concatCharArrays(searchResult[0], steamappsFolder, testDir, _MAX_PATH);
-				if (checkCsgoInstall(testDir))
+				concatCharArrays(searchRes[0], steamappsFolder, testDir, _MAX_PATH);
+				if (bCheckCsgoInstall(testDir))
 				{
 					bFoundCsgoInstall = true;
 					break;
@@ -296,7 +317,7 @@ bool searchSteamLibraries(char testDir[_MAX_PATH])
 				break;
 		}
 
-		libFoldersFile.close();
+		lib.close();
 	}
 
 	return bFoundCsgoInstall;
@@ -333,23 +354,25 @@ void readArchiveFile()
 
 int takeOnlyOneChar()
 {
-	int menuOption = 0;
+	const int INVALID = 0;
+	int menuOption = INVALID;
 	char menuOptionChar = '\0';
 
-	for (bool bFirstChar = true; menuOptionChar != '\n';)
+	for (bool bFirstChar = true; menuOptionChar != '\n'; ) //loop-expression intentionally left blank
 	{
 		cin.get(menuOptionChar);
 
 		if (bFirstChar)
 		{
+			//Preserve decimal digit while converting char to int
 			menuOption = static_cast<int>(menuOptionChar) - static_cast<int>('0');
 			if (menuOption < 0 || menuOption > 9)
-				menuOption = 0;
+				menuOption = INVALID;
 
 			bFirstChar = false;
 		}
-		else if (menuOptionChar != '\n')
-			menuOption = 0;
+		else if (menuOptionChar != '\n') //More than one char input
+			menuOption = INVALID;
 	}
 
 	return menuOption;
