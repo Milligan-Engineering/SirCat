@@ -34,15 +34,15 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	//Returns the index of the last filled element in concatArray.
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX_PATH], int maxSearchResults,
-                  const char ignoreChars[] = "", int numIgnoreChars = 0);
+                  const char ignoreChar[] = "", int numIgnoreChar = 0);
 //Precondition: searchTerm should not contain any whitespace characters.
 	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
 	//The two-dimensional array searchRes is modifiable.
 	//maxSearchResults is less than or equal to the first dimension in searchRes.
-	//If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
+	//If the array ignoreChar is passed, numIgnoreChar is less than or equal to the size of ignoreChar.
 //Postcondition: searchFile is searched by looping through non-whitespace strings that are separated by whitespace characters.
 	//When a string matches searchTerm, a *searchRes[_MAX_PATH] array is filled with the line's remaining characters.
-	//Characters passed in ignoreChars are not copied to *searchRes[_MAX_PATH] and escaped backslashes are unescaped.
+	//Characters passed in ignoreChar are not copied to *searchRes[_MAX_PATH] and escaped backslashes are unescaped.
 	//searchRes is filled, up to maxSearchResults number of null-terminated strings *searchRes[_MAX_PATH].
 	//Returns the number of null-terminated strings *searchRes[_MAX_PATH] filled in the array of strings searchRes.
 
@@ -209,7 +209,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 }
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX_PATH], int maxSearchResults,
-                  const char ignoreChars[], int numIgnoreChars)
+                  const char ignoreChar[], int numIgnoreChar)
 {
 	int instancesFound = 0;
 	string testString;
@@ -228,9 +228,9 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchRes[][_MAX
 			{
 				bool bIgnoreChar = false;
 
-				for (int j = 0; j < numIgnoreChars; ++j)
+				for (int j = 0; j < numIgnoreChar; ++j)
 				{
-					if (character == ignoreChars[j]
+					if (character == ignoreChar[j]
 						|| (characterLast == '\\' && character == '\\')) //Detect escaped backslashes
 						bIgnoreChar = true;
 				}
@@ -267,9 +267,9 @@ bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 	if (!manifest.fail())
 	{
 		char searchRes[1][_MAX_PATH];
-		const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
+		const char ignoreChar[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
 
-		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchRes, 1, ignoreChars, 2)))
+		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchRes, 1, ignoreChar, 2)))
 		{
 			bFoundCsgoInstall = true;
 			char installSubDir[] = "\\common\\";
@@ -300,9 +300,9 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 		{
 			char searchTerm[] = { '\"', static_cast<char>(i + static_cast<int>('0')), '\"', '\0' };
 			char searchRes[1][_MAX_PATH];
-			const char ignoreChars[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
+			const char ignoreChar[] = { '\t', '\"', '\0' }; //Ignore tabs and quotations for searchRes
 
-			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), lib, searchRes, 1, ignoreChars, 2)))
+			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), lib, searchRes, 1, ignoreChar, 2)))
 			{
 				char steamappsFolder[] = "\\steamapps";
 
