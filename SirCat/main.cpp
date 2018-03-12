@@ -34,14 +34,14 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	//Returns the index of the last filled element in concatArray.
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  const char ignoreChars[] = "", int numIgnoreChars = 0);
+                  char terminateSearchResult = '\n', const char ignoreChars[] = "", int numIgnoreChars = 0);
 //Precondition: searchTerm should not contain any whitespace characters.
 	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
 	//The two-dimensional array searchResults is modifiable.
 	//maxSearchResults is less than or equal to the first dimension in searchResults.
 	//If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
 //Postcondition: searchFile is searched by looping through non-whitespace strings that are separated by whitespace characters.
-	//When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled with the line's remaining characters.
+	//When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled until terminateSearchResult.
 	//Characters passed in ignoreChars are not copied to *searchResults[_MAX_PATH] and escaped backslashes are unescaped.
 	//searchResults is filled, up to maxSearchResults number of null-terminated strings *searchResults[_MAX_PATH].
 	//Returns the number of null-terminated strings *searchResults[_MAX_PATH] filled in the array of strings searchResults.
@@ -74,6 +74,8 @@ int takeOnlyOneChar();
 //Precondition: The returned value is intended to be a decimal digit.
 //Postcondition: Returns int equal to input char decimal digit, if immediately followed by input of new-line, and 0 otherwise.
 
+const int NUM_WEAPONS = 26;
+const int WEAPON_NAME_LENGTH = 21;
 const char SIR[] = "archiveSirData.csv";
 const char BBOX[] = "archiveBboxData.csv";
 
@@ -220,7 +222,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 }
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  const char ignoreChars[], int numIgnoreChars)
+                  char terminateSearchResult, const char ignoreChars[], int numIgnoreChars)
 {
 	int instancesFound = 0;
 	string testString;
@@ -235,7 +237,7 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 			int i = 0;
 
 			searchFile.get(character);
-			while(!searchFile.eof() && character != '\n') //Fill search result entry until new-line or end of file
+			while(!searchFile.eof() && character != terminateSearchResult) //Fill search result entry
 			{
 				bool bIgnoreChar = false;
 
@@ -268,16 +270,16 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 
 bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 {
-	ifstream manifestFile;
+	ifstream manifest;
 	bool bFoundCsgoInstall = false;
 
-	manifestFile.open(static_cast<string>(testDir) + static_cast<string>("\\appmanifest_730.acf"));
+	manifest.open(static_cast<string>(testDir) + static_cast<string>("\\appmanifest_730.acf"));
 
-	if (!manifestFile.fail())
+	if (!manifest.fail())
 	{
 		char searchResult[1][_MAX_PATH];
 
-		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifestFile, searchResult, 1, "\t\"\0", 2)))
+		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchResult, 1, '\n', "\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
 			char installSubDir[] = "\\common\\";
@@ -286,7 +288,7 @@ bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 			concatCharArrays(testDir, searchResult[0], testDir, _MAX_PATH);
 		}
 
-		manifestFile.close();
+		manifest.close();
 	}
 
 	return bFoundCsgoInstall;
@@ -306,7 +308,7 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 			char searchTerm[] = { '\"', static_cast<char>(i + static_cast<int>('0')), '\"', '\0' };
 			char searchResult[1][_MAX_PATH];
 
-			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1, "\t\"\0", 2)))
+			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1, '\n', "\t\"\0", 2)))
 			{
 				char steamappsFolder[] = "\\steamapps";
 
@@ -327,10 +329,45 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 	return bFoundCsgoInstall;
 }
 
+void getWeaponNames(string weaponNames[NUM_WEAPONS])
+{
+	ifstream sirFile;
+	char character;
+
+	openArchiveFile(sirFile, SIR);
+	do //Skip the first entry in the CSV file
+	{
+		sirFile.get(character);
+	} while (character != ',');
+
+	for (int i = 0; i < NUM_WEAPONS; ++i)
+	{
+		char weaponName[WEAPON_NAME_LENGTH];
+		int j = 0;
+
+		sirFile.get(character);
+		while (character != ',' && character != '\n' && j < WEAPON_NAME_LENGTH) //Start reading next CSV entry
+		{
+			weaponName[j] = character;
+			sirFile.get(character);
+			++j;
+		}
+		weaponName[j] = '\0'; //Add terminal null character to character string
+
+		weaponNames[i] = static_cast<string>(weaponName);
+
+		cout << static_cast<string>(weaponName) << endl;
+	}
+}
+
 bool bReadWeaponFile(char csgoDir[_MAX_PATH])
 {
-	ifstream weaponFile;
 	bool bParsedWeaponFile = false;
+	string weaponNames[NUM_WEAPONS];
+
+	getWeaponNames(weaponNames);
+
+	/*ifstream weaponFile;
 
 	weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
 	if (!weaponFile.fail())
@@ -342,7 +379,7 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH])
 			//Start collecting weapon data to parse
 		}
 		weaponFile.close();
-	}
+	}*/
 
 	return bParsedWeaponFile;
 }
@@ -384,6 +421,7 @@ void readArchiveFiles()
 int takeOnlyOneChar()
 {
 	const int INVALID = 0;
+
 	int menuOption = INVALID;
 	char menuOptionChar = '\0';
 
