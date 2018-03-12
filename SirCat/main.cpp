@@ -34,7 +34,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	//Returns the index of the last filled element in concatArray.
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  char terminateSearchResult = '\n', const char ignoreChars[] = "", int numIgnoreChars = 0);
+                  const char ignoreChars[] = "", int numIgnoreChars = 0);
 //Precondition: searchTerm should not contain any whitespace characters.
 	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
 	//The two-dimensional array searchResults is modifiable.
@@ -222,7 +222,7 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 }
 
 int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  char terminateSearchResult, const char ignoreChars[], int numIgnoreChars)
+                  const char ignoreChars[], int numIgnoreChars)
 {
 	int instancesFound = 0;
 	string testString;
@@ -237,7 +237,7 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 			int i = 0;
 
 			searchFile.get(character);
-			while(!searchFile.eof() && character != terminateSearchResult) //Fill search result entry
+			while (!searchFile.eof() && character != '\n') //Fill search result entry until new-line or end of file
 			{
 				bool bIgnoreChar = false;
 
@@ -279,7 +279,7 @@ bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 	{
 		char searchResult[1][_MAX_PATH];
 
-		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchResult, 1, '\n', "\t\"\0", 2)))
+		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchResult, 1, "\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
 			char installSubDir[] = "\\common\\";
@@ -308,7 +308,7 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 			char searchTerm[] = { '\"', static_cast<char>(i + static_cast<int>('0')), '\"', '\0' };
 			char searchResult[1][_MAX_PATH];
 
-			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1, '\n', "\t\"\0", 2)))
+			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1, "\t\"\0", 2)))
 			{
 				char steamappsFolder[] = "\\steamapps";
 
