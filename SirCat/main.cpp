@@ -62,13 +62,20 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH]);
 //Precondition: 
 //Postcondition: 
 
-void readArchiveFile();
+void openArchiveFile(ifstream &archiveFile, const char whichArchive[]);
+//Precondition: 
+//Postcondition: 
+
+void readArchiveFiles();
 //Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
 
 int takeOnlyOneChar();
 //Precondition: The returned value is intended to be a decimal digit.
 //Postcondition: Returns int equal to input char decimal digit, if immediately followed by input of new-line, and 0 otherwise.
+
+const char SIR[] = "archiveSirData.csv";
+const char BBOX[] = "archiveBboxData.csv";
 
 int main()
 {
@@ -111,7 +118,7 @@ int main()
 			{
 				cout << "CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
 
-				readArchiveFile();
+				readArchiveFiles();
 			}
 
 			//hitboxList
@@ -340,33 +347,38 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH])
 	return bParsedWeaponFile;
 }
 
-void readArchiveFile()
+void openArchiveFile(ifstream &archiveFile, const char whichArchive[])
 {
-	ifstream archiveFile;
-	char character;
-	
-	archiveFile.open("archiveSirData.csv");
+	archiveFile.open(whichArchive);
 	if (archiveFile.fail())
 	{
 		char exitLetter;
 
-		cout << endl << "Archive file failed to open.\n\n\n";
+		cout << endl << "Archive file " << whichArchive << " failed to open.\n\n\n";
 		cout << endl << "Type a letter to exit: ";
 		cin >> exitLetter;
 		exit(1);
 	}
+}
+
+void readArchiveFiles()
+{
+	ifstream sirFile;
+	char character;
+	
+	openArchiveFile(sirFile, SIR);
 
 	cout << endl;
 
-	archiveFile.get(character);
-	while (!archiveFile.eof())
+	sirFile.get(character);
+	while (!sirFile.eof())
 	{
 		//Parse archive file contents and store to program memory
 		//Waiting to decide on file format and handling of memory
 
-		archiveFile.get(character);
+		sirFile.get(character);
 	}
-	archiveFile.close();
+	sirFile.close();
 }
 
 int takeOnlyOneChar()
