@@ -15,6 +15,14 @@
 
 using namespace std;
 
+//Const definitions need to preceed function definitions, which might use them
+const int NUM_WEAPONS = 26;
+const int WEAPON_NAME_LENGTH = 21;
+const int NUM_ATTRIBUTES = 21;
+const int ATTRIBUTE_LENGTH = 30;
+const char SIR[] = "archiveSirData.csv";
+const char BBOX[] = "archiveBboxData.csv";
+
 bool bUserMenu(int &menuOption);
 //Postcondition: menuOption from the calling function is updated according to the user's input.
 	//Returns true if the program should continue or false if the program should exit.
@@ -58,6 +66,10 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH]);
 	//testDir is filled with one alternate library path at a time and passed to the bCheckCsgoInstall function.
 	//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alternate library path, and false otherwise.
 
+void getWeaponNamesOrAttributes(bool bPickWeaponNames, string whichArray[]);
+//Precondition: 
+//Postcondition: 
+
 bool bReadWeaponFile(char csgoDir[_MAX_PATH]);
 //Precondition: 
 //Postcondition: 
@@ -73,11 +85,6 @@ void readArchiveFiles();
 int takeOnlyOneChar();
 //Precondition: The returned value is intended to be a decimal digit.
 //Postcondition: Returns int equal to input char decimal digit, if immediately followed by input of new-line, and 0 otherwise.
-
-const int NUM_WEAPONS = 26;
-const int WEAPON_NAME_LENGTH = 21;
-const char SIR[] = "archiveSirData.csv";
-const char BBOX[] = "archiveBboxData.csv";
 
 int main()
 {
@@ -226,13 +233,13 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 {
 	int instancesFound = 0;
 	string testString;
+	char character;
 
 	searchFile >> testString;
 	while (!searchFile.eof() && instancesFound < maxSearchResults)
 	{
 		if (testString == searchTerm)
 		{
-			char character;
 			char characterLast = '\0';
 			int i = 0;
 
@@ -329,43 +336,65 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 	return bFoundCsgoInstall;
 }
 
-void getWeaponNames(string weaponNames[NUM_WEAPONS])
+void getWeaponNamesOrAttributes(bool bPickWeaponNames, string whichArray[])
 {
+	const int nums[] = { NUM_ATTRIBUTES, NUM_WEAPONS };
+	const int lengths[] = { ATTRIBUTE_LENGTH, WEAPON_NAME_LENGTH };
+	const int iPickWeaponNames = static_cast<const int>(bPickWeaponNames);
+
 	ifstream sirFile;
-	char character;
+	char skipCharacters[] = { '\n', ',' };
+	char weaponName[WEAPON_NAME_LENGTH];
+	char weaponAttribute[ATTRIBUTE_LENGTH];
 
 	openArchiveFile(sirFile, SIR);
-	do //Skip the first entry in the CSV file
+	for (int i = 0; i < nums[iPickWeaponNames]; ++i)
 	{
-		sirFile.get(character);
-	} while (character != ',');
-
-	for (int i = 0; i < NUM_WEAPONS; ++i)
-	{
-		char weaponName[WEAPON_NAME_LENGTH];
+		char character;
 		int j = 0;
 
-		sirFile.get(character);
-		while (character != ',' && character != '\n' && j < WEAPON_NAME_LENGTH) //Start reading next CSV entry
+		if (i == 0 || !bPickWeaponNames) //Only during the first iteration for weapon names
 		{
-			weaponName[j] = character;
+			do //Skip the first entry or to the next line in the CSV file
+			{
+				sirFile.get(character);
+			} while (character != skipCharacters[iPickWeaponNames]);
+		}
+
+		sirFile.get(character);
+		while (character != ',' && character != '\n' && j < lengths[iPickWeaponNames])
+		{ //Read the next CSV entry
+			if (bPickWeaponNames)
+				weaponName[j] = character;
+			else
+				weaponAttribute[j] = character;
+
 			sirFile.get(character);
 			++j;
 		}
-		weaponName[j] = '\0'; //Add terminal null character to character string
 
-		weaponNames[i] = static_cast<string>(weaponName);
-
-		cout << static_cast<string>(weaponName) << endl;
+		if (bPickWeaponNames) //Add terminal null character to character string and set element in string array
+		{
+			weaponName[j] = '\0';
+			whichArray[i] = static_cast<string>(weaponName);
+		}
+		else
+		{
+			weaponAttribute[j] = '\0';
+			whichArray[i] = static_cast<string>(weaponAttribute);
+		}
 	}
+	sirFile.close();
 }
 
 bool bReadWeaponFile(char csgoDir[_MAX_PATH])
 {
 	bool bParsedWeaponFile = false;
 	string weaponNames[NUM_WEAPONS];
+	string weaponAttributes[NUM_ATTRIBUTES];
 
-	getWeaponNames(weaponNames);
+	getWeaponNamesOrAttributes(true, weaponNames);
+	getWeaponNamesOrAttributes(false, weaponAttributes);
 
 	/*ifstream weaponFile;
 
@@ -425,7 +454,7 @@ int takeOnlyOneChar()
 	int menuOption = INVALID;
 	char menuOptionChar = '\0';
 
-	for (bool bFirstChar = true; menuOptionChar != '\n'; ) //loop-expression intentionally left blank
+	for (bool bFirstChar = true; menuOptionChar != '\n'; ) //Third expression intentionally left blank
 	{
 		cin.get(menuOptionChar);
 
