@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #07
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: March 10, 2018
+//Last Changed: March 13, 2018
 
 #include <fstream>
 #include <iostream>
@@ -16,12 +16,12 @@
 using namespace std;
 
 //Const definitions need to preceed function definitions, which might use them
-const int NUM_WEAPONS = 26;
-const int WEAPON_NAME_LENGTH = 21;
-const int NUM_ATTRIBUTES = 21;
-const int ATTRIBUTE_LENGTH = 30;
-const char SIR[] = "archiveSirData.csv";
-const char BBOX[] = "archiveBboxData.csv";
+const int k_num_weapons = 26;
+const int k_weapon_name_length = 21;
+const int k_num_attributes = 21;
+const int k_attribute_length = 30;
+const char k_sir[] = "archiveSirData.csv";
+const char k_bbox[] = "archiveBboxData.csv";
 
 bool bUserMenu(int &menuOption);
 //Postcondition: menuOption from the calling function is updated according to the user's input.
@@ -32,26 +32,27 @@ bool bGetSteamDir(char steamDir[_MAX_PATH]);
 //Postcondition: If a valid registry value for a Steam installation is found, steamDir is filled with the installation directory.
 	//Returns true if a valid registry value is found, and false otherwise.
 
-int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int sizeConcatArray);
+int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_concat_array);
 //Precondition: The strings cArray1 and cArray2 are null-terminated.
 	//The sum of filled elements of cArray1 and cArray2 is less than or equal to the size of array concatArray.
 	//concatArray is modifiable.
-	//sizeConcatArray is the size of concatArray.
+	//k_size_concat_array is the size of concatArray.
 //Postcondition: concatArray is filled with the concatenation of cArray1 and cArray2, and terminated with a null character.
 	//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original string.
 	//Returns the index of the last filled element in concatArray.
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  const char ignoreChars[] = "", int numIgnoreChars = 0);
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], const int k_max_search_results,
+                  const char k_ignore_chars[] = "", const int k_num_ignore_chars = 0, const char k_terminal_search_char = '\0');
 //Precondition: searchTerm should not contain any whitespace characters.
 	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
 	//The two-dimensional array searchResults is modifiable.
-	//maxSearchResults is less than or equal to the first dimension in searchResults.
-	//If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
+	//k_max_search_results is less than or equal to the first dimension in searchResults.
+	//If the array k_ignore_chars is passed, k_num_ignore_chars is less than or equal to the size of k_ignore_chars.
 //Postcondition: searchFile is searched by looping through non-whitespace strings that are separated by whitespace characters.
-	//When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled until terminateSearchResult.
-	//Characters passed in ignoreChars are not copied to *searchResults[_MAX_PATH] and escaped backslashes are unescaped.
-	//searchResults is filled, up to maxSearchResults number of null-terminated strings *searchResults[_MAX_PATH].
+	//When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled until new-line or end of file.
+	//Characters passed in k_ignore_chars are not copied to *searchResults[_MAX_PATH] and escaped backslashes are unescaped.
+	//searchResults is filled, up to k_max_search_results number of null-terminated strings *searchResults[_MAX_PATH].
+	//If k_terminal_search_char is passed, the function will return if and when that character is found.
 	//Returns the number of null-terminated strings *searchResults[_MAX_PATH] filled in the array of strings searchResults.
 
 bool bCheckCsgoInstall(char testDir[_MAX_PATH]);
@@ -74,7 +75,7 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH]);
 //Precondition: 
 //Postcondition: 
 
-void openArchiveFile(ifstream &archiveFile, const char whichArchive[]);
+void openArchiveFile(ifstream &archiveFile, const char k_which_archive[]);
 //Precondition: 
 //Postcondition: 
 
@@ -207,17 +208,17 @@ bool bGetSteamDir(char steamDir[_MAX_PATH])
 	return bFoundRegValue;
 }
 
-int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int sizeConcatArray)
+int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_concat_array)
 {
 	int concatIndex = 0;
 
-	for (int i = 0; cArray1[i] != '\0' && concatIndex < sizeConcatArray - 1; ++i)
+	for (int i = 0; cArray1[i] != '\0' && concatIndex < k_size_concat_array - 1; ++i)
 	{
 		concatArray[concatIndex] = cArray1[i];
 		++concatIndex;
 	}
 
-	for (int i = 0; cArray2[i] != '\0' && concatIndex < sizeConcatArray - 1; ++i)
+	for (int i = 0; cArray2[i] != '\0' && concatIndex < k_size_concat_array - 1; ++i)
 	{
 		concatArray[concatIndex] = cArray2[i];
 		++concatIndex;
@@ -228,15 +229,15 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], int siz
 	return concatIndex;
 }
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], int maxSearchResults,
-                  const char ignoreChars[], int numIgnoreChars)
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], const int k_max_search_results,
+                  const char k_ignore_chars[], const int k_num_ignore_chars, const char k_terminal_search_char)
 {
 	int instancesFound = 0;
 	string testString;
-	char character;
+	char character = '\n';
 
 	searchFile >> testString;
-	while (!searchFile.eof() && instancesFound < maxSearchResults)
+	while (!searchFile.eof() && instancesFound < k_max_search_results && character != k_terminal_search_char)
 	{
 		if (testString == searchTerm)
 		{
@@ -248,11 +249,14 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 			{
 				bool bIgnoreChar = false;
 
-				for (int j = 0; j < numIgnoreChars; ++j)
+				for (int j = 0; j < k_num_ignore_chars; ++j)
 				{
-					if (character == ignoreChars[j]
+					if (character == k_ignore_chars[j]
 						|| (characterLast == '\\' && character == '\\')) //Detect escaped backslashes
+					{
 						bIgnoreChar = true;
+						break;
+					}
 				}
 
 				if (!bIgnoreChar)
@@ -338,17 +342,17 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 
 void getWeaponNamesOrAttributes(bool bPickWeaponNames, string whichArray[])
 {
-	const int nums[] = { NUM_ATTRIBUTES, NUM_WEAPONS };
-	const int lengths[] = { ATTRIBUTE_LENGTH, WEAPON_NAME_LENGTH };
-	const int iPickWeaponNames = static_cast<const int>(bPickWeaponNames);
+	const int k_nums[] = { k_num_attributes, k_num_weapons };
+	const int k_lengths[] = { k_attribute_length, k_weapon_name_length };
+	const int k_pick_weapon_names = static_cast<const int>(bPickWeaponNames);
+	const char k_skip_characters[] = { '\n', ',' };
 
 	ifstream sirFile;
-	char skipCharacters[] = { '\n', ',' };
-	char weaponName[WEAPON_NAME_LENGTH];
-	char weaponAttribute[ATTRIBUTE_LENGTH];
+	char weaponName[k_weapon_name_length];
+	char weaponAttribute[k_attribute_length];
 
-	openArchiveFile(sirFile, SIR);
-	for (int i = 0; i < nums[iPickWeaponNames]; ++i)
+	openArchiveFile(sirFile, k_sir);
+	for (int i = 0; i < k_nums[k_pick_weapon_names]; ++i)
 	{
 		char character;
 		int j = 0;
@@ -358,11 +362,11 @@ void getWeaponNamesOrAttributes(bool bPickWeaponNames, string whichArray[])
 			do //Skip the first entry or to the next line in the CSV file
 			{
 				sirFile.get(character);
-			} while (character != skipCharacters[iPickWeaponNames]);
+			} while (character != k_skip_characters[k_pick_weapon_names]);
 		}
 
 		sirFile.get(character);
-		while (character != ',' && character != '\n' && j < lengths[iPickWeaponNames])
+		while (character != ',' && character != '\n' && j < k_lengths[k_pick_weapon_names])
 		{ //Read the next CSV entry
 			if (bPickWeaponNames)
 				weaponName[j] = character;
@@ -390,13 +394,12 @@ void getWeaponNamesOrAttributes(bool bPickWeaponNames, string whichArray[])
 bool bReadWeaponFile(char csgoDir[_MAX_PATH])
 {
 	bool bParsedWeaponFile = false;
-	string weaponNames[NUM_WEAPONS];
-	string weaponAttributes[NUM_ATTRIBUTES];
+	string weaponNames[k_num_weapons];
+	string weaponAttributes[k_num_attributes];
+	ifstream weaponFile;
 
 	getWeaponNamesOrAttributes(true, weaponNames);
 	getWeaponNamesOrAttributes(false, weaponAttributes);
-
-	/*ifstream weaponFile;
 
 	weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
 	if (!weaponFile.fail())
@@ -404,23 +407,23 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH])
 		char searchResult[1][_MAX_PATH];
 
 		if (static_cast<bool>(parseTextFile(static_cast<string>("CSGO_Type_Machinegun"), weaponFile, searchResult, 1)))
-		{
-			//Start collecting weapon data to parse
+		{ //Start collecting weapon data to parse
+			
 		}
 		weaponFile.close();
-	}*/
+	}
 
 	return bParsedWeaponFile;
 }
 
-void openArchiveFile(ifstream &archiveFile, const char whichArchive[])
+void openArchiveFile(ifstream &archiveFile, const char k_which_archive[])
 {
-	archiveFile.open(whichArchive);
+	archiveFile.open(k_which_archive);
 	if (archiveFile.fail())
 	{
 		char exitLetter;
 
-		cout << endl << "Archive file " << whichArchive << " failed to open.\n\n\n";
+		cout << endl << "Archive file " << k_which_archive << " failed to open.\n\n\n";
 		cout << endl << "Type a letter to exit: ";
 		cin >> exitLetter;
 		exit(1);
@@ -432,7 +435,7 @@ void readArchiveFiles()
 	ifstream sirFile;
 	char character;
 	
-	openArchiveFile(sirFile, SIR);
+	openArchiveFile(sirFile, k_sir);
 
 	cout << endl;
 
@@ -449,12 +452,14 @@ void readArchiveFiles()
 
 int takeOnlyOneChar()
 {
-	const int INVALID = 0;
+	const int k_invalid = 0;
 
-	int menuOption = INVALID;
+	int menuOption = k_invalid;
 	char menuOptionChar = '\0';
+	bool bFirstChar = true;
 
-	for (bool bFirstChar = true; menuOptionChar != '\n'; ) //Third expression intentionally left blank
+	while(menuOptionChar != '\n')
+	//for (bool bFirstChar = true; menuOptionChar != '\n'; ) //Third expression intentionally left blank
 	{
 		cin.get(menuOptionChar);
 
@@ -463,12 +468,12 @@ int takeOnlyOneChar()
 			//Preserve decimal digit while converting char to int
 			menuOption = static_cast<int>(menuOptionChar) - static_cast<int>('0');
 			if (menuOption < 0 || menuOption > 9)
-				menuOption = INVALID;
+				menuOption = k_invalid;
 
 			bFirstChar = false;
 		}
 		else if (menuOptionChar != '\n') //More than one char input
-			menuOption = INVALID;
+			menuOption = k_invalid;
 	}
 
 	return menuOption;
