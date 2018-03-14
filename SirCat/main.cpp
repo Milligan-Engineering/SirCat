@@ -4,18 +4,18 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #07
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: March 13, 2018
+//Last Changed: March 14, 2018
 
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <cstdlib>
-//#include <Windows.h> needed when Windows functions are used
-//Consider converting project to unicode and wide characters to support languages using non-ASCII characters
+//#include <Windows.h>
 
 using namespace std;
 
-//Const definitions need to preceed function definitions, which might use them
+//Const definitions should preceed function definitions, which might use them
+//ALLCAPS style for const values can inadvertanly call macros, instead k_prefix_style maintains visual distinction from camelCase
 const int k_num_weapons = 26;
 const int k_weapon_name_length = 21;
 const int k_num_attributes = 21;
@@ -37,7 +37,7 @@ int charDecimalDigitToInt(const char charDecimalDigit);
 //Precondition: 
 //Postcondition: 
 
-char intDecimalDigitToChar(const int intDecimalDeigit);
+char intDecimalDigitToChar(const int intDecimalDigit);
 //Precondition: 
 //Postcondition:
 
@@ -45,7 +45,7 @@ void typeLetterToExit();
 //Precondition: 
 //Postcondition:
 
-bool bParseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
+int parseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
 	string parsedSlice[], const int k_max_elements,
 	const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
 //Precondition: 
@@ -109,13 +109,27 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH]);
 	//testDir is filled with one alternate library path at a time and passed to the bCheckCsgoInstall function.
 	//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alternate library path, and false otherwise.
 
-bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons], string weaponAttributes[k_num_attributes]);
+bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons], string attributesData[][k_num_attributes]);
 //Precondition: 
 //Postcondition:
 
-void readArchiveFiles();
+bool isDigit(char character);
+//Precondition: 
+//Postcondition:
+
+bool bUpdateArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
+                        string attributesData[][k_num_attributes]);
+//Precondition: 
+//Postcondition: 
+
+void readArchiveFile(ifstream &archiveFile, const char k_which_archive[]);
 //Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
+
+bool bWriteArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
+                      string attributesData[][k_num_attributes]);
+//Precondition: 
+//Postcondition: 
 
 void openArchiveFile(ifstream &archiveFile, const char k_which_archive[]);
 //Precondition: 
@@ -127,16 +141,18 @@ int main()
 	ifstream archiveSir;
 	char testDir[_MAX_PATH];
 	string weaponNames[k_num_weapons];
-	string weaponAttributes[k_num_attributes];
+	string weaponUsesAlt[k_num_weapons];
+	string attributesData[k_num_weapons + 1][k_num_attributes]; //Extra index to hold the attribute names in first array
 
 	do
 	{
 		bool bRevertToArchiveFile = true;
 
-		if (!bParseDelimitedSlice(archiveSir, k_sir, false, weaponNames, k_num_weapons, 2)
-			|| !bParseDelimitedSlice(archiveSir, k_sir, true, weaponAttributes, k_num_attributes, 2))
+		if (parseDelimitedSlice(archiveSir, k_sir, false, weaponNames, k_num_weapons, 2) != k_num_weapons ||
+			parseDelimitedSlice(archiveSir, k_sir, false, weaponUsesAlt, k_num_weapons, 2, ',', 2) != k_num_weapons ||
+			parseDelimitedSlice(archiveSir, k_sir, true, attributesData[k_num_weapons], k_num_attributes, 3) != k_num_attributes)
 		{
-			cout << "Failed to retrieve weapon or attribute list.\n\n\n";
+			cout << "Failed to correctly retrieve weapon name or attribute list.\n\n\n";
 			typeLetterToExit();
 		}
 
@@ -149,12 +165,14 @@ int main()
 				cout << "Steam installation found in directory:\n" << testDir << endl << endl;
 
 				concatCharArrays(testDir, steamappsFolder, testDir, _MAX_PATH);
+
 				if (bCheckCsgoInstall(testDir) //CSGO found in default Steam library
 					|| bSearchSteamLibs(testDir)) //CSGO found in alternate Steam library
 				{
 					cout << "CS:GO installation found in directory:\n" << testDir << endl << endl;
 
-					bReadWeaponFile(testDir, weaponNames, weaponAttributes);
+					if (bReadWeaponFile(testDir, weaponNames, attributesData))
+						bUpdateArchiveFile(weaponNames, weaponUsesAlt, attributesData);
 
 					//unpackModels
 
@@ -162,7 +180,7 @@ int main()
 
 					//readModelFiles
 
-					//overwriteArchiveFile
+					//bUpdateArchiveFile
 
 					bRevertToArchiveFile = false;
 				}
@@ -172,7 +190,7 @@ int main()
 			{
 				cout << "CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
 
-				readArchiveFiles();
+				readArchiveFile(archiveSir, k_sir);
 			}
 
 			//hitboxList
@@ -243,7 +261,6 @@ int takeOnlyOneChar()
 	bool bFirstChar = true;
 
 	while (menuOptionChar != '\n')
-		//for (bool bFirstChar = true; menuOptionChar != '\n'; ) //Third expression intentionally left blank
 	{
 		cin.get(menuOptionChar);
 
@@ -267,9 +284,9 @@ int charDecimalDigitToInt(const char charDecimalDigit)
 	return (static_cast<int>(charDecimalDigit) - static_cast<int>('0'));
 }
 
-char intDecimalDigitToChar(const int intDecimalDeigit)
+char intDecimalDigitToChar(const int intDecimalDigit)
 {
-	return (static_cast<char>(intDecimalDeigit + static_cast<int>('0')));
+	return (static_cast<char>(intDecimalDigit + static_cast<int>('0')));
 }
 
 void typeLetterToExit()
@@ -281,32 +298,33 @@ void typeLetterToExit()
 	exit(1);
 }
 
-bool bParseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
+int parseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
 	string parsedSlice[], const int k_max_elements,
 	const int k_skip_to_element, const char k_delimiter, const int k_num_slice)
 {
 	const int k_max_element_length = k_attribute_length; //Use k_attribute_length since it is longer than k_weapon_name_length
 
+	int numElements = 0;
 	bool bParseSuccess = false;
 	char character;
 	int maxNumSlice;
-	int numElements;
+	int targetNumElements;
 
 	if (bSliceIsRow)
 	{
 		maxNumSlice = getNumDelimitedRows(delimitedFile, k_file_name, k_delimiter, k_skip_to_element);
-		numElements = getNumDelimitedColumns(delimitedFile, k_file_name, k_delimiter, k_num_slice) - k_skip_to_element + 1;
+		targetNumElements = getNumDelimitedColumns(delimitedFile, k_file_name, k_delimiter, k_num_slice) - k_skip_to_element + 1;
 	}
 	else
 	{
 		maxNumSlice = getNumDelimitedColumns(delimitedFile, k_file_name, k_delimiter, k_skip_to_element);
-		numElements = getNumDelimitedRows(delimitedFile, k_file_name, k_delimiter, k_num_slice) - k_skip_to_element + 1;
+		targetNumElements = getNumDelimitedRows(delimitedFile, k_file_name, k_delimiter, k_num_slice) - k_skip_to_element + 1;
 	}
 
 	if (k_num_slice <= maxNumSlice) //Check that the slice exists
 	{
 		delimitedFile.open(k_file_name);
-		if (!delimitedFile.fail())
+		if (bParseSuccess = !delimitedFile.fail()) //Single = is intentional
 		{
 			if (bSliceIsRow) //Skip to first element to parse when parsing a row
 			{
@@ -316,7 +334,8 @@ bool bParseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], con
 			else //Skip to the desire row only when parsing a column
 				skipToRowNum(delimitedFile, character, k_skip_to_element);
 
-			for (int i = 0; i < numElements && i < k_max_elements; i++) //Begin parsing slice into parsedSlice
+			//Begin parsing characters for the slice elements to fill the slice in parsedSlice
+			for (int i = 0; i < targetNumElements && i < k_max_elements; i++) //AND gives consistent behavior with blank end lines
 			{
 				int j;
 				char parsedSliceElement[k_max_element_length];
@@ -328,14 +347,15 @@ bool bParseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], con
 				{
 					delimitedFile.get(character);
 
-					if (character == k_delimiter || character == '\n')
+					if (character == k_delimiter || character == '\n') //Store element characters until delimiter
 						break;
 					else
 						parsedSliceElement[j] = character;
 				}
 
-				parsedSliceElement[j] = '\0'; //Add terminal null character to character strings
-				parsedSlice[i] = static_cast<string>(parsedSliceElement);
+				parsedSliceElement[j] = '\0'; //Add terminal null character to character array
+				parsedSlice[i] = static_cast<string>(parsedSliceElement); //Fill element with character array
+				++numElements;
 
 				while (!bSliceIsRow && !delimitedFile.eof() && character != '\n') //Skip to next row for parsing a column
 					delimitedFile.get(character);
@@ -346,7 +366,7 @@ bool bParseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], con
 		delimitedFile.close();
 	}
 
-	return bParseSuccess;
+	return numElements;
 }
 
 int getNumDelimitedColumns(ifstream &delimitedFile, const char k_file_name[],
@@ -360,9 +380,9 @@ int getNumDelimitedColumns(ifstream &delimitedFile, const char k_file_name[],
 	{
 		skipToRowNum(delimitedFile, character, k_num_row);
 
-		if (!delimitedFile.eof())
+		if (!delimitedFile.eof()) //Function returns 0 if end of file is reached before the row requested to enumerate columns
 		{
-			++numColumns;
+			++numColumns; //Increment number of columns each time a delimiter is read until new line or end of file
 			delimitedFile.get(character);
 
 			while (!delimitedFile.eof() && character != '\n')
@@ -384,7 +404,7 @@ int getNumDelimitedRows(ifstream &delimitedFile, const char k_file_name[],
 {
 	int numRows = 0;
 	char character;
-	bool bTooFewColumns = false; //Becomes true when the number of rows has been enumerated
+	bool bTooFewColumns = false;
 
 	delimitedFile.open(k_file_name);
 	if (!delimitedFile.fail())
@@ -392,13 +412,13 @@ int getNumDelimitedRows(ifstream &delimitedFile, const char k_file_name[],
 		while (!delimitedFile.eof())
 		{
 			if (bTooFewColumns = bSkipToColumnNum(delimitedFile, character, k_delimiter, k_num_column)) //Single = is intentional
-				break;
+				break; //Column requested to enumerate rows for does not exist and function will return 0
 
-			if (!delimitedFile.eof())
+			if (!delimitedFile.eof()) //Increment number of rows and skip to next row until end of file
 			{
 				++numRows;
 
-				do //Skip to next row
+				do
 				{
 					delimitedFile.get(character);
 				} while (!delimitedFile.eof() && character != '\n');
@@ -479,8 +499,9 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 			int i = 0;
 
 			searchFile.get(character);
+			//Fill search result entry until new-line or end of file
 			while (!searchFile.eof() && character != '\n' && character != k_terminal_search_char)
-			{ //Fill search result entry until new-line or end of file
+			{
 				bool bIgnoreChar = false;
 
 				for (int j = 0; j < k_num_ignore_chars; ++j)
@@ -502,7 +523,7 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 				characterLast = character;
 				searchFile.get(character);
 			}
-			searchResults[instancesFound][i] = '\0'; //Terminate string with null character
+			searchResults[instancesFound][i] = '\0'; //Add terminal null character to character array
 
 			++instancesFound;
 
@@ -536,8 +557,8 @@ bool bGetSteamDir(char steamDir[_MAX_PATH])
 
 bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 {
-	ifstream manifest;
 	bool bFoundCsgoInstall = false;
+	ifstream manifest;
 
 	manifest.open(static_cast<string>(testDir) + static_cast<string>("\\appmanifest_730.acf"));
 
@@ -545,6 +566,7 @@ bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 	{
 		char searchResult[1][_MAX_PATH];
 
+		//Verify CS:GO installation directory listed in manifest file contents
 		if (static_cast<bool>(parseTextFile(static_cast<string>("\"installdir\""), manifest, searchResult, 1, "\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
@@ -562,8 +584,8 @@ bool bCheckCsgoInstall(char testDir[_MAX_PATH])
 
 bool bSearchSteamLibs(char testDir[_MAX_PATH])
 {
-	ifstream libFile;
 	bool bFoundCsgoInstall = false;
+	ifstream libFile;
 
 	libFile.open(static_cast<string>(testDir) + static_cast<string>("\\libraryfolders.vdf"));
 
@@ -595,7 +617,7 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 	return bFoundCsgoInstall;
 }
 
-bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons], string weaponAttributes[k_num_attributes])
+bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons], string attributesData[][k_num_attributes])
 {
 	bool bParseSuccess = false;
 	ifstream weaponFile;
@@ -603,79 +625,63 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons],
 	weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
 	if (!weaponFile.fail())
 	{
-		char searchResult[1][_MAX_PATH];
+		char unparsedData[k_num_weapons][k_num_unparsed_attributes][_MAX_PATH];
+		char parsedWeaponData[k_num_weapons][k_num_unparsed_attributes][k_data_length];
+		int numUnparsedReturns[k_num_weapons];
 
-		if (static_cast<bool>(parseTextFile(static_cast<string>("\"#CSGO_Type_Machinegun\""), weaponFile, searchResult, 1)))
+		for (int i = 0; i < k_num_weapons; ++i) //Collect weapon data for each weapon
 		{
-			char unparsedWeaponData[k_num_weapons][k_num_unparsed_attributes][_MAX_PATH];
-			char parsedWeaponData[k_num_weapons][k_num_unparsed_attributes][k_data_length];
-			int numUnparsedReturns[k_num_weapons];
-			char numbers[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+			char searchResult[1][_MAX_PATH];
+			string searchTerm = static_cast<string>("\"") + weaponNames[i] + static_cast<string>("_prefab\"");
 
-			for (int i = 0; i < k_num_weapons; ++i) //Collect weapon data for each weapon
+			parseTextFile(searchTerm, weaponFile, searchResult, 1); //Read file up until attribtues are listed for each weapon
+			searchTerm = static_cast<string>("\"attributes\"");
+			numUnparsedReturns[i] = parseTextFile(searchTerm, weaponFile, unparsedData[i], _MAX_PATH, "\t\"\0", 2, '}');
+		}
+
+		for (int i = 0; i < k_num_weapons; ++i) //Enumerate all weapons
+		{
+			for (int j = 0; j < numUnparsedReturns[i]; ++j) //Enumerate all returned unparsed attributes for each weapon
 			{
-				string searchTerm = "\"" + weaponNames[i] + "_prefab\"";
+				bool bNumberInUnparsedData = false; 
 
-				parseTextFile(searchTerm, weaponFile, searchResult, 1); //Skip to weapon name
-				numUnparsedReturns[i] = parseTextFile(static_cast<string>("\"attributes\""), weaponFile, unparsedWeaponData[i], _MAX_PATH, "\t\"\0", 2, '}');
-			}
-
-			for (int g = 0; g < k_num_weapons; ++g)
-			{
-				for (int i = 0; i < numUnparsedReturns[g]; ++i)
+				for (int k = 0; k < k_attribute_length; ++k) //Enumerate characters for each returned unparsed attribute
 				{
-					bool bNumberInReturn = false;
-
-					for (int j = 0; j < k_attribute_length; ++j)
+					if (isDigit(unparsedData[i][j][k])) //Book's isdigit is throwing an exception for me
 					{
-						for (int k = 0; k < 10; ++k)
+						int l;
+
+						bNumberInUnparsedData = true;
+
+						//Copy up to k_data_length = 10 digit characters in parsedWeaponData
+						for (l = 0; l < k_data_length && unparsedData[i][j][k + l] != '\0'; ++l)
 						{
-							if (unparsedWeaponData[g][i][j] == numbers[k])
-							{
-								int l;
-
-								bNumberInReturn = true;
-
-								for (l = 0; l < k_data_length && unparsedWeaponData[g][i][j + l] != '\0'; ++l)
-								{
-									parsedWeaponData[g][i][l] = unparsedWeaponData[g][i][j + l];
-									unparsedWeaponData[g][i][j + l] = '\0';
-								}
-								parsedWeaponData[g][i][l] = '\0';
-
-								while (unparsedWeaponData[g][i][j + l] != '\0')
-									unparsedWeaponData[g][i][j + l] = '\0';
-
-								break;
-							}
+							parsedWeaponData[i][j][l] = unparsedData[i][j][k + l];
+							unparsedData[i][j][k + l] = '\0';
 						}
+						parsedWeaponData[i][j][l] = '\0'; //Add terminal null character to character array
 
-						if (bNumberInReturn)
-							break;
-					}
-				}
-
-				cout << weaponNames[g] << " - \n";
-
-				for (int h = 0; h < k_num_attributes; ++h)
-				{
-					bool bAttributeNotFound = true;
-
-					for (int i = 0; i < numUnparsedReturns[g]; ++i)
-					{
-						if (unparsedWeaponData[g][i] == weaponAttributes[h])
+						//Change trailing characters to null characters leaves parsed attribute names in unparsedData
+						while (unparsedData[i][j][k + l] != '\0')
 						{
-							bAttributeNotFound = false;
-							cout << weaponAttributes[h] << ": " << parsedWeaponData[g][i] << endl;
-							break;
+							unparsedData[i][j][k + l] = '\0';
+							++l;
 						}
 					}
 
-					if (bAttributeNotFound)
-						cout << weaponAttributes[h] << ": " << endl;
+					if (bNumberInUnparsedData)
+						break; //Stop enumerating characters for unparsed attribute if number digit was found
 				}
 
-				cout << endl;
+				//unparsedData now contains parsed attribute names, so compare to stored attribute names
+				for (int m = 0; m < k_num_attributes; ++m)
+				{
+					if (unparsedData[i][j] == attributesData[k_num_weapons][m])
+					{
+						bParseSuccess = true;
+						attributesData[i][m] = parsedWeaponData[i][j];
+					}
+				}
 			}
 		}
 
@@ -685,24 +691,87 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons],
 	return bParseSuccess;
 }
 
-void readArchiveFiles()
+bool isDigit(char character)
 {
-	ifstream sirFile;
+	bool bIsDigit = false;
+	char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+	for (int i = 0; i < 10; ++i)
+	{
+		if (character == digits[i])
+		{
+			bIsDigit = true;
+			break;
+		}
+	}
+
+	return bIsDigit;
+}
+
+bool bUpdateArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
+	string attributesData[][k_num_attributes])
+{
+	bool bUpdate = false;
+	ifstream archiveFile;
+	char character;
+
+	readArchiveFile(archiveFile, k_sir);
+	//Compare archived data to new data
+	archiveFile.close();
+
+	if (bUpdate = true) //Intentionally set to true for testing;
+		bWriteArchiveFile(weaponNames, weaponUsesAlt, attributesData);
+
+	return bUpdate;
+}
+
+void readArchiveFile(ifstream &archiveFile, const char k_which_archive[])
+{
 	char character;
 	
-	openArchiveFile(sirFile, k_sir);
+	openArchiveFile(archiveFile, k_sir);
 
-	cout << endl;
-
-	sirFile.get(character);
-	while (!sirFile.eof())
+	archiveFile.get(character);
+	while (!archiveFile.eof())
 	{
 		//Parse archive file contents and store to program memory
-		//Waiting to decide on file format and handling of memory
-
-		sirFile.get(character);
+		archiveFile.get(character);
 	}
-	sirFile.close();
+	archiveFile.close();
+}
+
+bool bWriteArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
+                      string attributesData[][k_num_attributes])
+{
+	bool bWriteSuccess = false;
+	ofstream archiveFile;
+
+	archiveFile.open(k_sir);
+	if (!archiveFile.fail())
+	{
+		archiveFile << ",uses alt mode";
+
+		for (int j = 0; j < k_num_attributes; ++j)
+			archiveFile << ',' << attributesData[k_num_weapons][j];
+
+		archiveFile << endl;
+
+		for (int i = 0; i < k_num_weapons; ++i)
+		{
+			archiveFile << weaponNames[i] << ',' << weaponUsesAlt[i];
+
+			for (int j = 0; j < k_num_attributes; ++j)
+				archiveFile << ',' << attributesData[i][j];
+
+			archiveFile << endl;
+		}
+
+		bWriteSuccess = true;
+
+		archiveFile.close();
+	}
+
+	return bWriteSuccess;
 }
 
 void openArchiveFile(ifstream &archiveFile, const char k_which_archive[])
