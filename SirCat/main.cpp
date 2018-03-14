@@ -45,7 +45,7 @@ void typeLetterToExit();
 //Precondition: 
 //Postcondition:
 
-int parseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
+int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
 	string parsedSlice[], const int k_max_elements,
 	const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
 //Precondition: 
@@ -117,8 +117,7 @@ bool isDigit(char character);
 //Precondition: 
 //Postcondition:
 
-bool bUpdateArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
-                        string attributesData[][k_num_attributes]);
+bool bUpdateArchiveFile(string weaponNamesAlt[][k_num_weapons], string attributesData[][k_num_attributes]);
 //Precondition: 
 //Postcondition: 
 
@@ -126,8 +125,7 @@ void readArchiveFile(ifstream &archiveFile, const char k_which_archive[]);
 //Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
 
-bool bWriteArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
-                      string attributesData[][k_num_attributes]);
+bool bWriteArchiveFile(string weaponNamesAlt[][k_num_weapons], string attributesData[][k_num_attributes]);
 //Precondition: 
 //Postcondition: 
 
@@ -140,17 +138,16 @@ int main()
 	int menuOption = 0;
 	ifstream archiveSir;
 	char testDir[_MAX_PATH];
-	string weaponNames[k_num_weapons];
-	string weaponUsesAlt[k_num_weapons];
-	string attributesData[k_num_weapons + 1][k_num_attributes]; //Extra index to hold the attribute names in first array
+	string weaponNamesAlt[2][k_num_weapons]; //First array is weapon names, second is names for alt firing mode
+	string attributesData[k_num_weapons + 1][k_num_attributes]; //Extra index to hold the attribute names in last array
 
 	do
 	{
 		bool bRevertToArchiveFile = true;
 
-		if (parseDelimitedSlice(archiveSir, k_sir, false, weaponNames, k_num_weapons, 2) != k_num_weapons ||
-			parseDelimitedSlice(archiveSir, k_sir, false, weaponUsesAlt, k_num_weapons, 2, ',', 2) != k_num_weapons ||
-			parseDelimitedSlice(archiveSir, k_sir, true, attributesData[k_num_weapons], k_num_attributes, 3) != k_num_attributes)
+		if (getDelimitedSlice(archiveSir, k_sir, false, weaponNamesAlt[0], k_num_weapons, 2) != k_num_weapons ||
+			getDelimitedSlice(archiveSir, k_sir, false, weaponNamesAlt[1], k_num_weapons, 2, ',', 2) != k_num_weapons ||
+			getDelimitedSlice(archiveSir, k_sir, true, attributesData[k_num_weapons], k_num_attributes, 3) != k_num_attributes)
 		{
 			cout << "Failed to correctly retrieve weapon name or attribute list.\n\n\n";
 			typeLetterToExit();
@@ -171,8 +168,8 @@ int main()
 				{
 					cout << "CS:GO installation found in directory:\n" << testDir << endl << endl;
 
-					if (bReadWeaponFile(testDir, weaponNames, attributesData))
-						bUpdateArchiveFile(weaponNames, weaponUsesAlt, attributesData);
+					if (bReadWeaponFile(testDir, weaponNamesAlt[0], attributesData))
+						bUpdateArchiveFile(weaponNamesAlt, attributesData);
 
 					//unpackModels
 
@@ -298,7 +295,7 @@ void typeLetterToExit()
 	exit(1);
 }
 
-int parseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
+int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
 	string parsedSlice[], const int k_max_elements,
 	const int k_skip_to_element, const char k_delimiter, const int k_num_slice)
 {
@@ -677,12 +674,26 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weapons],
 				for (int m = 0; m < k_num_attributes; ++m)
 				{
 					if (unparsedData[i][j] == attributesData[k_num_weapons][m])
-					{
-						bParseSuccess = true;
-						attributesData[i][m] = parsedWeaponData[i][j];
-					}
+						attributesData[i][m] = static_cast<string>(parsedWeaponData[i][j]);
 				}
 			}
+		}
+
+		weaponFile.close(); //Reopen to start searching from the beginning
+		weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
+		if (!weaponFile.fail())
+		{
+			char defaultCycletime[1][_MAX_PATH];
+
+			parseTextFile(static_cast<string>("\"cycletime\""), weaponFile, defaultCycletime, 1, "\t\"\0", 2);
+
+			for (int i = 0; i < k_num_weapons; ++i)
+			{
+				if (attributesData[i][0] == "") //Weapons missing cycletime get the default value
+					attributesData[i][0] = static_cast<string>(defaultCycletime[0]);
+			}
+
+			bParseSuccess = true;
 		}
 
 		weaponFile.close();
@@ -708,8 +719,7 @@ bool isDigit(char character)
 	return bIsDigit;
 }
 
-bool bUpdateArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
-	string attributesData[][k_num_attributes])
+bool bUpdateArchiveFile(string weaponNamesAlt[][k_num_weapons], string attributesData[][k_num_attributes])
 {
 	bool bUpdate = false;
 	ifstream archiveFile;
@@ -720,7 +730,7 @@ bool bUpdateArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[
 	archiveFile.close();
 
 	if (bUpdate = true) //Intentionally set to true for testing;
-		bWriteArchiveFile(weaponNames, weaponUsesAlt, attributesData);
+		bWriteArchiveFile(weaponNamesAlt, attributesData);
 
 	return bUpdate;
 }
@@ -740,8 +750,7 @@ void readArchiveFile(ifstream &archiveFile, const char k_which_archive[])
 	archiveFile.close();
 }
 
-bool bWriteArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k_num_weapons],
-                      string attributesData[][k_num_attributes])
+bool bWriteArchiveFile(string weaponNamesAlt[][k_num_weapons], string attributesData[][k_num_attributes])
 {
 	bool bWriteSuccess = false;
 	ofstream archiveFile;
@@ -758,7 +767,7 @@ bool bWriteArchiveFile(string weaponNames[k_num_weapons], string weaponUsesAlt[k
 
 		for (int i = 0; i < k_num_weapons; ++i)
 		{
-			archiveFile << weaponNames[i] << ',' << weaponUsesAlt[i];
+			archiveFile << weaponNamesAlt[0][i] << ',' << weaponNamesAlt[1][i];
 
 			for (int j = 0; j < k_num_attributes; ++j)
 				archiveFile << ',' << attributesData[i][j];
