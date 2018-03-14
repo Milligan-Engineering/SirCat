@@ -78,6 +78,10 @@ copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
     <Link>
       <SubSystem>Console</SubSystem>
       <LargeAddressAware>false</LargeAddressAware>
+      <StackCommitSize>
+      </StackCommitSize>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -100,6 +104,10 @@ copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
       <LargeAddressAware>false</LargeAddressAware>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
+      <StackCommitSize>
+      </StackCommitSize>
+      <StackReserveSize>
+      </StackReserveSize>
     </Link>
     <CustomBuildStep>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
