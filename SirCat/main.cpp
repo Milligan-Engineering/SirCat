@@ -335,7 +335,7 @@ int parseDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const
 				skipToRowNum(delimitedFile, character, k_skip_to_element);
 
 			//Begin parsing characters for the slice elements to fill the slice in parsedSlice
-			for (int i = 0; i < targetNumElements && i < k_max_elements; i++) //AND gives consistent behavior with blank end lines
+			for (int i = 0; i < targetNumElements && i < k_max_elements; i++) //AND gives consistent behavior for blank end lines
 			{
 				int j;
 				char parsedSliceElement[k_max_element_length];
