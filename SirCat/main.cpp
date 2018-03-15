@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #07
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: March 14, 2018
+//Last Changed: March 15, 2018
 
 #include <fstream>
 #include <iostream>
@@ -17,11 +17,7 @@ using namespace std;
 //Const definitions should preceed function definitions, which might use them
 //ALLCAPS style for const values can inadvertanly call macros, instead k_prefix_style maintains visual distinction from camelCase
 const int k_num_weap = 26;
-const int k_weap_name_len = 21;
-const int k_num_attributes = 21;
-const int k_attribute_length = 30;
-const int k_num_unparsed_attributes = 70;
-const int k_data_length = 10;
+const int k_num_attr = 21;
 const char k_sir[] = "archiveSirData.csv";
 const char k_bbox[] = "archiveBboxData.csv";
 
@@ -29,67 +25,70 @@ bool bUserMenu(int &menuOption);
 //Postcondition: menuOption from the calling function is updated according to the user's input.
 	//Returns true if the program should continue or false if the program should exit.
 
-int takeOnlyOneChar();
-//Precondition: The returned value is intended to be a decimal digit.
-//Postcondition: Returns int equal to input char decimal digit, if immediately followed by input of new-line, and 0 otherwise.
-
-int charDecimalDigitToInt(const char charDecimalDigit);
+int takeOnlyOneInt(const char validChars[], const int numValidChars);
 //Precondition: 
 //Postcondition: 
 
-char intDecimalDigitToChar(const int intDecimalDigit);
+bool bTakeOnlyOneChar(char &character);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
+
+int charDigitToInt(char charDigit);
+//Precondition: 
+//Postcondition: 
+
+char intDigitToChar(int intDigit);
+//Precondition: 
+//Postcondition: 
 
 void typeLetterToExit();
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
-int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
-	string parsedSlice[], const int k_max_elements,
-	const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
+int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow, string parsedSlice[],
+                      const int k_max_elements, const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
 int getNumDelimitedColumns(ifstream &delimitedFile, const char k_file_name[],
 	const char k_delimiter = ',', const int k_num_row = 1);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
 int getNumDelimitedRows(ifstream &delimitedFile, const char k_file_name[],
 	const char k_delimiter = ',', const int k_num_column = 1);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
 void skipToRowNum(ifstream &delimitedFile, char &character, const int k_num_row);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
 bool bSkipToColumnNum(ifstream &delimitedFile, char &character, const char k_delimiter, const int k_num_column);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
-int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_concat_array);
+int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_array);
 //Precondition: The strings cArray1 and cArray2 are null-terminated.
 	//The sum of filled elements of cArray1 and cArray2 is less than or equal to the size of array concatArray.
 	//concatArray is modifiable.
-	//k_size_concat_array is the size of concatArray.
+	//k_size_array is the size of concatArray.
 //Postcondition: concatArray is filled with the concatenation of cArray1 and cArray2, and terminated with a null character.
 	//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original string.
 	//Returns the index of the last filled element in concatArray.
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], const int k_max_search_results,
-                  const char k_ignore_chars[] = "", const int k_num_ignore_chars = 0, const char k_terminal_search_char = '\0');
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], const int k_max_results,
+                  const char k_ignore_chars[] = "", const int k_num_ignore_chars = 0, const char k_ret_char = '\0');
 //Precondition: searchTerm should not contain any whitespace characters.
 	//The file input stream searchFile has been successfully connected to a file with ifstream::open member function.
 	//The two-dimensional array searchResults is modifiable.
-	//k_max_search_results is less than or equal to the first dimension in searchResults.
+	//k_max_results is less than or equal to the first dimension in searchResults.
 	//If the array k_ignore_chars is passed, k_num_ignore_chars is less than or equal to the size of k_ignore_chars.
 //Postcondition: searchFile is searched by looping through non-whitespace strings that are separated by whitespace characters.
 	//When a string matches searchTerm, a *searchResults[_MAX_PATH] array is filled until new-line or end of file.
 	//Characters passed in k_ignore_chars are not copied to *searchResults[_MAX_PATH] and escaped backslashes are unescaped.
-	//searchResults is filled, up to k_max_search_results number of null-terminated strings *searchResults[_MAX_PATH].
-	//If k_terminal_search_char is passed, the function will return if and when that character is found.
+	//searchResults is filled, up to k_max_results number of null-terminated strings *searchResults[_MAX_PATH].
+	//If k_ret_char is passed, the function will return if and when that character is found.
 	//Returns the number of null-terminated strings *searchResults[_MAX_PATH] filled in the array of strings searchResults.
 
 bool bGetSteamDir(char steamDir[_MAX_PATH]);
@@ -109,15 +108,15 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH]);
 	//testDir is filled with one alternate library path at a time and passed to the bCheckCsgoInstall function.
 	//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alternate library path, and false otherwise.
 
-bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weap], string attributesData[][k_num_attributes]);
+bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string attributesData[][k_num_attr]);
 //Precondition: 
 //Postcondition:
 
 bool isDigit(char character);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
-bool bUpdateArchiveFile(string weaponNamesAlt[][k_num_weap], string attributesData[][k_num_attributes]);
+bool bUpdateArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr]);
 //Precondition: 
 //Postcondition: 
 
@@ -125,7 +124,7 @@ void readArchiveFile(ifstream &archiveFile, const char k_which_archive[]);
 //Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
 
-bool bWriteArchiveFile(string weaponNamesAlt[][k_num_weap], string attributesData[][k_num_attributes]);
+bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr]);
 //Precondition: 
 //Postcondition: 
 
@@ -138,16 +137,16 @@ int main()
 	int menuOption = 0;
 	ifstream archiveSir;
 	char testDir[_MAX_PATH];
-	string weaponNamesAlt[2][k_num_weap]; //First array is weapon names, second is names for alt firing mode
-	string attributesData[k_num_weap + 1][k_num_attributes]; //Extra index to hold the attribute names in last array
+	string weapNamesAlt[2][k_num_weap]; //First array is weapon names, second is names for alt firing mode
+	string attributesData[k_num_weap + 1][k_num_attr]; //Extra index to hold the attribute names in last array
 
 	do
 	{
-		bool bRevertToArchiveFile = true;
+		bool bRevertToArchive = true;
 
-		if (getDelimitedSlice(archiveSir, k_sir, false, weaponNamesAlt[0], k_num_weap, 2) != k_num_weap ||
-			getDelimitedSlice(archiveSir, k_sir, false, weaponNamesAlt[1], k_num_weap, 2, ',', 2) != k_num_weap ||
-			getDelimitedSlice(archiveSir, k_sir, true, attributesData[k_num_weap], k_num_attributes, 3) != k_num_attributes)
+		if (getDelimitedSlice(archiveSir, k_sir, false, weapNamesAlt[0], k_num_weap, 2) != k_num_weap ||
+			getDelimitedSlice(archiveSir, k_sir, false, weapNamesAlt[1], k_num_weap, 2, ',', 2) != k_num_weap ||
+			getDelimitedSlice(archiveSir, k_sir, true, attributesData[k_num_weap], k_num_attr, 3) != k_num_attr)
 		{
 			cout << "Failed to correctly retrieve weapon name or attribute list.\n\n\n";
 			typeLetterToExit();
@@ -168,8 +167,8 @@ int main()
 				{
 					cout << "CS:GO installation found in directory:\n" << testDir << endl << endl;
 
-					if (bReadWeaponFile(testDir, weaponNamesAlt[0], attributesData))
-						bUpdateArchiveFile(weaponNamesAlt, attributesData);
+					if (bReadWeapFile(testDir, weapNamesAlt[0], attributesData))
+						bUpdateArchiveFile(weapNamesAlt, attributesData);
 
 					//unpackModels
 
@@ -179,11 +178,11 @@ int main()
 
 					//bUpdateArchiveFile
 
-					bRevertToArchiveFile = false;
+					bRevertToArchive = false;
 				}
 			}
 
-			if (bRevertToArchiveFile)
+			if (bRevertToArchive)
 			{
 				cout << "CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
 
@@ -211,79 +210,108 @@ int main()
 
 bool bUserMenu(int &menuOption)
 {
-	bool bInvalidMenuOption;
 	bool bContinue = true;
-
+	
 	do
 	{
-		bInvalidMenuOption = true;
-
-		cout << endl << endl;
+		cout << endl;
 		cout << "1 - start over for a fresh calculation, starting from actual game data\n";
 		cout << "2 - modify hitbox and weapon data for another calculation\n";
 		cout << "3 - pick distance for another calculation with the same hitbox and weapon data\n";
 		cout << "4 - exit the program\n\n";
 		cout << "Please enter a choice from the preceding menu options: ";
 
-		switch (menuOption = takeOnlyOneChar()) //Change menuOption in calling function
+		switch (menuOption = takeOnlyOneInt("1234", 4))
 		{
 		case 1:
 		case 2:
 		case 3:
 			cout << endl << endl << endl; //Add some padding for new calculations
-			bInvalidMenuOption = false;
 			break;
 
 		case 4:
 			cout << endl; //End program with a new-line instruction
 			bContinue = false;
-			bInvalidMenuOption = false;
 			break;
 
 		default:
 			cout << endl << "That is not a valid menu option.\n\n";
 		}
 
-	} while (bInvalidMenuOption);
+	} while (!static_cast<bool>(menuOption)); //Loop until a valid menu option is input
 
 	return bContinue;
 }
 
-int takeOnlyOneChar()
+int takeOnlyOneInt(const char validChars[], const int numValidChars)
 {
-	const int k_invalid = 0;
+	int integer = 0;
+	char character;
 
-	int menuOption = k_invalid;
-	char menuOptionChar = '\0';
-	bool bFirstChar = true;
-
-	while (menuOptionChar != '\n')
+	if (bTakeOnlyOneChar(character))
 	{
-		cin.get(menuOptionChar);
+		for (int i = 0; i < numValidChars; ++i)
+		{
+			if (character == validChars[i])
+			{
+				integer = charDigitToInt(character);
+				break;
+			}
+		}
+	}
+
+	return integer;
+}
+
+bool bTakeOnlyOneChar(char &character)
+{
+	bool bValidInput = false;
+	bool bFirstChar = true;
+	char input;
+
+	do
+	{
+		cin.get(input);
 
 		if (bFirstChar)
 		{
-			menuOption = charDecimalDigitToInt(menuOptionChar);
-			if (menuOption < 0 || menuOption > 9)
-				menuOption = k_invalid;
-
+			character = input;
+			bValidInput = true;
 			bFirstChar = false;
 		}
-		else if (menuOptionChar != '\n') //More than one char input
-			menuOption = k_invalid;
+		else if (input != '\n')
+			bValidInput = false;
+
+	} while (input != '\n');
+
+	return bValidInput;
+}
+
+int charDigitToInt(const char charDigit)
+{
+	return (static_cast<int>(charDigit) - static_cast<int>('0'));
+}
+
+char intDigitToChar(const int intDigit)
+{
+	return (static_cast<char>(intDigit + static_cast<int>('0')));
+}
+
+bool isDigit(char character)
+{
+	bool bIsDigit = false;
+	char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+
+	for (int i = 0; i < 10; ++i)
+	{
+		if (character == digits[i])
+		{
+			bIsDigit = true;
+			break;
+		}
 	}
 
-	return menuOption;
-}
-
-int charDecimalDigitToInt(const char charDecimalDigit)
-{
-	return (static_cast<int>(charDecimalDigit) - static_cast<int>('0'));
-}
-
-char intDecimalDigitToChar(const int intDecimalDigit)
-{
-	return (static_cast<char>(intDecimalDigit + static_cast<int>('0')));
+	return bIsDigit;
 }
 
 void typeLetterToExit()
@@ -291,18 +319,14 @@ void typeLetterToExit()
 	char exitLetter;
 
 	cout << endl << "Type a letter to exit: ";
-	cin >> exitLetter;
+	bTakeOnlyOneChar(exitLetter);
 	exit(1);
 }
 
 int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow,
-	string parsedSlice[], const int k_max_elements,
-	const int k_skip_to_element, const char k_delimiter, const int k_num_slice)
+	string parsedSlice[], const int k_max_elements,	const int k_skip_to_element, const char k_delimiter, const int k_num_slice)
 {
-	const int k_max_element_length = k_attribute_length; //Use k_attribute_length since it is longer than k_weapon_name_length
-
 	int numElements = 0;
-	bool bParseSuccess = false;
 	char character;
 	int maxNumSlice;
 	int targetNumElements;
@@ -321,7 +345,7 @@ int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const b
 	if (k_num_slice <= maxNumSlice) //Check that the slice exists
 	{
 		delimitedFile.open(k_file_name);
-		if (bParseSuccess = !delimitedFile.fail()) //Single = is intentional
+		if (!delimitedFile.fail()) //Single = is intentional
 		{
 			if (bSliceIsRow) //Skip to first element to parse when parsing a row
 			{
@@ -335,30 +359,28 @@ int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const b
 			for (int i = 0; i < targetNumElements && i < k_max_elements; i++) //AND gives consistent behavior for blank end lines
 			{
 				int j;
-				char parsedSliceElement[k_max_element_length];
+				char parsedElement[_MAX_PATH];
 
 				if (!bSliceIsRow) //Skip to desired column only when parsing a column
 					bSkipToColumnNum(delimitedFile, character, k_delimiter, k_num_slice);
 
-				for (j = 0; j < k_max_element_length && !delimitedFile.eof(); ++j)
+				for (j = 0; j < _MAX_PATH && !delimitedFile.eof(); ++j)
 				{
 					delimitedFile.get(character);
 
 					if (character == k_delimiter || character == '\n') //Store element characters until delimiter
 						break;
 					else
-						parsedSliceElement[j] = character;
+						parsedElement[j] = character;
 				}
 
-				parsedSliceElement[j] = '\0'; //Add terminal null character to character array
-				parsedSlice[i] = static_cast<string>(parsedSliceElement); //Fill element with character array
+				parsedElement[j] = '\0'; //Add terminal null character to character array
+				parsedSlice[i] = static_cast<string>(parsedElement); //Fill element with character array
 				++numElements;
 
 				while (!bSliceIsRow && !delimitedFile.eof() && character != '\n') //Skip to next row for parsing a column
 					delimitedFile.get(character);
 			}
-
-			bParseSuccess = true;
 		}
 		delimitedFile.close();
 	}
@@ -459,17 +481,17 @@ bool bSkipToColumnNum(ifstream &delimitedFile, char &character, const char k_del
 	return bTooFewColumns;
 }
 
-int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_concat_array)
+int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_array)
 {
 	int concatIndex = 0;
 
-	for (int i = 0; cArray1[i] != '\0' && concatIndex < k_size_concat_array - 1; ++i)
+	for (int i = 0; cArray1[i] != '\0' && concatIndex < k_size_array - 1; ++i)
 	{
 		concatArray[concatIndex] = cArray1[i];
 		++concatIndex;
 	}
 
-	for (int i = 0; cArray2[i] != '\0' && concatIndex < k_size_concat_array - 1; ++i)
+	for (int i = 0; cArray2[i] != '\0' && concatIndex < k_size_array - 1; ++i)
 	{
 		concatArray[concatIndex] = cArray2[i];
 		++concatIndex;
@@ -480,15 +502,15 @@ int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const i
 	return concatIndex;
 }
 
-int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], const int k_max_search_results,
-                  const char k_ignore_chars[], const int k_num_ignore_chars, const char k_terminal_search_char)
+int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][_MAX_PATH], const int k_max_results,
+                  const char k_ignore_chars[], const int k_num_ignore_chars, const char k_ret_char)
 {
 	int instancesFound = 0;
 	string testString;
 	char character;
 
 	searchFile >> testString;
-	while (!searchFile.eof() && instancesFound < k_max_search_results)
+	while (!searchFile.eof() && instancesFound < k_max_results)
 	{
 		if (testString == searchTerm)
 		{
@@ -497,7 +519,7 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 
 			searchFile.get(character);
 			//Fill search result entry until new-line or end of file
-			while (!searchFile.eof() && character != '\n' && character != k_terminal_search_char)
+			while (!searchFile.eof() && character != '\n' && character != k_ret_char)
 			{
 				bool bIgnoreChar = false;
 
@@ -524,7 +546,7 @@ int parseTextFile(string searchTerm, ifstream &searchFile, char searchResults[][
 
 			++instancesFound;
 
-			if (character == k_terminal_search_char)
+			if (character == k_ret_char)
 				break;
 		}
 		else
@@ -590,7 +612,7 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 	{
 		for (int i = 1; i < 10; i++)
 		{
-			char searchTerm[] = { '\"', intDecimalDigitToChar(i), '\"', '\0' };
+			char searchTerm[] = { '\"', intDigitToChar(i), '\"', '\0' };
 			char searchResult[1][_MAX_PATH];
 
 			if (static_cast<bool>(parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1, "\t\"\0", 2)))
@@ -614,35 +636,40 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 	return bFoundCsgoInstall;
 }
 
-bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weap], string attributesData[][k_num_attributes])
+bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string attributesData[][k_num_attr])
 {
+	//Constants relating to CS:GO game data in items_game.txt
+	const int k_num_unparsed_attr = 70;
+	const int k_data_len = 10;
+	const int k_attr_len = 30;
+
 	bool bParseSuccess = false;
 	ifstream weaponFile;
 
 	weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
 	if (!weaponFile.fail())
 	{
-		char unparsedData[k_num_weap][k_num_unparsed_attributes][_MAX_PATH];
-		char parsedWeaponData[k_num_weap][k_num_unparsed_attributes][k_data_length];
-		int numUnparsedReturns[k_num_weap];
+		char unparsedData[k_num_weap][k_num_unparsed_attr][_MAX_PATH];
+		char parsedWeaponData[k_num_weap][k_num_unparsed_attr][k_data_len];
+		int unparsedAttr[k_num_weap];
 
 		for (int i = 0; i < k_num_weap; ++i) //Collect weapon data for each weapon
 		{
 			char searchResult[1][_MAX_PATH];
-			string searchTerm = static_cast<string>("\"") + weaponNames[i] + static_cast<string>("_prefab\"");
+			string searchTerm = static_cast<string>("\"") + weapNames[i] + static_cast<string>("_prefab\"");
 
 			parseTextFile(searchTerm, weaponFile, searchResult, 1); //Read file up until attribtues are listed for each weapon
 			searchTerm = static_cast<string>("\"attributes\"");
-			numUnparsedReturns[i] = parseTextFile(searchTerm, weaponFile, unparsedData[i], _MAX_PATH, "\t\"\0", 2, '}');
+			unparsedAttr[i] = parseTextFile(searchTerm, weaponFile, unparsedData[i], _MAX_PATH, "\t\"\0", 2, '}');
 		}
 
 		for (int i = 0; i < k_num_weap; ++i) //Enumerate all weapons
 		{
-			for (int j = 0; j < numUnparsedReturns[i]; ++j) //Enumerate all returned unparsed attributes for each weapon
+			for (int j = 0; j < unparsedAttr[i]; ++j) //Enumerate all returned unparsed attributes for each weapon
 			{
 				bool bNumberInUnparsedData = false; 
 
-				for (int k = 0; k < k_attribute_length; ++k) //Enumerate characters for each returned unparsed attribute
+				for (int k = 0; k < k_attr_len; ++k) //Enumerate characters for each returned unparsed attribute
 				{
 					if (isDigit(unparsedData[i][j][k])) //Book's isdigit is throwing an exception for me
 					{
@@ -650,8 +677,8 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weap], st
 
 						bNumberInUnparsedData = true;
 
-						//Copy up to k_data_length = 10 digit characters in parsedWeaponData
-						for (l = 0; l < k_data_length && unparsedData[i][j][k + l] != '\0'; ++l)
+						//Copy up to k_data_len = 10 digit characters in parsedWeaponData
+						for (l = 0; l < k_data_len && unparsedData[i][j][k + l] != '\0'; ++l)
 						{
 							parsedWeaponData[i][j][l] = unparsedData[i][j][k + l];
 							unparsedData[i][j][k + l] = '\0';
@@ -671,7 +698,7 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weap], st
 				}
 
 				//unparsedData now contains parsed attribute names, so compare to stored attribute names
-				for (int m = 0; m < k_num_attributes; ++m)
+				for (int m = 0; m < k_num_attr; ++m)
 				{
 					if (unparsedData[i][j] == attributesData[k_num_weap][m])
 						attributesData[i][m] = static_cast<string>(parsedWeaponData[i][j]);
@@ -685,14 +712,14 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weap], st
 		weaponFile.open(static_cast<string>(csgoDir) + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
 		if (!weaponFile.fail())
 		{
-			char defaultCycletime[1][_MAX_PATH];
+			char defCycletime[1][_MAX_PATH];
 
-			parseTextFile(static_cast<string>("\"cycletime\""), weaponFile, defaultCycletime, 1, "\t\"\0", 2);
+			parseTextFile(static_cast<string>("\"cycletime\""), weaponFile, defCycletime, 1, "\t\"\0", 2);
 
 			for (int i = 0; i < k_num_weap; ++i)
 			{
 				if (attributesData[i][0] == "") //Weapons missing cycletime get the default value
-					attributesData[i][0] = static_cast<string>(defaultCycletime[0]);
+					attributesData[i][0] = static_cast<string>(defCycletime[0]);
 			}
 
 			bParseSuccess = true;
@@ -704,24 +731,7 @@ bool bReadWeaponFile(char csgoDir[_MAX_PATH], string weaponNames[k_num_weap], st
 	return bParseSuccess;
 }
 
-bool isDigit(char character)
-{
-	bool bIsDigit = false;
-	char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
-
-	for (int i = 0; i < 10; ++i)
-	{
-		if (character == digits[i])
-		{
-			bIsDigit = true;
-			break;
-		}
-	}
-
-	return bIsDigit;
-}
-
-bool bUpdateArchiveFile(string weaponNamesAlt[][k_num_weap], string attributesData[][k_num_attributes])
+bool bUpdateArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr])
 {
 	bool bUpdate = false;
 	ifstream archiveFile;
@@ -732,7 +742,7 @@ bool bUpdateArchiveFile(string weaponNamesAlt[][k_num_weap], string attributesDa
 	archiveFile.close();
 
 	if (bUpdate = true) //Intentionally set to true for testing;
-		bWriteArchiveFile(weaponNamesAlt, attributesData);
+		bWriteArchiveFile(weapNamesAlt, attributesData);
 
 	return bUpdate;
 }
@@ -752,7 +762,7 @@ void readArchiveFile(ifstream &archiveFile, const char k_which_archive[])
 	archiveFile.close();
 }
 
-bool bWriteArchiveFile(string weaponNamesAlt[][k_num_weap], string attributesData[][k_num_attributes])
+bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr])
 {
 	bool bWriteSuccess = false;
 	ofstream archiveFile;
@@ -762,16 +772,16 @@ bool bWriteArchiveFile(string weaponNamesAlt[][k_num_weap], string attributesDat
 	{
 		archiveFile << ",uses alt mode";
 
-		for (int j = 0; j < k_num_attributes; ++j)
+		for (int j = 0; j < k_num_attr; ++j)
 			archiveFile << ',' << attributesData[k_num_weap][j];
 
 		archiveFile << endl;
 
 		for (int i = 0; i < k_num_weap; ++i)
 		{
-			archiveFile << weaponNamesAlt[0][i] << ',' << weaponNamesAlt[1][i];
+			archiveFile << weapNamesAlt[0][i] << ',' << weapNamesAlt[1][i];
 
-			for (int j = 0; j < k_num_attributes; ++j)
+			for (int j = 0; j < k_num_attr; ++j)
 				archiveFile << ',' << attributesData[i][j];
 
 			archiveFile << endl;
