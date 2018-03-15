@@ -21,7 +21,7 @@ const char k_sir[] = "archiveSirData.csv";
 const char k_bbox[] = "archiveBboxData.csv";
 
 bool bUserMenu(int &menuOption);
-//Postcondition: menuOption from the calling function is updated according to the user's input.
+//Postcondition: menuOption from the calling function is updated according to user input.
 	//Returns true if the program should continue or false if the program should exit.
 
 int takeOnlyOneInt(const char validChars[], const int numValidChars);
@@ -109,19 +109,21 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH]);
 	//testDir is filled with one alternate library path at a time and passed to the bCheckCsgoInstall function.
 	//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alternate library path, and false otherwise.
 
-bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string attributesData[][k_num_attr]);
+bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string attrData[][k_num_attr]);
 //Precondition: 
 //Postcondition:
 
-bool bUpdateArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr]);
+bool bUpdateArchiveFile(string weapNamesAlt[][k_num_weap], string attrData[][k_num_attr], string archiveAttrData[][k_num_attr]);
 //Precondition: 
 //Postcondition: 
 
-void readArchiveFile(ifstream &archiveFile, const char k_which_archive[], const string achiveAttrData[k_num_weap][k_num_attr]);
+void readArchiveFile(ifstream &archiveFile, const char k_which_archive[], string archiveAttrData[][k_num_attr]);
 //Precondition: The archive file can be successfully connected to a file input stream with ifstream::open member function.
+	//
 //Postcondition: Parses archived hitbox and weapon data from the archive file and stores it in program memory.
+	//
 
-bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr]);
+bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attrData[][k_num_attr]);
 //Precondition: 
 //Postcondition: 
 
@@ -135,8 +137,8 @@ int main()
 	ifstream archiveSir;
 	char testDir[_MAX_PATH];
 	string weapNamesAlt[2][k_num_weap]; //First array is weapon names, second is names for alt firing mode
-	string attributesData[k_num_weap + 1][k_num_attr]; //Extra index to hold the attribute names in last array
-	string achiveAttrData[k_num_weap][k_num_attr];
+	string attrData[k_num_weap + 1][k_num_attr]; //Extra index to hold the attribute names in last array
+	string archiveAttrData[k_num_weap][k_num_attr];
 
 	do
 	{
@@ -144,7 +146,7 @@ int main()
 
 		if (getDelimitedSlice(archiveSir, k_sir, weapNamesAlt[0], k_num_weap, false, 2) != k_num_weap ||
 			getDelimitedSlice(archiveSir, k_sir, weapNamesAlt[1], k_num_weap, false, 2, ',', 2) != k_num_weap ||
-			getDelimitedSlice(archiveSir, k_sir, attributesData[k_num_weap], k_num_attr, true, 3) != k_num_attr)
+			getDelimitedSlice(archiveSir, k_sir, attrData[k_num_weap], k_num_attr, true, 3) != k_num_attr)
 		{
 			cout << "Failed to correctly retrieve weapon name or attribute list.\n\n\n";
 
@@ -166,8 +168,8 @@ int main()
 				{
 					cout << "CS:GO installation found in directory:\n" << testDir << endl << endl;
 
-					if (bReadWeapFile(testDir, weapNamesAlt[0], attributesData))
-						bUpdateArchiveFile(weapNamesAlt, attributesData);
+					if (bReadWeapFile(testDir, weapNamesAlt[0], attrData))
+						bUpdateArchiveFile(weapNamesAlt, attrData, archiveAttrData);
 
 					//unpackModels
 					//decompileModels
@@ -181,7 +183,7 @@ int main()
 			{
 				cout << "CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
 
-				readArchiveFile(archiveSir, k_sir);
+				readArchiveFile(archiveSir, k_sir, archiveAttrData);
 			}
 
 			//hitboxList~~
@@ -634,7 +636,7 @@ bool bSearchSteamLibs(char testDir[_MAX_PATH])
 	return bFoundCsgoInstall;
 }
 
-bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string attributesData[][k_num_attr])
+bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string attrData[][k_num_attr])
 {
 	//Constants relating to CS:GO game data in items_game.txt
 	const int k_num_unparsed_attr = 70;
@@ -694,8 +696,8 @@ bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string
 
 				for (int m = 0; m < k_num_attr; ++m) //unparsedData now is parsed attribute names, so compare to stored ones
 				{
-					if (unparsedData[j] == attributesData[k_num_weap][m])
-						attributesData[i][m] = static_cast<string>(parsedWeapData[j]);
+					if (unparsedData[j] == attrData[k_num_weap][m])
+						attrData[i][m] = static_cast<string>(parsedWeapData[j]);
 				}
 			}
 		}
@@ -711,8 +713,8 @@ bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string
 
 			for (int i = 0; i < k_num_weap; ++i)
 			{
-				if (attributesData[i][0] == "") //Weapons missing cycletime get the default value
-					attributesData[i][0] = static_cast<string>(defCycletime[0]);
+				if (attrData[i][0] == "") //Weapons missing cycletime get the default value
+					attrData[i][0] = static_cast<string>(defCycletime[0]);
 			}
 
 			bParseSuccess = true;
@@ -724,23 +726,23 @@ bool bReadWeapFile(char csgoDir[_MAX_PATH], string weapNames[k_num_weap], string
 	return bParseSuccess;
 }
 
-bool bUpdateArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr])
+bool bUpdateArchiveFile(string weapNamesAlt[][k_num_weap], string attrData[][k_num_attr], string archiveAttrData[][k_num_attr])
 {
 	bool bUpdate = false;
 	ifstream archiveFile;
 	char character;
 
-	readArchiveFile(archiveFile, k_sir);
+	readArchiveFile(archiveFile, k_sir, archiveAttrData);
 	//Compare archived data to new data
 	archiveFile.close();
 
 	if (bUpdate = true) //Intentionally set to true for testing;
-		bWriteArchiveFile(weapNamesAlt, attributesData);
+		bWriteArchiveFile(weapNamesAlt, attrData);
 
 	return bUpdate;
 }
 
-void readArchiveFile(ifstream &archiveFile, const char k_which_archive[])
+void readArchiveFile(ifstream &archiveFile, const char k_which_archive[], string archiveAttrData[][k_num_attr])
 {
 	char character;
 	
@@ -756,7 +758,7 @@ void readArchiveFile(ifstream &archiveFile, const char k_which_archive[])
 	archiveFile.close();
 }
 
-bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[][k_num_attr])
+bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attrData[][k_num_attr])
 {
 	bool bWriteSuccess = false;
 	ofstream archiveFile;
@@ -768,7 +770,7 @@ bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[
 		archiveFile << ",uses alt mode";
 
 		for (int j = 0; j < k_num_attr; ++j)
-			archiveFile << ',' << attributesData[k_num_weap][j];
+			archiveFile << ',' << attrData[k_num_weap][j];
 
 		archiveFile << endl;
 
@@ -777,7 +779,7 @@ bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attributesData[
 			archiveFile << weapNamesAlt[0][i] << ',' << weapNamesAlt[1][i];
 
 			for (int j = 0; j < k_num_attr; ++j)
-				archiveFile << ',' << attributesData[i][j];
+				archiveFile << ',' << attrData[i][j];
 
 			archiveFile << endl;
 		}
