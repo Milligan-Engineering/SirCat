@@ -136,7 +136,7 @@ int main()
 	int menuOption = 0;
 	ifstream archiveSir;
 	char testDir[_MAX_PATH];
-	string weapNamesAlt[2][k_num_weap]; //First array is weapon names, second is names for alt firing mode
+	string weapNamesAlt[2][k_num_weap]; //First array is weapon names, second is names for alt firing mode that can be used
 	string attrData[k_num_weap + 1][k_num_attr]; //Extra index to hold the attribute names in last array
 	string archiveAttrData[k_num_weap][k_num_attr];
 
@@ -767,7 +767,7 @@ bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attrData[][k_nu
 
 	if (!archiveFile.fail())
 	{
-		archiveFile << ",uses alt mode";
+		archiveFile << ",use alt mode";
 
 		for (int j = 0; j < k_num_attr; ++j)
 			archiveFile << ',' << attrData[k_num_weap][j];
@@ -798,6 +798,7 @@ void openArchiveFile(ifstream &archiveFile, const char k_which_archive[])
 	if (archiveFile.fail())
 	{
 		cout << endl << "Archive file " << k_which_archive << " failed to open.\n\n\n";
+
 		typeLetterToExit();
 	}
 }
