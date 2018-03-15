@@ -46,7 +46,7 @@ void typeLetterToExit();
 //Postcondition: 
 
 int getDelimitedSlice(ifstream &delimitedFile, const char k_file_name[], const bool bSliceIsRow, string parsedSlice[],
-                      const int k_max_elements, const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
+	const int k_max_elements, const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
 //Precondition: 
 //Postcondition: 
 
