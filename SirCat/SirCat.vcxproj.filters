@@ -13,10 +13,87 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="custom build step files">
+      <UniqueIdentifier>{08e6e64f-1587-45d1-a0ea-d981e7454eb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="custom build step files\models">
+      <UniqueIdentifier>{fc665878-c5c8-4ad4-b05f-5be9ca46692d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\custom build step files\archiveSirData.csv">
+      <Filter>custom build step files</Filter>
+    </None>
+    <None Include="..\custom build step files\archiveBboxData.csv">
+      <Filter>custom build step files</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_fbi.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_fbi_varianta.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_fbi_variantb.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_fbi_variantc.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_fbi_variantd.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_gign.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_gign_varianta.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_gign_variantb.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_gign_variantc.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_gign_variantd.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_gsg9.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_heavy.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_idf.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_sas.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_st6.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\ctm_swat.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\tm_anarchist.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\tm_phoenix.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\tm_pirate.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\tm_professional.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
+    <None Include="..\custom build step files\models\tm_separatist.qc">
+      <Filter>custom build step files\models</Filter>
+    </None>
   </ItemGroup>
 </Project>

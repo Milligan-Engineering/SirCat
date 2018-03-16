@@ -62,10 +62,16 @@
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
 copy /y /b "$(SolutionDir)custom build step files\archiveBboxData.csv" %archivea%
+
 set archiveb="$(SolutionDir)$(Configuration)\archiveSirData.csv"
 if exist %archiveb% del /f /q %archiveb%
-copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;%(Outputs)</Outputs>
+copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
+
+set models="$(SolutionDir)$(Configuration)\models"
+if exist %models%\ rd %models% /s /q
+robocopy "$(SolutionDir)custom build step files\models" %models% &gt; nul
+if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %errorlevel%</Command>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\models\ctm_fbi.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gign.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gsg9.qc;$(SolutionDir)$(Configuration)\models\ctm_heavy.qc;$(SolutionDir)$(Configuration)\models\ctm_idf.qc;$(SolutionDir)$(Configuration)\models\ctm_sas.qc;$(SolutionDir)$(Configuration)\models\ctm_st6.qc;$(SolutionDir)$(Configuration)\models\ctm_swat.qc;$(SolutionDir)$(Configuration)\models\tm_anarchist.qc;$(SolutionDir)$(Configuration)\models\tm_phoenix.qc;$(SolutionDir)$(Configuration)\models\tm_pirate.qc;$(SolutionDir)$(Configuration)\models\tm_professional.qc;$(SolutionDir)$(Configuration)\models\tm_separatist.qc;%(Outputs)</Outputs>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>
@@ -113,16 +119,47 @@ copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
 copy /y /b "$(SolutionDir)custom build step files\archiveBboxData.csv" %archivea%
+
 set archiveb="$(SolutionDir)$(Configuration)\archiveSirData.csv"
 if exist %archiveb% del /f /q %archiveb%
-copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%</Command>
+copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
+
+set models="$(SolutionDir)$(Configuration)\models"
+if exist %models%\ rd %models% /s /q
+robocopy "$(SolutionDir)custom build step files\models" %models% &gt; nul
+if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %errorlevel%</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\models\ctm_fbi.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gign.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gsg9.qc;$(SolutionDir)$(Configuration)\models\ctm_heavy.qc;$(SolutionDir)$(Configuration)\models\ctm_idf.qc;$(SolutionDir)$(Configuration)\models\ctm_sas.qc;$(SolutionDir)$(Configuration)\models\ctm_st6.qc;$(SolutionDir)$(Configuration)\models\ctm_swat.qc;$(SolutionDir)$(Configuration)\models\tm_anarchist.qc;$(SolutionDir)$(Configuration)\models\tm_phoenix.qc;$(SolutionDir)$(Configuration)\models\tm_pirate.qc;$(SolutionDir)$(Configuration)\models\tm_professional.qc;$(SolutionDir)$(Configuration)\models\tm_separatist.qc;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\custom build step files\archiveBboxData.csv" />
+    <None Include="..\custom build step files\archiveSirData.csv" />
+    <None Include="..\custom build step files\models\ctm_fbi.qc" />
+    <None Include="..\custom build step files\models\ctm_fbi_varianta.qc" />
+    <None Include="..\custom build step files\models\ctm_fbi_variantb.qc" />
+    <None Include="..\custom build step files\models\ctm_fbi_variantc.qc" />
+    <None Include="..\custom build step files\models\ctm_fbi_variantd.qc" />
+    <None Include="..\custom build step files\models\ctm_gign.qc" />
+    <None Include="..\custom build step files\models\ctm_gign_varianta.qc" />
+    <None Include="..\custom build step files\models\ctm_gign_variantb.qc" />
+    <None Include="..\custom build step files\models\ctm_gign_variantc.qc" />
+    <None Include="..\custom build step files\models\ctm_gign_variantd.qc" />
+    <None Include="..\custom build step files\models\ctm_gsg9.qc" />
+    <None Include="..\custom build step files\models\ctm_heavy.qc" />
+    <None Include="..\custom build step files\models\ctm_idf.qc" />
+    <None Include="..\custom build step files\models\ctm_sas.qc" />
+    <None Include="..\custom build step files\models\ctm_st6.qc" />
+    <None Include="..\custom build step files\models\ctm_swat.qc" />
+    <None Include="..\custom build step files\models\tm_anarchist.qc" />
+    <None Include="..\custom build step files\models\tm_phoenix.qc" />
+    <None Include="..\custom build step files\models\tm_pirate.qc" />
+    <None Include="..\custom build step files\models\tm_professional.qc" />
+    <None Include="..\custom build step files\models\tm_separatist.qc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
