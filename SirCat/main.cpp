@@ -879,9 +879,9 @@ bool bWriteArchiveFile(string weapNamesAlt[][k_num_weap], string attrData[][k_nu
 	}
 
 	archiveFile.close();
-	openArchiveFile(archiveFile, k_bbox);
+	//openArchiveFile(archiveFile, k_bbox);
 	//******Write bbox data******
-	archiveFile.close();
+	//archiveFile.close();
 
 	cout << endl << "Archive file updated." << endl << endl;
 
