@@ -46,7 +46,7 @@ bool bIsDigit(char character);
 //Precondition: 
 //Postcondition: 
 
-void typeLetterToExit();
+void hitEnterToExit();
 //Precondition: 
 //Postcondition: 
 
@@ -179,7 +179,7 @@ int main()
 	{
 		cout << "Failed to correctly retrieve weapon name or attribute list.\n\n\n";
 
-		typeLetterToExit();
+		hitEnterToExit();
 	}
 
 	do
@@ -291,7 +291,6 @@ bool bTakeOnlyOneChar(char &character)
 	bool bValidInput = false;
 	bool bFirstChar = true;
 	char input;
-	char validChar;
 
 	do
 	{
@@ -299,7 +298,7 @@ bool bTakeOnlyOneChar(char &character)
 
 		if (bFirstChar)
 		{
-			validChar = input;
+			character = input;
 			bValidInput = true;
 			bFirstChar = false;
 		}
@@ -307,9 +306,6 @@ bool bTakeOnlyOneChar(char &character)
 			bValidInput = false;
 
 	} while (input != '\n');
-
-	if (bValidInput)
-		character = validChar;
 
 	return bValidInput;
 }
@@ -341,13 +337,13 @@ bool bIsDigit(char character)
 	return bIsDigit;
 }
 
-void typeLetterToExit()
+void hitEnterToExit()
 {
-	char exitLetter;
+	char exitChar;
 
-	do {
-		cout << endl << "Type a letter to exit: ";
-	} while (!bTakeOnlyOneChar(exitLetter));
+	cout << endl << "Hit enter to exit: ";
+
+	bTakeOnlyOneChar(exitChar);
 
 	exit(1);
 }
@@ -898,7 +894,7 @@ void openArchiveFile(ifstream &archiveFile, const char k_which_archive[])
 	{
 		cout << endl << "Archive file " << k_which_archive << " failed to open.\n\n\n";
 
-		typeLetterToExit();
+		hitEnterToExit();
 	}
 }
 
@@ -910,7 +906,7 @@ void openArchiveFile(ofstream &archiveFile, const char k_which_archive[])
 	{
 		cout << endl << "Archive file " << k_which_archive << " failed to open.\n\n\n";
 
-		typeLetterToExit();
+		hitEnterToExit();
 	}
 }
 
