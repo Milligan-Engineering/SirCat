@@ -59,6 +59,7 @@
       <LanguageStandard>stdcpp14</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <CustomBuildStep>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
@@ -107,6 +108,7 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <ConformanceMode>true</ConformanceMode>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <PrecompiledHeader>Use</PrecompiledHeader>
     </ClCompile>
     <Link>
       <OptimizeReferences>true</OptimizeReferences>
@@ -139,6 +141,10 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\custom build step files\archiveBboxData.csv" />
@@ -164,6 +170,9 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
     <None Include="..\custom build step files\models\tm_pirate.qc" />
     <None Include="..\custom build step files\models\tm_professional.qc" />
     <None Include="..\custom build step files\models\tm_separatist.qc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

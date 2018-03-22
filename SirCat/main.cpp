@@ -6,20 +6,9 @@
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
 //Last Changed: March 16, 2018
 
-#include <fstream>
-#include <iostream>
-#include <string>
-#include <cstdlib>
+#include "stdafx.h"
 
 using namespace std;
-
-//Const definitions should preceed function definitions, which might use them
-//ALLCAPS style for const values can inadvertanly call macros, instead k_prefix_style maintains visual distinction from camelCase
-const int k_max_path = 260;
-const int k_num_weap = 26;
-const int k_num_attr = 21;
-const char k_sir[] = "archiveSirData.csv";
-const char k_bbox[] = "archiveBboxData.csv";
 
 bool bUserMenu(int &menuOption);
 //Precondition: menuOption is modifiable.
