@@ -7,10 +7,10 @@ using namespace std;
 
 class Archive
 {
-public:
+protected:
 	Archive() = default;
 	~Archive() = default;
-protected:
+
 	ifstream &getInArchive();
 	//Precondition: 
 	//Postcondition:
