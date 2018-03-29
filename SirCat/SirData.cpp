@@ -26,12 +26,12 @@ bool SirData::bIsDigit(const char character)
 
 SirData::SirData(const char setCsvName[])
 {
-	int col = k_num_attr + 2; //Column number that contains the names for usable alt firing modes
+	int c = k_num_attr + 2; //Column number that contains the names for usable alt firing modes
 
 	csvName = static_cast<string>(setCsvName);
 
 	if (TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapNames, k_num_weap, false, 2) == k_num_weap &&
-		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapAlts, k_num_weap, false, 2, ',', col) == k_num_weap &&
+		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapAlts, k_num_weap, false, 2, ',', c) == k_num_weap &&
 		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, attrNames, k_num_attr, true, 2) == k_num_attr)
 	{
 		numColumns = k_num_attr;

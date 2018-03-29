@@ -16,7 +16,7 @@ ofstream &Archive::getOutArchive()
 	return outArchive;
 }
 
-bool Archive::bCheckArchiveRow(const string rowName, const string columnNames[], const string newRow[], const string archiveRow[])
+bool Archive::bCheckArchiveRow(const string rowName, const string colNames[], const string newRow[], const string archiveRow[])
 {
 	bool bUpdate = false;
 
@@ -26,7 +26,7 @@ bool Archive::bCheckArchiveRow(const string rowName, const string columnNames[],
 		{
 			bUpdate = true;
 
-			cout << "Data mismatch detected for " << rowName << " " << columnNames[j] << ":\n";
+			cout << "Data mismatch detected for " << rowName << " " << colNames[j] << ":\n";
 			cout << "Value from CS:GO's game files: " << newRow[j] << endl;
 			cout << "Value from archive file: " << archiveRow[j] << endl << endl;
 		}
