@@ -4,17 +4,33 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #08
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: March 28, 2018
+//Last Changed: April 4, 2018
+
+#ifndef STRICT //Enforce strict definitions of Windows data types
+	#define STRICT
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+	#define WIN32_LEAN_AND_MEAN
+#endif //WIN32_LEAN_AND_MEAN
 
 #include "BboxData.h"
 #include "SirData.h"
 #include "FindCsgo.h"
 #include <cstdlib>
 #include <iostream>
+#include <string>
+#include <Windows.h>
 
 using namespace std;
 
-void updatePrompt(SirData &archiveSir, SirData &newSir, BboxData &archiveBbox, BboxData &newBbox);
+struct NewData
+{
+	BboxData bbox; //Object to hold fresh hitbox data from game files
+	SirData sir; //Object to hold fresh weapon data from game file
+};
+
+void updatePrompt(BboxData &archiveBbox, SirData &archiveSir, NewData &newData);
 //Precondition: 
 //Postcondition: 
 
@@ -23,15 +39,15 @@ bool bUserMenu(int &menuOption);
 //Postcondition: menuOption is updated according to user input in response to a program menu.
 	//Returns true if the program should continue or false if the program should exit.
 
-int takeOnlyOneInt(const char validChars[], const int numValidChars);
-//Precondition: Array validChars is modifiable and numValidChars is the size of validChars.
-//Postcondition: Get one and only one input char, convert it to int, and return the integer;
+int takeOnlyOneInt(const WCHAR validChars[], const int numValidChars);
+//Precondition: numValidChars is the size of validChars.
+//Postcondition: Get one and only one input character, convert it to int, and return the integer;
 
-bool bTakeOnlyOneChar(char &character);
+bool bTakeOnlyOneWchar(WCHAR &character);
 //Precondition: character is modifiable.
 //Postcondition: Sets character to first character input 
 
-int charDigitToInt(char charDigit);
+int WcharDigitToInt(const WCHAR wcharDigit);
 //Precondition: 
 //Postcondition: 
 
@@ -57,14 +73,13 @@ void calcIdealFreq();
 
 int main()
 {
-	SirData archiveSir("archiveSirData.csv");
-	BboxData archiveBbox("archiveBboxData.csv");
+	BboxData archiveBbox(L"archiveBboxData.csv");
+	SirData archiveSir(L"archiveSirData.csv");
 	int menuOption = 1;
 
-	if (!archiveSir.getBStaticVarsInitialized() || !archiveBbox.getBStaticVarsInitialized())
+	if (!archiveBbox.getBStaticVarsInitialized() || !archiveSir.getBStaticVarsInitialized())
 	{
-		cout << "Failed to correctly retrieve archived data.\n\n\n";
-
+		wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 		hitEnterToExit();
 	}
 	
@@ -74,34 +89,51 @@ int main()
 
 		if (menuOption == 1)
 		{
-			if (FindCsgo::inst().bFetchSteamDir())
+			wstring steamDir;
+
+			if (FindCsgo::inst().bFetchSteamDir(steamDir))
 			{
+				wcout << L"Steam installation found in directory:\n" << steamDir << endl << endl;
+
 				if (FindCsgo::inst().bCheckCsgoInstall() //CSGO found in default Steam library
 					|| FindCsgo::inst().bSearchSteamLibs()) //CSGO found in alternate Steam library
 				{
-					SirData newSir; //New object to hold fresh weapon data from game file
-					BboxData newBbox; //New object to hold fresh hitbox data from game files
+					NewData newData;
 
-					cout << "CS:GO installation found in directory:\n" << FindCsgo::inst().getTestDir() << endl << endl;
+					wcout << L"CS:GO installation found in directory:\n" << FindCsgo::inst().getTestDir() << endl << endl;
 
-					if (newSir.bReadWeapFile(FindCsgo::inst().getTestDir()) && newBbox.bReadModelFiles())
+					if (newData.bbox.bReadModelFiles() && newData.sir.bReadWeapFile(FindCsgo::inst().getTestDir()))
 					{
-						bRevertToArchive = false;
-						archiveSir.readArchive();
-						archiveBbox.readArchive();
+						wstring badRowName, badColName, badNewVal, badArchiveVal;
+						bool bUpdate = true;
 
-						if (archiveSir.bCheckArchive(newSir) || archiveBbox.bCheckArchive(newBbox))
-							updatePrompt(archiveSir, newSir, archiveBbox, newBbox);
+						bRevertToArchive = false;
+						archiveBbox.readArchive();
+						archiveSir.readArchive();
+
+						if (archiveBbox.bCheckArchive(newData.bbox, badRowName, badColName, badNewVal, badArchiveVal))
+							wcout << L"Data mismatch detected in " << archiveBbox.getCsvName();
+						else if (archiveSir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
+							wcout << L"Data mismatch detected in " << archiveSir.getCsvName();
+						else
+							bUpdate = false;
+
+						if (bUpdate)
+						{
+							wcout << L" for " << badRowName << L" " << badColName << L" ...\n";
+							wcout << L"Value from CS:GO's game files: " << badNewVal << endl;
+							wcout << L"Value from archive file: " << badArchiveVal << endl << endl;
+							updatePrompt(archiveBbox, archiveSir, newData);
+						}
 					}
 				}
 			}
 
 			if (bRevertToArchive)
 			{
-				cout << "CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
-
-				archiveSir.readArchive();
+				wcout << L"CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
 				archiveBbox.readArchive();
+				archiveSir.readArchive();
 			}
 
 			pickModel();
@@ -119,36 +151,36 @@ int main()
 	return 0;
 }
 
-void updatePrompt(SirData &archiveSir, SirData &newSir, BboxData &archiveBbox, BboxData &newBbox)
+void updatePrompt(BboxData &archiveBbox, SirData &archiveSir, NewData &newData)
 {
 	int menuOption = 0;
 
 	do
 	{
-		cout << "Would you like to update the archive file with the new game data?\n";
-		cout << "Please enter 1 for yes, or 2 for no: ";
+		wcout << L"Would you like to update the archive file with the new game data?\n";
+		wcout << L"Please enter 1 for yes, or 2 for no: ";
 
-		switch (menuOption = takeOnlyOneInt("12", 2))
+		switch (menuOption = takeOnlyOneInt(L"12", 2))
 		{
 		case 1:
-			//if (archiveSir.bWriteArchiveFile(newSir) && archiveBbox.bWriteArchiveFile(newBbox))
-			if (archiveSir.bWriteArchiveFile(newSir)) //Until BboxData::bReadModelFiles() is coded
+			//if (archiveBbox.bWriteArchiveFile(newData.bbox) && archiveSir.bWriteArchiveFile(newData.sir))
+			if (archiveSir.bWriteArchiveFile(newData.sir)) //Until BboxData::bReadModelFiles() is coded
 			{
-				archiveSir.readArchive();
 				archiveBbox.readArchive();
-
-				cout << endl << "Archive file updated." << endl << endl;
+				archiveSir.readArchive();
+				wcout << endl << endl << L"Archive files updated." << endl << endl;
 			}
 			else
-				cout << endl << "Failed to update archive file." << endl << endl;
+				wcout << endl << endl << L"Failed to update archive files." << endl << endl;
 
 			break;
 		case 2:
+			wcout << endl << endl;
 			break;
 		default:
-			cout << endl << "That is not a valid menu option.\n\n";
+			wcout << endl << endl << L"That is not a valid menu option.\n\n";
 		}
-	} while (!static_cast<bool>(menuOption));
+	} while (menuOption == 0);
 }
 
 bool bUserMenu(int &menuOption)
@@ -157,44 +189,43 @@ bool bUserMenu(int &menuOption)
 	
 	do
 	{
-		cout << endl;
-		cout << "1 - start over for a fresh calculation, starting from actual game data\n";
-		cout << "2 - modify hitbox and weapon data for another calculation\n";
-		cout << "3 - pick distance for another calculation with the same hitbox and weapon data\n";
-		cout << "4 - exit the program\n\n";
-		cout << "Please enter a choice from the preceding menu options: ";
+		wcout << L"1 - start over for a fresh calculation, starting from actual game data\n";
+		wcout << L"2 - modify hitbox and weapon data for another calculation\n";
+		wcout << L"3 - pick distance for another calculation with the same hitbox and weapon data\n";
+		wcout << L"4 - exit the program\n";
+		wcout << L"Please enter a choice from the preceding menu options: ";
 
-		switch (menuOption = takeOnlyOneInt("1234", 4))
+		switch (menuOption = takeOnlyOneInt(L"1234", 4))
 		{
 		case 1:
 		case 2:
 		case 3:
-			cout << endl << endl << endl; //Add some padding for new calculations
+			wcout << endl << endl;
 			break;
 		case 4:
-			cout << endl;
+			wcout << endl;
 			bContinue = false;
 			break;
 		default:
-			cout << endl << "That is not a valid menu option.\n\n";
+			wcout << endl << endl << L"That is not a valid menu option.\n";
 		}
-	} while (!static_cast<bool>(menuOption)); //Loop until a valid menu option is input
+	} while (menuOption == 0); //Loop until a valid menu option is input
 
 	return bContinue;
 }
 
-int takeOnlyOneInt(const char validChars[], const int numValidChars)
+int takeOnlyOneInt(const WCHAR validChars[], const int numValidChars)
 {
 	int integer = 0;
-	char character;
+	WCHAR character;
 
-	if (bTakeOnlyOneChar(character))
+	if (bTakeOnlyOneWchar(character))
 	{
 		for (int i = 0; i < numValidChars; ++i)
 		{
 			if (character == validChars[i])
 			{
-				integer = charDigitToInt(character);
+				integer = WcharDigitToInt(character);
 				break;
 			}
 		}
@@ -203,15 +234,15 @@ int takeOnlyOneInt(const char validChars[], const int numValidChars)
 	return integer;
 }
 
-bool bTakeOnlyOneChar(char &character)
+bool bTakeOnlyOneWchar(WCHAR &character)
 {
 	bool bValidInput = false;
 	bool bFirstChar = true;
-	char input;
+	WCHAR input;
 
 	do
 	{
-		cin.get(input);
+		wcin.get(input);
 
 		if (bFirstChar)
 		{
@@ -219,26 +250,26 @@ bool bTakeOnlyOneChar(char &character)
 			bValidInput = true;
 			bFirstChar = false;
 		}
-		else if (input != '\n')
+		else if (input != L'\n')
 			bValidInput = false;
 
-	} while (input != '\n');
+	} while (input != L'\n');
 
 	return bValidInput;
 }
 
-int charDigitToInt(const char charDigit)
+int WcharDigitToInt(const WCHAR wcharDigit)
 {
-	return (static_cast<int>(charDigit) - static_cast<int>('0'));
+	return (static_cast<int>(wcharDigit) - static_cast<int>(L'0'));
 }
 
 void hitEnterToExit()
 {
-	char exitChar;
+	WCHAR exitWchar;
 
-	cout << endl << "Hit enter to exit: ";
-
-	bTakeOnlyOneChar(exitChar);
+	wcout << endl << L"Hit enter to exit: ";
+	bTakeOnlyOneWchar(exitWchar);
+	wcout << endl;
 	exit(1);
 }
 

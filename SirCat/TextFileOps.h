@@ -1,7 +1,16 @@
 #pragma once
 
-#include <iosfwd> //Forward declares ifstream without #include <fstream>
+#ifndef STRICT //Enforce strict definitions of Windows data types
+	#define STRICT
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+	#define WIN32_LEAN_AND_MEAN
+#endif //WIN32_LEAN_AND_MEAN
+
+#include <iosfwd> //Forward declares wifstream without #include <fstream>
 #include <string>
+#include <Windows.h>
 
 using namespace std;
 
@@ -14,49 +23,49 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	int fetchDelimitedSlice(ifstream &delimitedFile, const string k_filename, string parsedSlice[], const int k_max_elements,
-		const bool bSliceIsRow = true, const int k_skip_to_element = 1, const char k_delimiter = ',', const int k_num_slice = 1);
+	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[], const int maxElements,
+		const bool bSliceIsRow = true, const int skipToElement = 1, const WCHAR delimiter = L',', const int numSlice = 1);
 	//Precondition: 
 	//Postcondition: 
 
-	int fetchNumColumns(ifstream &delimitedFile, const string k_filename, const char k_delimiter = ',', const int k_num_row = 1);
+	int fetchNumColumns(wifstream &delimitedFile, const wstring filename, const WCHAR delimiter = L',', const int numRow = 1);
 	//Precondition: 
 	//Postcondition: 
 
-	int fetchNumRows(ifstream &delimitedFile, const string k_filename, const char k_delimiter = ',', const int k_num_column = 1);
+	int fetchNumRows(wifstream &delimitedFile, const wstring filename, const WCHAR delimiter = L',', const int numColumn = 1);
 	//Precondition: 
 	//Postcondition: 
 
-	void skipToRowNum(ifstream &delimitedFile, char &character, const int k_num_row);
+	void skipToRowNum(wifstream &delimitedFile, WCHAR &character, const int numRow);
 	//Precondition: 
 	//Postcondition: 
 
-	bool bSkipToColumnNum(ifstream &delimitedFile, char &character, const char k_delimiter, const int k_num_column);
+	bool bSkipToColumnNum(wifstream &delimitedFile, WCHAR &character, const WCHAR delimiter, const int numColumn);
 	//Precondition: 
 	//Postcondition: 
 
-	int concatCharArrays(char cArray1[], char cArray2[], char concatArray[], const int k_size_array);
-	//Precondition: The strings cArray1 and cArray2 are null-terminated.
+	int concatCharArrays(const WCHAR cArray1[], const WCHAR cArray2[], WCHAR concatArray[], const int sizeArray);
+	//Precondition: The character strings cArray1 and cArray2 are null-terminated.
 		//The sum of filled elements of cArray1 and cArray2 is less than or equal to the size of array concatArray.
 		//concatArray is modifiable.
-		//k_size_array is the size of concatArray.
-	//Postcondition: concatArray is filled with the concatenation of cArray1 and cArray2, and terminated with a null character.
-		//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original string.
+		//sizeArray is the size of concatArray.
+	//Postcondition: concatArray is filled with the concatenation of cArray1 and cArray2, terminated with a null character.
+		//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original character string.
 		//Returns the index of the last filled element in concatArray.
 
-	int parseTextFile(const string searchTerm, ifstream &searchFile, char searchRes[][k_max_path], const int k_max_res,
-		const char k_ignore_chars[] = "", const int k_num_ignore_chars = 0, const char k_ret_char = '\0');
+	int parseTextFile(const wstring searchTerm, wifstream &searchFile, WCHAR searchRes[][MAX_PATH], const int maxRes,
+		const WCHAR ignoreChars[] = L"", const int numIgnoreChars = 0, const WCHAR retChar = L'\0');
 	//Precondition: searchTerm should not contain any whitespace characters.
 		//The file input stream searchFile has been successfully connected to a file.
 		//The two-dimensional array searchRes is modifiable.
-		//k_max_res is less than or equal to the first dimension in searchRes.
-		//If the array k_ignore_chars is passed, k_num_ignore_chars is less than or equal to the size of k_ignore_chars.
+		//maxRes is less than or equal to the first dimension in searchRes.
+		//If the array ignoreChars is passed, numIgnoreChars is less than or equal to the size of ignoreChars.
 	//Postcondition: searchFile is searched by looping through non-whitespace strings separated by whitespace characters.
-		//When a string matches searchTerm, a *searchRes[k_max_path] array is filled until new-line or end of file.
-		//Characters passed in k_ignore_chars are not copied to *searchRes[k_max_path] and escaped backslashes are unescaped.
-		//searchRes is filled, up to k_max_res number of null-terminated strings *searchRes[k_max_path].
-		//If k_ret_char is passed, the function will return if and when that character is found.
-		//Returns the number of null-terminated strings *searchRes[k_max_path] filled in the array of strings searchRes.
+		//When a string matches searchTerm, a *searchRes[MAX_PATH] array is filled until new-line or end of file.
+		//Characters passed in ignoreChars are not copied to *searchRes[MAX_PATH] and escaped backslashes are unescaped.
+		//searchRes is filled, up to maxRes number of null-terminated wstrings *searchRes[MAX_PATH].
+		//If retChar is passed, the function will return if and when that character is found.
+		//Returns the number of null-terminated wstrings *searchRes[MAX_PATH] filled in the array of wstrings searchRes.
 private:
 	TextFileOps() = default;
 	~TextFileOps() = default;

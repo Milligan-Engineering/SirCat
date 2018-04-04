@@ -1,8 +1,16 @@
+#ifndef STRICT //Enforce strict definitions of Windows data types
+	#define STRICT
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+	#define WIN32_LEAN_AND_MEAN
+#endif //WIN32_LEAN_AND_MEAN
+
 #include "FindCsgo.h"
 #include "TextFileOps.h"
 #include <fstream>
-#include <iostream>
 #include <string>
+#include <Windows.h>
 
 using namespace std;
 
@@ -12,49 +20,64 @@ FindCsgo &FindCsgo::inst()
 	return inst;
 }
 
-bool FindCsgo::bFetchSteamDir()
+bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
-	bool bFoundRegValue = false;
+	HKEY hKey = NULL;
+	DWORD keyType = REG_SZ;
+	WCHAR keyData[MAX_PATH] = { NULL };
+	DWORD keyDataSize = sizeof(keyData);
 
-	//******Windows functions RegOpenKeyEx, RegQueryValueEx, and RegCloseKey search for the Steam directory if it exists******
-	bFoundRegValue = true; //Set to true until Windows functions are added
+	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 
-	if (bFoundRegValue == true)
+	if (ret == ERROR_SUCCESS)
 	{
-		char steamDirTemp[] = "C:\\Program Files (x86)\\Steam"; //Replace with RegQueryValueEx output
-		char blank[] = "";
-		char steamappsFolder[] = "\\steamapps";
-
-		TextFileOps::inst().concatCharArrays(steamDirTemp, blank, testDir, TextFileOps::k_max_path);
-
-		cout << "Steam installation found in directory:\n" << testDir << endl << endl;
-
-		TextFileOps::inst().concatCharArrays(testDir, steamappsFolder, testDir, TextFileOps::k_max_path);
+		ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, (LPBYTE)keyData, &keyDataSize);
+		RegCloseKey(hKey);
 	}
 
-	return bFoundRegValue;
+	if (ret == ERROR_FILE_NOT_FOUND)
+	{
+		ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
+		if (ret == ERROR_SUCCESS)
+		{
+			ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, (LPBYTE)keyData, &keyDataSize);
+			RegCloseKey(hKey);
+		}
+	}
+
+	if (ret == ERROR_SUCCESS)
+	{
+		WCHAR blank[] = L"";
+		WCHAR steamappsFolder[] = L"\\steamapps";
+
+		steamDir = static_cast<wstring>(keyData);
+		TextFileOps::inst().concatCharArrays(keyData, blank, testDir, MAX_PATH);
+		TextFileOps::inst().concatCharArrays(testDir, steamappsFolder, testDir, MAX_PATH);
+	}
+
+	return !static_cast<bool>(ret);
 }
 
 bool FindCsgo::bCheckCsgoInstall()
 {
 	bool bFoundCsgoInstall = false;
-	ifstream manifest;
+	wifstream manifest;
 
-	manifest.open(static_cast<string>(testDir) + static_cast<string>("\\appmanifest_730.acf"));
+	manifest.open(static_cast<wstring>(testDir) + static_cast<wstring>(L"\\appmanifest_730.acf"));
 
 	if (!manifest.fail())
 	{
-		char searchResult[1][TextFileOps::k_max_path];
+		WCHAR searchResult[1][MAX_PATH];
 
 		//Verify CS:GO installation directory listed in manifest file contents
-		if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<string>("\"installdir\""), manifest, searchResult, 1,
-			"\t\"\0", 2)))
+		if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<wstring>(L"\"installdir\""), manifest, searchResult,
+			1, L"\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
-			char installSubDir[] = "\\common\\";
+			WCHAR installSubDir[] = L"\\common\\";
 
-			TextFileOps::inst().concatCharArrays(testDir, installSubDir, testDir, TextFileOps::k_max_path);
-			TextFileOps::inst().concatCharArrays(testDir, searchResult[0], testDir, TextFileOps::k_max_path);
+			TextFileOps::inst().concatCharArrays(testDir, installSubDir, testDir, MAX_PATH);
+			TextFileOps::inst().concatCharArrays(testDir, searchResult[0], testDir, MAX_PATH);
 		}
 
 		manifest.close();
@@ -66,23 +89,23 @@ bool FindCsgo::bCheckCsgoInstall()
 bool FindCsgo::bSearchSteamLibs()
 {
 	bool bFoundCsgoInstall = false;
-	ifstream libFile;
+	wifstream libFile;
 
-	libFile.open(static_cast<string>(testDir) + static_cast<string>("\\libraryfolders.vdf"));
+	libFile.open(static_cast<wstring>(testDir) + static_cast<wstring>(L"\\libraryfolders.vdf"));
 
 	if (!libFile.fail())
 	{
 		for (int i = 1; i < 10; i++)
 		{
-			char searchTerm[] = { '\"', intDigitToChar(i), '\"', '\0' };
-			char searchResult[1][TextFileOps::k_max_path];
+			WCHAR searchTerm[] = { L'\"', intDigitToWchar(i), L'\"', L'\0' };
+			WCHAR searchResult[1][MAX_PATH];
 
-			if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<string>(searchTerm), libFile, searchResult, 1,
-				"\t\"\0", 2)))
+			if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult,
+				1, L"\t\"\0", 2)))
 			{
-				char steamappsFolder[] = "\\steamapps";
+				WCHAR steamappsFolder[] = L"\\steamapps";
 
-				TextFileOps::inst().concatCharArrays(searchResult[0], steamappsFolder, testDir, TextFileOps::k_max_path);
+				TextFileOps::inst().concatCharArrays(searchResult[0], steamappsFolder, testDir, MAX_PATH);
 
 				if (bCheckCsgoInstall())
 				{
@@ -100,12 +123,12 @@ bool FindCsgo::bSearchSteamLibs()
 	return bFoundCsgoInstall;
 }
 
-char FindCsgo::intDigitToChar(const int intDigit)
+WCHAR FindCsgo::intDigitToWchar(const int intDigit)
 {
-	return (static_cast<char>(intDigit + static_cast<int>('0')));
+	return (static_cast<WCHAR>(intDigit + static_cast<int>(L'0')));
 }
 
-string FindCsgo::getTestDir()
+wstring FindCsgo::getTestDir()
 {
-	return static_cast<string>(testDir);
+	return static_cast<wstring>(testDir);
 }

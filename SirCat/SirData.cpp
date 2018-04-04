@@ -1,16 +1,25 @@
+#ifndef STRICT //Enforce strict definitions of Windows data types
+	#define STRICT
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+	#define WIN32_LEAN_AND_MEAN
+#endif //WIN32_LEAN_AND_MEAN
+
 #include "SirData.h"
 #include "TextFileOps.h"
 #include <fstream>
 #include <string>
+#include <Windows.h>
 
-string SirData::weapNames[] = { "" };
-string SirData::weapAlts[] = { "" };
-string SirData::attrNames[] = { "" };
+wstring SirData::weapNames[] = { L"" };
+wstring SirData::weapAlts[] = { L"" };
+wstring SirData::attrNames[] = { L"" };
 
-bool SirData::bIsDigit(const char character)
+bool SirData::bIsDigit(const WCHAR character)
 {
 	bool bIsDigit = false;
-	char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+	WCHAR digits[] = { L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9' };
 
 	for (int i = 0; i < 10; ++i)
 	{
@@ -24,14 +33,19 @@ bool SirData::bIsDigit(const char character)
 	return bIsDigit;
 }
 
-SirData::SirData(const char setCsvName[])
+SirData::SirData()
+{
+	bStaticVarsInitialized = false;
+}
+
+SirData::SirData(const WCHAR setCsvName[])
 {
 	int c = k_num_attr + 2; //Column number that contains the names for usable alt firing modes
 
-	csvName = static_cast<string>(setCsvName);
+	csvName = static_cast<wstring>(setCsvName);
 
 	if (TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapNames, k_num_weap, false, 2) == k_num_weap &&
-		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapAlts, k_num_weap, false, 2, ',', c) == k_num_weap &&
+		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapAlts, k_num_weap, false, 2, L',', c) == k_num_weap &&
 		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, attrNames, k_num_attr, true, 2) == k_num_attr)
 	{
 		numColumns = k_num_attr;
@@ -39,17 +53,7 @@ SirData::SirData(const char setCsvName[])
 	}
 }
 
-SirData::SirData()
-{
-	bStaticVarsInitialized = false;
-}
-
-bool SirData::getBStaticVarsInitialized()
-{
-	return bStaticVarsInitialized;
-}
-
-bool SirData::bReadWeapFile(const string csgoDir)
+bool SirData::bReadWeapFile(const wstring csgoDir)
 {
 	//Constants relating to CS:GO game data in items_game.txt
 	const int k_num_unparsed_attr = 70;
@@ -57,25 +61,25 @@ bool SirData::bReadWeapFile(const string csgoDir)
 	const int k_attr_len = 30;
 
 	bool bParseSuccess = false;
-	ifstream weapFile;
+	wifstream weapFile;
 
-	weapFile.open(csgoDir + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
+	weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
 
 	if (!weapFile.fail())
 	{
 		for (int i = 0; i < k_num_weap; ++i) //Collect weapon data for each weapon
 		{
-			char searchResult[1][TextFileOps::k_max_path];
-			string searchTerm = static_cast<string>("\"") + weapNames[i] + static_cast<string>("_prefab\"");
-			char unparsedData[k_num_unparsed_attr][TextFileOps::k_max_path];
-			char parsedWeapData[k_num_unparsed_attr][k_data_len];
+			WCHAR searchResult[1][TextFileOps::k_max_path];
+			wstring searchTerm = static_cast<wstring>(L"\"") + weapNames[i] + static_cast<wstring>(L"_prefab\"");
+			WCHAR unparsedData[k_num_unparsed_attr][TextFileOps::k_max_path];
+			WCHAR parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
 
 			//Read until attributes are listed for each weapon
 			TextFileOps::inst().parseTextFile(searchTerm, weapFile, searchResult, 1);
-			searchTerm = static_cast<string>("\"attributes\"");
+			searchTerm = static_cast<wstring>(L"\"attributes\"");
 			unparsedAttr = TextFileOps::inst().parseTextFile(searchTerm, weapFile, unparsedData, TextFileOps::k_max_path,
-				"\t\"\0", 2, '}');
+				L"\t\"\0", 2, L'}');
 
 			for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
 			{
@@ -90,17 +94,17 @@ bool SirData::bReadWeapFile(const string csgoDir)
 						bNumberInUnparsedData = true;
 
 						//Copy up to k_data_len = 10 digit characters in parsedWeaponData
-						for (l = 0; l < k_data_len && unparsedData[j][k + l] != '\0'; ++l)
+						for (l = 0; l < k_data_len && unparsedData[j][k + l] != L'\0'; ++l)
 						{
 							parsedWeapData[j][l] = unparsedData[j][k + l];
-							unparsedData[j][k + l] = '\0';
+							unparsedData[j][k + l] = L'\0';
 						}
-						parsedWeapData[j][l] = '\0'; //Add terminal null character to character array
+						parsedWeapData[j][l] = L'\0'; //Add terminal null character to character array
 
 						//Change trailing characters to null characters, leaving parsed attribute names in unparsedData
-						while (unparsedData[j][k + l] != '\0')
+						while (unparsedData[j][k + l] != L'\0')
 						{
-							unparsedData[j][k + l] = '\0';
+							unparsedData[j][k + l] = L'\0';
 							++l;
 						}
 					}
@@ -112,24 +116,24 @@ bool SirData::bReadWeapFile(const string csgoDir)
 				for (int m = 0; m < k_num_attr; ++m) //unparsedData now is parsed attribute names, so compare to stored ones
 				{
 					if (unparsedData[j] == attrNames[m])
-						sirData[i][m] = static_cast<string>(parsedWeapData[j]);
+						sirData[i][m] = static_cast<wstring>(parsedWeapData[j]);
 				}
 			}
 		}
 
 		weapFile.close(); //Close and reopen to start searching from the beginning
-		weapFile.open(csgoDir + static_cast<string>("\\csgo\\scripts\\items\\items_game.txt"));
+		weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
 
 		if (!weapFile.fail())
 		{
-			char defCycletime[1][TextFileOps::k_max_path];
+			WCHAR defCycletime[1][TextFileOps::k_max_path];
 
-			TextFileOps::inst().parseTextFile(static_cast<string>("\"cycletime\""), weapFile, defCycletime, 1, "\t\"\0", 2);
+			TextFileOps::inst().parseTextFile(static_cast<wstring>(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
 
 			for (int i = 0; i < k_num_weap; ++i)
 			{
-				if (sirData[i][0] == "") //Weapons missing cycletime get the default value
-					sirData[i][0] = static_cast<string>(defCycletime[0]);
+				if (sirData[i][0] == L"") //Weapons missing cycletime get the default value
+					sirData[i][0] = static_cast<wstring>(defCycletime[0]);
 			}
 
 			bParseSuccess = true;
@@ -141,12 +145,22 @@ bool SirData::bReadWeapFile(const string csgoDir)
 	return bParseSuccess;
 }
 
-bool SirData::bCheckArchive(SirData &newSir)
+bool SirData::bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal, wstring &badArchiveVal)
 {
 	bool bUpdate = false;
+	int j;
 
-	for (int i = 0; i < k_num_weap && !bUpdate; ++i) //&& !bUpdate will terminate the loop after first mismatch
-		bUpdate = bCheckArchiveRow(weapNames[i], attrNames, newSir.sirData[i], sirData[i]);
+	for (int i = 0; i < k_num_weap; ++i)
+	{
+		if (bUpdate = bCheckArchiveRow(weapNames[i], attrNames, newSir.sirData[i], sirData[i], j)) //Single = is intentional
+		{
+			badRowName = weapNames[i];
+			badColName = attrNames[j];
+			badNewVal = newSir.sirData[i][j];
+			badArchiveVal = sirData[i][j];
+			break; //Terminate the loop after first mismatch
+		}
+	}
 
 	return bUpdate;
 }
@@ -167,7 +181,7 @@ bool SirData::bWriteArchiveFile(SirData &newSir)
 	{
 		writeArchiveFileRow(attrNames);
 
-		getOutArchive() << ",use alt mode" << endl;
+		getOutArchive() << L",use alt mode" << endl;
 
 		for (int i = 0; i < k_num_weap; ++i)
 		{
@@ -175,7 +189,7 @@ bool SirData::bWriteArchiveFile(SirData &newSir)
 
 			writeArchiveFileRow(newSir.sirData[i]);
 
-			getOutArchive() << ',' << weapAlts[i] << endl;
+			getOutArchive() << L',' << weapAlts[i] << endl;
 		}
 
 		bWriteSuccess = true;

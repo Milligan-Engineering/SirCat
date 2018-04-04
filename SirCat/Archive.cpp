@@ -1,47 +1,54 @@
 #include "Archive.h"
 #include "TextFileOps.h"
 #include <fstream>
-#include <iostream>
 #include <string>
 
-ifstream &Archive::getInArchive()
+wstring Archive::getCsvName()
 {
-	static ifstream inArchive;
+	return csvName;
+}
+
+bool Archive::getBStaticVarsInitialized()
+{
+	return bStaticVarsInitialized;
+}
+
+wifstream &Archive::getInArchive()
+{
+	static wifstream inArchive;
 	return inArchive;
 }
 
-ofstream &Archive::getOutArchive()
+wofstream &Archive::getOutArchive()
 {
-	static ofstream outArchive;
+	static wofstream outArchive;
 	return outArchive;
 }
 
-bool Archive::bCheckArchiveRow(const string rowName, const string colNames[], const string newRow[], const string archiveRow[])
+bool Archive::bCheckArchiveRow(const wstring rowName, const wstring colNames[], const wstring newRow[],
+	const wstring archiveRow[],	int &j)
 {
 	bool bUpdate = false;
 
-	for (int j = 0; j < numColumns && !bUpdate; ++j) //&& !bUpdate will terminate the loop after first mismatch
+	for (j = 0; j < numColumns; ++j)
 	{
 		if (newRow[j] != archiveRow[j])
 		{
 			bUpdate = true;
-
-			cout << "Data mismatch detected for " << rowName << " " << colNames[j] << ":\n";
-			cout << "Value from CS:GO's game files: " << newRow[j] << endl;
-			cout << "Value from archive file: " << archiveRow[j] << endl << endl;
+			break; //Terminate the loop after first mismatch
 		}
 	}
 
 	return bUpdate;
 }
 
-void Archive::readArchiveRow(string archiveRow[], const int rowNum)
+void Archive::readArchiveRow(wstring archiveRow[], const int rowNum)
 {
-	TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, archiveRow, numColumns, true, 2, ',', rowNum);
+	TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, archiveRow, numColumns, true, 2, L',', rowNum);
 }
 
-void Archive::writeArchiveFileRow(const string newRow[])
+void Archive::writeArchiveFileRow(const wstring newRow[])
 {
 	for (int j = 0; j < numColumns; ++j)
-		getOutArchive() << ',' << newRow[j];
+		getOutArchive() << L',' << newRow[j];
 }

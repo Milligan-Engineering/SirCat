@@ -1,7 +1,16 @@
 #pragma once
 
+#ifndef STRICT //Enforce strict definitions of Windows data types
+	#define STRICT
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+	#define WIN32_LEAN_AND_MEAN
+#endif //WIN32_LEAN_AND_MEAN
+
 #include "TextFileOps.h"
 #include <string>
+#include <Windows.h>
 
 class FindCsgo
 {
@@ -10,7 +19,7 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	bool bFetchSteamDir();
+	bool bFetchSteamDir(wstring &steamDir);
 	//Postcondition: If valid registry value for Steam installation is found, testDir is filled with the installation directory.
 		//Returns true if valid registry value is found, and false otherwise.
 
@@ -24,16 +33,16 @@ public:
 		//testDir is filled with one alt library path at a time and passed to the bCheckCsgoInstall function.
 		//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alt library path, and false otherwise.
 
-	string getTestDir();
+	wstring getTestDir();
 	//Precondition: 
 	//Postcondition: 
 private:
 	FindCsgo() = default;
 	~FindCsgo() = default;
 
-	char intDigitToChar(const int intDigit);
+	WCHAR intDigitToWchar(const int intDigit);
 	//Precondition: 
 	//Postcondition: 
 
-	char testDir[TextFileOps::k_max_path];
+	WCHAR testDir[TextFileOps::k_max_path];
 };
