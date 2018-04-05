@@ -8,7 +8,7 @@ bool BboxData::bArchiveObjMade = false;
 wstring BboxData::modelNames[] = { L"" };
 wstring BboxData::attrNames[] = { L"" };
 
-bool BboxData::bFetchArchiveLayout(const wstring csvName)
+bool BboxData::bMakeBboxObjArchive(const wstring csvName)
 {
 	bool bSuccess = false;
 

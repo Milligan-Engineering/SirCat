@@ -76,8 +76,8 @@ int main()
 	Data archiveData;
 	int menuOption = 1;
 
-	if (!archiveData.bbox.bFetchArchiveLayout(static_cast<wstring>(L"archiveBboxData.csv"))
-		|| !archiveData.sir.bFetchArchiveLayout(static_cast<wstring>(L"archiveSirData.csv")))
+	if (!archiveData.bbox.bMakeBboxObjArchive(static_cast<wstring>(L"archiveBboxData.csv"))
+		|| !archiveData.sir.bMakeSirObjArchive(static_cast<wstring>(L"archiveSirData.csv")))
 	{
 		wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 		hitEnterToExit();

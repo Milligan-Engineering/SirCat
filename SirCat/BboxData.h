@@ -19,7 +19,7 @@ public:
 	BboxData() = default;
 	~BboxData() = default;
 
-	bool bFetchArchiveLayout(const wstring csvName);
+	bool bMakeBboxObjArchive(const wstring csvName);
 	//Precondition: 
 	//Postcondition: 
 

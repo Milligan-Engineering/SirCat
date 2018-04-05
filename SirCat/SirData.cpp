@@ -19,7 +19,7 @@ wstring SirData::weapNames[] = { L"" };
 wstring SirData::weapAlts[] = { L"" };
 wstring SirData::attrNames[] = { L"" };
 
-bool SirData::bFetchArchiveLayout(const wstring csvName)
+bool SirData::bMakeSirObjArchive(const wstring csvName)
 {
 	bool bSuccess = false;
 

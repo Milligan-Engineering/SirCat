@@ -20,7 +20,7 @@ public:
 	SirData() = default;
 	~SirData() = default;
 
-	bool bFetchArchiveLayout(const wstring csvName);
+	bool bMakeSirObjArchive(const wstring csvName);
 	//Precondition: 
 	//Postcondition: 
 
