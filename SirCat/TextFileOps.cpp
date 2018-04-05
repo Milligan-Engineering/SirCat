@@ -11,6 +11,8 @@
 #include <string>
 #include <Windows.h>
 
+using namespace std;
+
 TextFileOps &TextFileOps::inst()
 {
 	static TextFileOps inst;

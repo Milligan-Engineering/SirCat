@@ -12,6 +12,8 @@
 #include <string>
 #include <Windows.h>
 
+using namespace std;
+
 wstring SirData::weapNames[] = { L"" };
 wstring SirData::weapAlts[] = { L"" };
 wstring SirData::attrNames[] = { L"" };
@@ -69,17 +71,16 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	{
 		for (int i = 0; i < k_num_weap; ++i) //Collect weapon data for each weapon
 		{
-			WCHAR searchResult[1][TextFileOps::k_max_path];
+			WCHAR searchResult[1][MAX_PATH];
 			wstring searchTerm = static_cast<wstring>(L"\"") + weapNames[i] + static_cast<wstring>(L"_prefab\"");
-			WCHAR unparsedData[k_num_unparsed_attr][TextFileOps::k_max_path];
+			WCHAR unparsedData[k_num_unparsed_attr][MAX_PATH];
 			WCHAR parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
 
 			//Read until attributes are listed for each weapon
 			TextFileOps::inst().parseTextFile(searchTerm, weapFile, searchResult, 1);
 			searchTerm = static_cast<wstring>(L"\"attributes\"");
-			unparsedAttr = TextFileOps::inst().parseTextFile(searchTerm, weapFile, unparsedData, TextFileOps::k_max_path,
-				L"\t\"\0", 2, L'}');
+			unparsedAttr = TextFileOps::inst().parseTextFile(searchTerm, weapFile, unparsedData, MAX_PATH, L"\t\"\0", 2, L'}');
 
 			for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
 			{
@@ -126,7 +127,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 
 		if (!weapFile.fail())
 		{
-			WCHAR defCycletime[1][TextFileOps::k_max_path];
+			WCHAR defCycletime[1][MAX_PATH];
 
 			TextFileOps::inst().parseTextFile(static_cast<wstring>(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
 

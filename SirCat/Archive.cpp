@@ -3,6 +3,8 @@
 #include <fstream>
 #include <string>
 
+using namespace std;
+
 wstring Archive::getCsvName()
 {
 	return csvName;

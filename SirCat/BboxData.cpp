@@ -12,6 +12,8 @@
 #include <string>
 #include <Windows.h>
 
+using namespace std;
+
 wstring BboxData::modelNames[] = { L"" };
 wstring BboxData::attrNames[] = { L"" };
 

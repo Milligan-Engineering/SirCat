@@ -17,8 +17,6 @@ using namespace std;
 class TextFileOps
 {
 public:
-	static const int k_max_path = 260;
-
 	static TextFileOps &inst();
 	//Precondition: 
 	//Postcondition: 

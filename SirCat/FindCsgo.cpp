@@ -29,18 +29,18 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 
 	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 
-	if (ret == ERROR_SUCCESS)
+	if (ret == ERROR_SUCCESS) //Check registry for 64-bit Windows installation
 	{
-		ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, (LPBYTE)keyData, &keyDataSize);
+		ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, reinterpret_cast<LPBYTE>(keyData), &keyDataSize);
 		RegCloseKey(hKey);
 	}
 
-	if (ret == ERROR_FILE_NOT_FOUND)
+	if (ret == ERROR_FILE_NOT_FOUND) //Then check for 32-bit if unsuccessful
 	{
 		ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 		if (ret == ERROR_SUCCESS)
 		{
-			ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, (LPBYTE)keyData, &keyDataSize);
+			ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, reinterpret_cast<LPBYTE>(keyData), &keyDataSize);
 			RegCloseKey(hKey);
 		}
 	}
@@ -55,7 +55,7 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 		TextFileOps::inst().concatCharArrays(testDir, steamappsFolder, testDir, MAX_PATH);
 	}
 
-	return !static_cast<bool>(ret);
+	return !static_cast<bool>(ret); //0 (ERROR_SUCCESS) indicates success, so take logical NOT or ret
 }
 
 bool FindCsgo::bCheckCsgoInstall()

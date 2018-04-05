@@ -8,9 +8,10 @@
 	#define WIN32_LEAN_AND_MEAN
 #endif //WIN32_LEAN_AND_MEAN
 
-#include "TextFileOps.h"
 #include <string>
 #include <Windows.h>
+
+using namespace std;
 
 class FindCsgo
 {
@@ -44,5 +45,6 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
-	WCHAR testDir[TextFileOps::k_max_path];
+	//WCHAR testDir[TextFileOps::k_max_path];
+	WCHAR testDir[MAX_PATH];
 };
