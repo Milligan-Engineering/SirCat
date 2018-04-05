@@ -5,14 +5,27 @@
 
 using namespace std;
 
+bool Archive::bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
+	const int numSlice[])
+{
+	bool bSuccess = true;
+
+	for (int i = 0; i < numHeaders; ++i)
+	{
+		if (TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, headers[i], sliceSize[i], sliceIsRow[i], 2, L',',
+			numSlice[i]) != sliceSize[i])
+		{
+			bSuccess = false;
+			break;
+		}
+	}
+
+	return bSuccess;
+}
+
 wstring Archive::getCsvName()
 {
 	return csvName;
-}
-
-bool Archive::getBStaticVarsInitialized()
-{
-	return bStaticVarsInitialized;
 }
 
 wifstream &Archive::getInArchive()

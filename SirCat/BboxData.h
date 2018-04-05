@@ -1,16 +1,7 @@
 #pragma once
 
-#ifndef STRICT //Enforce strict definitions of Windows data types
-	#define STRICT
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
-	#define WIN32_LEAN_AND_MEAN
-#endif //WIN32_LEAN_AND_MEAN
-
 #include "Archive.h"
 #include <string>
-#include <Windows.h>
 
 using namespace std;
 
@@ -20,19 +11,17 @@ private: //private first because public member function need the private constan
 	static const int k_num_model = 21; //Number of relevant player hitbox models
 	static const int k_num_attr = 7; //Number of relevant hitbox attributes
 
+	static bool bArchiveObjMade;
 	static wstring modelNames[k_num_model];
 	static wstring attrNames[k_num_attr];
 	wstring bboxData[k_num_model][k_num_attr];
 public:
-	BboxData();
-	//Precondition: 
-	//Postcondition: 
-
-	BboxData(const WCHAR setCsvName[]);
-	//Precondition: 
-	//Postcondition: 
-
+	BboxData() = default;
 	~BboxData() = default;
+
+	bool bFetchArchiveLayout(const wstring csvName);
+	//Precondition: 
+	//Postcondition: 
 
 	bool bReadModelFiles();
 	//Precondition: 

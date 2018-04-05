@@ -45,6 +45,5 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
-	//WCHAR testDir[TextFileOps::k_max_path];
 	WCHAR testDir[MAX_PATH];
 };

@@ -14,45 +14,32 @@
 
 using namespace std;
 
+bool SirData::bArchiveObjMade = false;
 wstring SirData::weapNames[] = { L"" };
 wstring SirData::weapAlts[] = { L"" };
 wstring SirData::attrNames[] = { L"" };
 
-bool SirData::bIsDigit(const WCHAR character)
+bool SirData::bFetchArchiveLayout(const wstring csvName)
 {
-	bool bIsDigit = false;
-	WCHAR digits[] = { L'0', L'1', L'2', L'3', L'4', L'5', L'6', L'7', L'8', L'9' };
+	bool bSuccess = false;
 
-	for (int i = 0; i < 10; ++i)
+	if (!bArchiveObjMade)
 	{
-		if (character == digits[i])
+		wstring *headers[3] = { weapNames, weapAlts, attrNames };
+		const int sliceSize[3] = { k_num_weap, k_num_weap, k_num_attr };
+		const bool sliceIsRow[3] = { false, false, true };
+		const int numSlice[3] = { 1, k_num_attr + 2, 1 };
+
+		Archive::csvName = csvName;
+		numColumns = k_num_attr;
+		if (bMakeObjArchive(3, headers, sliceSize, sliceIsRow, numSlice))
 		{
-			bIsDigit = true;
-			break;
+			bArchiveObjMade = true;
+			bSuccess = true;
 		}
 	}
 
-	return bIsDigit;
-}
-
-SirData::SirData()
-{
-	bStaticVarsInitialized = false;
-}
-
-SirData::SirData(const WCHAR setCsvName[])
-{
-	int c = k_num_attr + 2; //Column number that contains the names for usable alt firing modes
-
-	csvName = static_cast<wstring>(setCsvName);
-
-	if (TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapNames, k_num_weap, false, 2) == k_num_weap &&
-		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, weapAlts, k_num_weap, false, 2, L',', c) == k_num_weap &&
-		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, attrNames, k_num_attr, true, 2) == k_num_attr)
-	{
-		numColumns = k_num_attr;
-		bStaticVarsInitialized = true;
-	}
+	return bSuccess;
 }
 
 bool SirData::bReadWeapFile(const wstring csgoDir)
@@ -88,7 +75,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 
 				for (int k = 0; k < k_attr_len; ++k) //Enumerate characters for each returned unparsed attribute
 				{
-					if (bIsDigit(unparsedData[j][k])) //Book's isdigit is throwing an exception for me
+					if (iswdigit(static_cast<wint_t>(unparsedData[j][k]))) //Book's isdigit is throwing an exception for me
 					{
 						int l;
 
@@ -146,7 +133,8 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	return bParseSuccess;
 }
 
-bool SirData::bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal, wstring &badArchiveVal)
+bool SirData::bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal,
+	wstring &badArchiveVal)
 {
 	bool bUpdate = false;
 	int j;
@@ -181,15 +169,12 @@ bool SirData::bWriteArchiveFile(SirData &newSir)
 	if (!getOutArchive().fail())
 	{
 		writeArchiveFileRow(attrNames);
-
 		getOutArchive() << L",use alt mode" << endl;
 
 		for (int i = 0; i < k_num_weap; ++i)
 		{
 			getOutArchive() << weapNames[i];
-
 			writeArchiveFileRow(newSir.sirData[i]);
-
 			getOutArchive() << L',' << weapAlts[i] << endl;
 		}
 

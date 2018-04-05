@@ -8,11 +8,12 @@ using namespace std;
 class Archive
 {
 public:
-	wstring getCsvName();
+	bool bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
+		const int numSlice[]);
 	//Precondition: 
 	//Postcondition: 
 
-	bool getBStaticVarsInitialized();
+	wstring getCsvName();
 	//Precondition: 
 	//Postcondition: 
 protected:
@@ -41,6 +42,5 @@ protected:
 	//Postcondition: 
 
 	wstring csvName;
-	bool bStaticVarsInitialized;
 	int numColumns;
 };

@@ -1,37 +1,34 @@
-#ifndef STRICT //Enforce strict definitions of Windows data types
-	#define STRICT
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
-	#define WIN32_LEAN_AND_MEAN
-#endif //WIN32_LEAN_AND_MEAN
-
 #include "BboxData.h"
-#include "TextFileOps.h"
 #include <fstream>
 #include <string>
-#include <Windows.h>
 
 using namespace std;
 
+bool BboxData::bArchiveObjMade = false;
 wstring BboxData::modelNames[] = { L"" };
 wstring BboxData::attrNames[] = { L"" };
 
-BboxData::BboxData()
+bool BboxData::bFetchArchiveLayout(const wstring csvName)
 {
-	bStaticVarsInitialized = false;
-}
+	bool bSuccess = false;
 
-BboxData::BboxData(const WCHAR setCsvName[])
-{
-	csvName = static_cast<wstring>(setCsvName);
-
-	if (TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, modelNames, k_num_model, false, 2) == k_num_model &&
-		TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, attrNames, k_num_attr, true, 2) == k_num_attr)
+	if (!bArchiveObjMade)
 	{
+		wstring *headers[2] = { modelNames, attrNames };
+		const int sliceSize[2] = { k_num_model, k_num_attr };
+		const bool sliceIsRow[2] = { false, true };
+		const int numSlice[2] = { 1, 1 };
+
+		Archive::csvName = csvName;
 		numColumns = k_num_attr;
-		bStaticVarsInitialized = true;
+		if (bMakeObjArchive(2, headers, sliceSize, sliceIsRow, numSlice))
+		{
+			bArchiveObjMade = true;
+			bSuccess = true;
+		}
 	}
+
+	return bSuccess;
 }
 
 bool BboxData::bReadModelFiles()
@@ -67,12 +64,13 @@ bool BboxData::bDecompileModels()
 	return bSuccess;
 }
 
-bool BboxData::bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &badColName, wstring &badNewVal, wstring &badAVal)
+bool BboxData::bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &badColName, wstring &badNewVal,
+	wstring &badArchiveVal)
 {
 	bool bUpdate = false;
 	int j;
 
-	for (int i = 0; i < k_num_model; ++i) //&& !bUpdate will terminate the loop after first mismatch
+	for (int i = 0; i < k_num_model; ++i)
 	{
 		if (bUpdate = bCheckArchiveRow(modelNames[i], attrNames, bboxData[i], bboxData[i], j)) //Single = is intentional
 			//^^^^^^Until bReadModelFiles() is coded
@@ -81,7 +79,7 @@ bool BboxData::bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &ba
 			badRowName = modelNames[i];
 			badColName = attrNames[j];
 			badNewVal = newBbox.bboxData[i][j];
-			badAVal = bboxData[i][j];
+			badArchiveVal = bboxData[i][j];
 			break; //Terminate the loop after first mismatch
 		}
 	}
@@ -104,15 +102,12 @@ bool BboxData::bWriteArchiveFile(BboxData &newBbox)
 	if (!getOutArchive().fail())
 	{
 		writeArchiveFileRow(attrNames);
-
 		getOutArchive() << endl;
 
 		for (int i = 0; i < k_num_model; ++i)
 		{
 			getOutArchive() << modelNames[i];
-
 			writeArchiveFileRow(newBbox.bboxData[i]);
-
 			getOutArchive() << endl;
 		}
 

@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #08
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 4, 2018
+//Last Changed: April 5, 2018
 
 #ifndef STRICT //Enforce strict definitions of Windows data types
 	#define STRICT
@@ -24,13 +24,13 @@
 
 using namespace std;
 
-struct NewData
+struct Data
 {
-	BboxData bbox; //Object to hold fresh hitbox data from game files
-	SirData sir; //Object to hold fresh weapon data from game file
+	BboxData bbox;
+	SirData sir;
 };
 
-void updatePrompt(BboxData &archiveBbox, SirData &archiveSir, NewData &newData);
+void updatePrompt(Data &archiveData, Data &newData);
 //Precondition: 
 //Postcondition: 
 
@@ -73,16 +73,16 @@ void calcIdealFreq();
 
 int main()
 {
-	BboxData archiveBbox(L"archiveBboxData.csv");
-	SirData archiveSir(L"archiveSirData.csv");
+	Data archiveData;
 	int menuOption = 1;
 
-	if (!archiveBbox.getBStaticVarsInitialized() || !archiveSir.getBStaticVarsInitialized())
+	if (!archiveData.bbox.bFetchArchiveLayout(static_cast<wstring>(L"archiveBboxData.csv"))
+		|| !archiveData.sir.bFetchArchiveLayout(static_cast<wstring>(L"archiveSirData.csv")))
 	{
 		wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 		hitEnterToExit();
 	}
-	
+
 	do
 	{
 		bool bRevertToArchive = true;
@@ -98,7 +98,7 @@ int main()
 				if (FindCsgo::inst().bCheckCsgoInstall() //CSGO found in default Steam library
 					|| FindCsgo::inst().bSearchSteamLibs()) //CSGO found in alternate Steam library
 				{
-					NewData newData;
+					Data newData;
 
 					wcout << L"CS:GO installation found in directory:\n" << FindCsgo::inst().getTestDir() << endl << endl;
 
@@ -108,13 +108,13 @@ int main()
 						bool bUpdate = true;
 
 						bRevertToArchive = false;
-						archiveBbox.readArchive();
-						archiveSir.readArchive();
+						archiveData.bbox.readArchive();
+						archiveData.sir.readArchive();
 
-						if (archiveBbox.bCheckArchive(newData.bbox, badRowName, badColName, badNewVal, badArchiveVal))
-							wcout << L"Data mismatch detected in " << archiveBbox.getCsvName();
-						else if (archiveSir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
-							wcout << L"Data mismatch detected in " << archiveSir.getCsvName();
+						if (archiveData.bbox.bCheckArchive(newData.bbox, badRowName, badColName, badNewVal, badArchiveVal))
+							wcout << L"Data mismatch detected in " << archiveData.bbox.getCsvName();
+						else if (archiveData.sir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
+							wcout << L"Data mismatch detected in " << archiveData.sir.getCsvName();
 						else
 							bUpdate = false;
 
@@ -123,7 +123,7 @@ int main()
 							wcout << L" for " << badRowName << L" " << badColName << L" ...\n";
 							wcout << L"Value from CS:GO's game files: " << badNewVal << endl;
 							wcout << L"Value from archive file: " << badArchiveVal << endl << endl;
-							updatePrompt(archiveBbox, archiveSir, newData);
+							updatePrompt(archiveData, newData);
 						}
 					}
 				}
@@ -132,8 +132,8 @@ int main()
 			if (bRevertToArchive)
 			{
 				wcout << L"CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
-				archiveBbox.readArchive();
-				archiveSir.readArchive();
+				archiveData.bbox.readArchive();
+				archiveData.sir.readArchive();
 			}
 
 			pickModel();
@@ -151,7 +151,7 @@ int main()
 	return 0;
 }
 
-void updatePrompt(BboxData &archiveBbox, SirData &archiveSir, NewData &newData)
+void updatePrompt(Data &archiveData, Data &newData)
 {
 	int menuOption = 0;
 
@@ -163,11 +163,11 @@ void updatePrompt(BboxData &archiveBbox, SirData &archiveSir, NewData &newData)
 		switch (menuOption = takeOnlyOneInt(L"12", 2))
 		{
 		case 1:
-			//if (archiveBbox.bWriteArchiveFile(newData.bbox) && archiveSir.bWriteArchiveFile(newData.sir))
-			if (archiveSir.bWriteArchiveFile(newData.sir)) //Until BboxData::bReadModelFiles() is coded
+			//if (archiveData.bbox.bWriteArchiveFile(newData.bbox) && archiveData.sir.bWriteArchiveFile(newData.sir))
+			if (archiveData.sir.bWriteArchiveFile(newData.sir)) //Until BboxData::bReadModelFiles() is coded
 			{
-				archiveBbox.readArchive();
-				archiveSir.readArchive();
+				archiveData.bbox.readArchive();
+				archiveData.sir.readArchive();
 				wcout << endl << endl << L"Archive files updated." << endl << endl;
 			}
 			else
