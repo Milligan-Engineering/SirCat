@@ -20,16 +20,7 @@ protected:
 	Archive() = default;
 	~Archive() = default;
 
-	wifstream &getInArchive();
-	//Precondition: 
-	//Postcondition: 
-
-	wofstream &getOutArchive();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bCheckArchiveRow(const wstring rowName, const wstring columnNames[], const wstring newRow[],
-		const wstring archiveRow[], int &j);
+	bool bCheckArchiveRow(const wstring row1[], const wstring row2[], int &j);
 	//Precondition: 
 	//Postcondition: 
 
@@ -38,6 +29,14 @@ protected:
 	//Postcondition: Parses a row of data from the archive file and stores it in array archiveRow.
 
 	void writeArchiveFileRow(const wstring newRow[]);
+	//Precondition: 
+	//Postcondition: 
+
+	wifstream &getInArchive();
+	//Precondition: 
+	//Postcondition: 
+
+	wofstream &getOutArchive();
 	//Precondition: 
 	//Postcondition: 
 

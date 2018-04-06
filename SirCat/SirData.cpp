@@ -19,6 +19,11 @@ wstring SirData::weapNames[] = { L"" };
 wstring SirData::weapAlts[] = { L"" };
 wstring SirData::attrNames[] = { L"" };
 
+SirData::SirData()
+{
+	numColumns = k_num_attr;
+}
+
 bool SirData::bMakeSirObjArchive(const wstring csvName)
 {
 	bool bSuccess = false;
@@ -31,7 +36,7 @@ bool SirData::bMakeSirObjArchive(const wstring csvName)
 		const int numSlice[3] = { 1, k_num_attr + 2, 1 };
 
 		Archive::csvName = csvName;
-		numColumns = k_num_attr;
+
 		if (bMakeObjArchive(3, headers, sliceSize, sliceIsRow, numSlice))
 		{
 			bArchiveObjMade = true;
@@ -141,7 +146,7 @@ bool SirData::bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badCo
 
 	for (int i = 0; i < k_num_weap; ++i)
 	{
-		if (bUpdate = bCheckArchiveRow(weapNames[i], attrNames, newSir.sirData[i], sirData[i], j)) //Single = is intentional
+		if (bUpdate = bCheckArchiveRow(newSir.sirData[i], sirData[i], j)) //Single = is intentional
 		{
 			badRowName = weapNames[i];
 			badColName = attrNames[j];

@@ -41,9 +41,5 @@ private:
 	FindCsgo() = default;
 	~FindCsgo() = default;
 
-	WCHAR intDigitToWchar(const int intDigit);
-	//Precondition: 
-	//Postcondition: 
-
 	WCHAR testDir[MAX_PATH];
 };

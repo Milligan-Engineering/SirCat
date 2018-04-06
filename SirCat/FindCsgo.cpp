@@ -97,7 +97,7 @@ bool FindCsgo::bSearchSteamLibs()
 	{
 		for (int i = 1; i < 10; i++)
 		{
-			WCHAR searchTerm[] = { L'\"', intDigitToWchar(i), L'\"', L'\0' };
+			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
 			WCHAR searchResult[1][MAX_PATH];
 
 			if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult,
@@ -121,11 +121,6 @@ bool FindCsgo::bSearchSteamLibs()
 	}
 
 	return bFoundCsgoInstall;
-}
-
-WCHAR FindCsgo::intDigitToWchar(const int intDigit)
-{
-	return (static_cast<WCHAR>(intDigit + static_cast<int>(L'0')));
 }
 
 wstring FindCsgo::getTestDir()

@@ -17,7 +17,10 @@ private: //private first because public member function need the private constan
 	static wstring attrNames[k_num_attr];
 	wstring sirData[k_num_weap][k_num_attr];
 public:
-	SirData() = default;
+	SirData();
+	//Precondition: 
+	//Postcondition: 
+
 	~SirData() = default;
 
 	bool bMakeSirObjArchive(const wstring csvName);
@@ -28,7 +31,8 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	bool bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal, wstring &badArchiveVal);
+	bool bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal,
+		wstring &badArchiveVal);
 	//Precondition: 
 	//Postcondition: 
 

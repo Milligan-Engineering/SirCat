@@ -16,7 +16,10 @@ private: //private first because public member function need the private constan
 	static wstring attrNames[k_num_attr];
 	wstring bboxData[k_num_model][k_num_attr];
 public:
-	BboxData() = default;
+	BboxData();
+	//Precondition: 
+	//Postcondition:
+
 	~BboxData() = default;
 
 	bool bMakeBboxObjArchive(const wstring csvName);

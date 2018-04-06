@@ -21,8 +21,9 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[], const int maxElements,
-		const bool bSliceIsRow = true, const int skipToElement = 1, const WCHAR delimiter = L',', const int numSlice = 1);
+	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[],
+		const int maxElements, const bool bSliceIsRow = true, const int skipToElement = 1, const WCHAR delimiter = L',',
+		const int numSlice = 1);
 	//Precondition: 
 	//Postcondition: 
 

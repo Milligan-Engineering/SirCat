@@ -8,6 +8,11 @@ bool BboxData::bArchiveObjMade = false;
 wstring BboxData::modelNames[] = { L"" };
 wstring BboxData::attrNames[] = { L"" };
 
+BboxData::BboxData()
+{
+	numColumns = k_num_attr;
+}
+
 bool BboxData::bMakeBboxObjArchive(const wstring csvName)
 {
 	bool bSuccess = false;
@@ -20,7 +25,7 @@ bool BboxData::bMakeBboxObjArchive(const wstring csvName)
 		const int numSlice[2] = { 1, 1 };
 
 		Archive::csvName = csvName;
-		numColumns = k_num_attr;
+
 		if (bMakeObjArchive(2, headers, sliceSize, sliceIsRow, numSlice))
 		{
 			bArchiveObjMade = true;
@@ -72,9 +77,9 @@ bool BboxData::bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &ba
 
 	for (int i = 0; i < k_num_model; ++i)
 	{
-		if (bUpdate = bCheckArchiveRow(modelNames[i], attrNames, bboxData[i], bboxData[i], j)) //Single = is intentional
+		if (bUpdate = bCheckArchiveRow(bboxData[i], bboxData[i], j)) //Single = is intentional
 			//^^^^^^Until bReadModelFiles() is coded
-		//if (bUpdate = bCheckArchiveRow(modelNames[i], attrNames, newBbox.bboxData[i], bboxData[i], j))
+		//if (bUpdate = bCheckArchiveRow(newBbox.bboxData[i], bboxData[i], j))
 		{
 			badRowName = modelNames[i];
 			badColName = attrNames[j];

@@ -28,26 +28,13 @@ wstring Archive::getCsvName()
 	return csvName;
 }
 
-wifstream &Archive::getInArchive()
-{
-	static wifstream inArchive;
-	return inArchive;
-}
-
-wofstream &Archive::getOutArchive()
-{
-	static wofstream outArchive;
-	return outArchive;
-}
-
-bool Archive::bCheckArchiveRow(const wstring rowName, const wstring colNames[], const wstring newRow[],
-	const wstring archiveRow[],	int &j)
+bool Archive::bCheckArchiveRow(const wstring row1[], const wstring row2[], int &j)
 {
 	bool bUpdate = false;
 
 	for (j = 0; j < numColumns; ++j)
 	{
-		if (newRow[j] != archiveRow[j])
+		if (row1[j] != row2[j])
 		{
 			bUpdate = true;
 			break; //Terminate the loop after first mismatch
@@ -66,4 +53,16 @@ void Archive::writeArchiveFileRow(const wstring newRow[])
 {
 	for (int j = 0; j < numColumns; ++j)
 		getOutArchive() << L',' << newRow[j];
+}
+
+wifstream &Archive::getInArchive()
+{
+	static wifstream inArchive;
+	return inArchive;
+}
+
+wofstream &Archive::getOutArchive()
+{
+	static wofstream outArchive;
+	return outArchive;
 }
