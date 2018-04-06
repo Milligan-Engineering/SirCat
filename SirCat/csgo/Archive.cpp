@@ -1,5 +1,5 @@
 #include "Archive.h"
-#include "TextFileOps.h"
+#include "..\TextFileOps\TextFileOps.h"
 #include <fstream>
 #include <string>
 

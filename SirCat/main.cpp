@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #08
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 5, 2018
+//Last Changed: April 6, 2018
 
 #ifndef STRICT //Enforce strict definitions of Windows data types
 	#define STRICT
@@ -14,9 +14,9 @@
 	#define WIN32_LEAN_AND_MEAN
 #endif //WIN32_LEAN_AND_MEAN
 
-#include "BboxData.h"
-#include "SirData.h"
-#include "FindCsgo.h"
+#include "csgo\BboxData.h"
+#include "csgo\SirData.h"
+#include "csgo\FindCsgo.h"
 #include <cstdlib>
 #include <iostream>
 #include <string>

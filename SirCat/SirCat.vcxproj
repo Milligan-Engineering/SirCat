@@ -138,12 +138,12 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Archive.cpp" />
-    <ClCompile Include="BboxData.cpp" />
-    <ClCompile Include="FindCsgo.cpp" />
+    <ClCompile Include="csgo\Archive.cpp" />
+    <ClCompile Include="csgo\BboxData.cpp" />
+    <ClCompile Include="csgo\FindCsgo.cpp" />
+    <ClCompile Include="csgo\SirData.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="SirData.cpp" />
-    <ClCompile Include="TextFileOps.cpp" />
+    <ClCompile Include="TextFileOps\TextFileOps.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\custom build step files\archiveBboxData.csv" />
@@ -171,11 +171,11 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
     <None Include="..\custom build step files\models\tm_separatist.qc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Archive.h" />
-    <ClInclude Include="BboxData.h" />
-    <ClInclude Include="FindCsgo.h" />
-    <ClInclude Include="SirData.h" />
-    <ClInclude Include="TextFileOps.h" />
+    <ClInclude Include="csgo\Archive.h" />
+    <ClInclude Include="csgo\BboxData.h" />
+    <ClInclude Include="csgo\FindCsgo.h" />
+    <ClInclude Include="csgo\SirData.h" />
+    <ClInclude Include="TextFileOps\TextFileOps.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

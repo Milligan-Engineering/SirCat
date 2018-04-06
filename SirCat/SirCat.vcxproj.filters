@@ -24,19 +24,19 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SirData.cpp">
+    <ClCompile Include="TextFileOps\TextFileOps.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Archive.cpp">
+    <ClCompile Include="csgo\Archive.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextFileOps.cpp">
+    <ClCompile Include="csgo\BboxData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FindCsgo.cpp">
+    <ClCompile Include="csgo\FindCsgo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="BboxData.cpp">
+    <ClCompile Include="csgo\SirData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -112,19 +112,19 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="SirData.h">
+    <ClInclude Include="csgo\Archive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Archive.h">
+    <ClInclude Include="csgo\BboxData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="TextFileOps.h">
+    <ClInclude Include="csgo\FindCsgo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FindCsgo.h">
+    <ClInclude Include="csgo\SirData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="BboxData.h">
+    <ClInclude Include="TextFileOps\TextFileOps.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -7,7 +7,7 @@
 #endif //WIN32_LEAN_AND_MEAN
 
 #include "FindCsgo.h"
-#include "TextFileOps.h"
+#include "..\TextFileOps\TextFileOps.h"
 #include <fstream>
 #include <string>
 #include <Windows.h>
