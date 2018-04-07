@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #08
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 6, 2018
+//Last Changed: April 7, 2018
 
 #ifndef STRICT //Enforce strict definitions of Windows data types
 	#define STRICT

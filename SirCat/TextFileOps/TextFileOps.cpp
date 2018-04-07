@@ -200,7 +200,7 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, 
 
 			searchFile.get(character);
 
-			//Fill search result entry until new-line, end of file, return character, or delimiter
+			//Fill search result entry until new-line, end of file, or return character
 			while (!searchFile.eof() && character != L'\n' && character != retChar)
 			{
 				bool bIgnoreChar = false;
