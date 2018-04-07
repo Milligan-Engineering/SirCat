@@ -7,7 +7,7 @@ using namespace std;
 
 class BboxData : public Archive
 {
-private: //private first because public member function need the private constants
+private:
 	static const int k_num_model = 21; //Number of relevant player hitbox models
 	static const int k_num_attr = 7; //Number of relevant hitbox attributes
 

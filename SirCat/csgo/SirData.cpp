@@ -28,8 +28,9 @@ bool SirData::bMakeSirObjArchive(const wstring csvName)
 {
 	bool bSuccess = false;
 
-	if (!bArchiveObjMade)
+	if (!bArchiveObjMade) //Only one archive can be made because this gets set to true inside
 	{
+		//Parameters to pass for slicing out headers that are member arrays
 		wstring *headers[3] = { weapNames, weapAlts, attrNames };
 		const int sliceSize[3] = { k_num_weap, k_num_weap, k_num_attr };
 		const bool sliceIsRow[3] = { false, false, true };
@@ -54,7 +55,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	const int k_data_len = 10;
 	const int k_attr_len = 30;
 
-	bool bParseSuccess = false;
+	bool bSuccess = false;
 	wifstream weapFile;
 
 	weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
@@ -69,9 +70,8 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 			WCHAR parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
 
-			//Read until attributes are listed for each weapon
 			TextFileOps::inst().parseTextFile(searchTerm, weapFile, searchResult, 1);
-			searchTerm = static_cast<wstring>(L"\"attributes\"");
+			searchTerm = static_cast<wstring>(L"\"attributes\""); //Read until attributes are listed for each weapon
 			unparsedAttr = TextFileOps::inst().parseTextFile(searchTerm, weapFile, unparsedData, MAX_PATH, L"\t\"\0", 2, L'}');
 
 			for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
@@ -92,6 +92,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 							parsedWeapData[j][l] = unparsedData[j][k + l];
 							unparsedData[j][k + l] = L'\0';
 						}
+
 						parsedWeapData[j][l] = L'\0'; //Add terminal null character to character array
 
 						//Change trailing characters to null characters, leaving parsed attribute names in unparsedData
@@ -129,13 +130,13 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 					sirData[i][0] = static_cast<wstring>(defCycletime[0]);
 			}
 
-			bParseSuccess = true;
+			bSuccess = true;
 		}
 
 		weapFile.close();
 	}
 
-	return bParseSuccess;
+	return bSuccess;
 }
 
 bool SirData::bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal,
@@ -167,7 +168,7 @@ void SirData::readArchive()
 
 bool SirData::bWriteArchiveFile(SirData &newSir)
 {
-	bool bWriteSuccess = false;
+	bool bSuccess = false;
 
 	getOutArchive().open(csvName);
 
@@ -183,9 +184,9 @@ bool SirData::bWriteArchiveFile(SirData &newSir)
 			getOutArchive() << L',' << weapAlts[i] << endl;
 		}
 
-		bWriteSuccess = true;
+		bSuccess = true;
 		getOutArchive().close();
 	}
 
-	return bWriteSuccess;
+	return bSuccess;
 }

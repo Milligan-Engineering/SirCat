@@ -7,7 +7,7 @@ using namespace std;
 
 class SirData : public Archive
 {
-private: //private first because public member function need the private constants
+private:
 	static const int k_num_weap = 26; //Number of relevant weapons
 	static const int k_num_attr = 21; //Number of relevant attributes
 

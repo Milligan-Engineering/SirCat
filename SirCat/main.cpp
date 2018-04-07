@@ -101,6 +101,7 @@ int main()
 					Data newData;
 
 					wcout << L"CS:GO installation found in directory:\n" << FindCsgo::inst().getTestDir() << endl << endl;
+					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data ...";
 
 					if (newData.bbox.bReadModelFiles() && newData.sir.bReadWeapFile(FindCsgo::inst().getTestDir()))
 					{
@@ -112,11 +113,14 @@ int main()
 						archiveData.sir.readArchive();
 
 						if (archiveData.bbox.bCheckArchive(newData.bbox, badRowName, badColName, badNewVal, badArchiveVal))
-							wcout << L"Data mismatch detected in " << archiveData.bbox.getCsvName();
+							wcout << endl << endl << L"Data mismatch detected in " << archiveData.bbox.getCsvName();
 						else if (archiveData.sir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
-							wcout << L"Data mismatch detected in " << archiveData.sir.getCsvName();
+							wcout << endl << endl << L"Data mismatch detected in " << archiveData.sir.getCsvName();
 						else
+						{
+							wcout << L"done." << endl << "No discrepancies detected.\n\n";
 							bUpdate = false;
+						}
 
 						if (bUpdate)
 						{
@@ -131,7 +135,7 @@ int main()
 
 			if (bRevertToArchive)
 			{
-				wcout << L"CS:GO installation not found. Reading hitbox and weapon data from archive file.\n\n";
+				wcout << L"CS:GO not found or error reading its files. Reading hitbox and weapon data from archive file.\n\n";
 				archiveData.bbox.readArchive();
 				archiveData.sir.readArchive();
 			}
@@ -163,8 +167,7 @@ void updatePrompt(Data &archiveData, Data &newData)
 		switch (menuOption = takeOnlyOneInt(L"12", 2))
 		{
 		case 1:
-			//if (archiveData.bbox.bWriteArchiveFile(newData.bbox) && archiveData.sir.bWriteArchiveFile(newData.sir))
-			if (archiveData.sir.bWriteArchiveFile(newData.sir)) //Until BboxData::bReadModelFiles() is coded
+			if (archiveData.bbox.bWriteArchiveFile(newData.bbox) && archiveData.sir.bWriteArchiveFile(newData.sir))
 			{
 				archiveData.bbox.readArchive();
 				archiveData.sir.readArchive();

@@ -43,15 +43,6 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	int concatCharArrays(const WCHAR cArray1[], const WCHAR cArray2[], WCHAR concatArray[], const int sizeArray);
-	//Precondition: The character strings cArray1 and cArray2 are null-terminated.
-		//The sum of filled elements of cArray1 and cArray2 is less than or equal to the size of array concatArray.
-		//concatArray is modifiable.
-		//sizeArray is the size of concatArray.
-	//Postcondition: concatArray is filled with the concatenation of cArray1 and cArray2, terminated with a null character.
-		//cArray1 or cArray2 can be the same array as concatArray to append or prepend to the original character string.
-		//Returns the index of the last filled element in concatArray.
-
 	int parseTextFile(const wstring searchTerm, wifstream &searchFile, WCHAR searchRes[][MAX_PATH], const int maxRes,
 		const WCHAR ignoreChars[] = L"", const int numIgnoreChars = 0, const WCHAR retChar = L'\0');
 	//Precondition: searchTerm should not contain any whitespace characters.

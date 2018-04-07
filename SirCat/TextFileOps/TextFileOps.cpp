@@ -182,27 +182,6 @@ bool TextFileOps::bSkipToColumnNum(wifstream &delimitedFile, WCHAR &character, c
 	return bTooFewColumns;
 }
 
-int TextFileOps::concatCharArrays(const WCHAR cArray1[], const WCHAR cArray2[], WCHAR concatArray[], const int sizeArray)
-{
-	int concatIndex = 0;
-
-	for (int i = 0; cArray1[i] != L'\0' && concatIndex < sizeArray - 1; ++i)
-	{
-		concatArray[concatIndex] = cArray1[i];
-		++concatIndex;
-	}
-
-	for (int i = 0; cArray2[i] != L'\0' && concatIndex < sizeArray - 1; ++i)
-	{
-		concatArray[concatIndex] = cArray2[i];
-		++concatIndex;
-	}
-
-	concatArray[concatIndex] = L'\0';
-
-	return concatIndex;
-}
-
 int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, WCHAR searchRes[][MAX_PATH], const int maxRes,
 	const WCHAR ignoreChars[], const int numIgnoreChars, const WCHAR retChar)
 {
@@ -221,7 +200,7 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, 
 
 			searchFile.get(character);
 
-			//Fill search result entry until new-line or end of file
+			//Fill search result entry until new-line, end of file, return character, or delimiter
 			while (!searchFile.eof() && character != L'\n' && character != retChar)
 			{
 				bool bIgnoreChar = false;

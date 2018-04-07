@@ -47,12 +47,8 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 
 	if (ret == ERROR_SUCCESS)
 	{
-		WCHAR blank[] = L"";
-		WCHAR steamappsFolder[] = L"\\steamapps";
-
 		steamDir = static_cast<wstring>(keyData);
-		TextFileOps::inst().concatCharArrays(keyData, blank, testDir, MAX_PATH);
-		TextFileOps::inst().concatCharArrays(testDir, steamappsFolder, testDir, MAX_PATH);
+		testDir = static_cast<wstring>(keyData) + static_cast<wstring>(L"\\steamapps");
 	}
 
 	return !static_cast<bool>(ret); //0 (ERROR_SUCCESS) indicates success, so take logical NOT or ret
@@ -63,7 +59,7 @@ bool FindCsgo::bCheckCsgoInstall()
 	bool bFoundCsgoInstall = false;
 	wifstream manifest;
 
-	manifest.open(static_cast<wstring>(testDir) + static_cast<wstring>(L"\\appmanifest_730.acf"));
+	manifest.open(testDir + static_cast<wstring>(L"\\appmanifest_730.acf"));
 
 	if (!manifest.fail())
 	{
@@ -74,10 +70,7 @@ bool FindCsgo::bCheckCsgoInstall()
 			1, L"\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
-			WCHAR installSubDir[] = L"\\common\\";
-
-			TextFileOps::inst().concatCharArrays(testDir, installSubDir, testDir, MAX_PATH);
-			TextFileOps::inst().concatCharArrays(testDir, searchResult[0], testDir, MAX_PATH);
+			testDir += static_cast<wstring>(L"\\common\\") + static_cast<wstring>(searchResult[0]);
 		}
 
 		manifest.close();
@@ -91,7 +84,7 @@ bool FindCsgo::bSearchSteamLibs()
 	bool bFoundCsgoInstall = false;
 	wifstream libFile;
 
-	libFile.open(static_cast<wstring>(testDir) + static_cast<wstring>(L"\\libraryfolders.vdf"));
+	libFile.open(testDir + static_cast<wstring>(L"\\libraryfolders.vdf"));
 
 	if (!libFile.fail())
 	{
@@ -103,9 +96,7 @@ bool FindCsgo::bSearchSteamLibs()
 			if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult,
 				1, L"\t\"\0", 2)))
 			{
-				WCHAR steamappsFolder[] = L"\\steamapps";
-
-				TextFileOps::inst().concatCharArrays(searchResult[0], steamappsFolder, testDir, MAX_PATH);
+				testDir = static_cast<wstring>(searchResult[0]) + static_cast<wstring>(L"\\steamapps");
 
 				if (bCheckCsgoInstall())
 				{
@@ -125,5 +116,5 @@ bool FindCsgo::bSearchSteamLibs()
 
 wstring FindCsgo::getTestDir()
 {
-	return static_cast<wstring>(testDir);
+	return testDir;
 }

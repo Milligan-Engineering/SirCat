@@ -1,15 +1,6 @@
 #pragma once
 
-#ifndef STRICT //Enforce strict definitions of Windows data types
-	#define STRICT
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
-	#define WIN32_LEAN_AND_MEAN
-#endif //WIN32_LEAN_AND_MEAN
-
 #include <string>
-#include <Windows.h>
 
 using namespace std;
 
@@ -41,5 +32,5 @@ private:
 	FindCsgo() = default;
 	~FindCsgo() = default;
 
-	WCHAR testDir[MAX_PATH];
+	wstring testDir;
 };
