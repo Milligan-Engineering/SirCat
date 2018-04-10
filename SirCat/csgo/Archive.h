@@ -1,6 +1,6 @@
 #pragma once
 
-#include <iosfwd> //Forward declares ifstream without #include <fstream>
+#include <iosfwd>
 #include <string>
 
 using namespace std;

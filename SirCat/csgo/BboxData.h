@@ -8,7 +8,7 @@ using namespace std;
 class BboxData : public Archive
 {
 private:
-	static const int k_num_model = 21; //Number of relevant player hitbox models
+	static const int k_num_model = 74; //Number of relevant player hitbox models
 	static const int k_num_attr = 7; //Number of relevant hitbox attributes
 public:
 	BboxData();
@@ -21,15 +21,7 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	bool bReadModelFiles();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bUnpackModels();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bDecompileModels();
+	bool bReadModelFiles(const wstring csgoDir);
 	//Precondition: 
 	//Postcondition: 
 
@@ -45,6 +37,22 @@ public:
 	//Precondition: 
 	//Postcondition: 
 private:
+	bool bUnpackModels(const wstring csgoDir);
+	//Precondition: 
+	//Postcondition: 
+
+	bool bDecompileModels();
+	//Precondition: 
+	//Postcondition:
+
+	bool bCreateProcess(wstring applicationName, wstring commandLineWString);
+	//Precondition: 
+	//Postcondition:
+
+	void deleteTempFiles();
+	//Precondition: 
+	//Postcondition:
+
 	static bool bArchiveObjMade;
 	static wstring modelNames[k_num_model];
 	static wstring attrNames[k_num_attr];

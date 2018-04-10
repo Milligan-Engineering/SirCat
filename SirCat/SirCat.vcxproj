@@ -69,11 +69,22 @@ set archiveb="$(SolutionDir)$(Configuration)\archiveSirData.csv"
 if exist %archiveb% del /f /q %archiveb%
 copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
 
-set models="$(SolutionDir)$(Configuration)\models"
-if exist %models%\ rd %models% /s /q
-robocopy "$(SolutionDir)custom build step files\models" %models% &gt; nul
-if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %errorlevel%</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\models\ctm_fbi.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gign.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gsg9.qc;$(SolutionDir)$(Configuration)\models\ctm_heavy.qc;$(SolutionDir)$(Configuration)\models\ctm_idf.qc;$(SolutionDir)$(Configuration)\models\ctm_sas.qc;$(SolutionDir)$(Configuration)\models\ctm_st6.qc;$(SolutionDir)$(Configuration)\models\ctm_swat.qc;$(SolutionDir)$(Configuration)\models\tm_anarchist.qc;$(SolutionDir)$(Configuration)\models\tm_phoenix.qc;$(SolutionDir)$(Configuration)\models\tm_pirate.qc;$(SolutionDir)$(Configuration)\models\tm_professional.qc;$(SolutionDir)$(Configuration)\models\tm_separatist.qc;%(Outputs)</Outputs>
+set hlextract="$(SolutionDir)$(Configuration)\HLExtract"
+if exist %hlextract%\ rd %hlextract% /s /q
+md %hlextract%
+copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLExtract.exe" %hlextract%\HLExtract.exe
+copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLLib.dll" %hlextract%\HLLib.dll
+
+set crowbar="$(SolutionDir)$(Configuration)\Crowbar"
+set settings="$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml"
+if exist %crowbar%\Data rd %crowbar%\Data /s /q
+if exist %crowbar%\ rd %crowbar% /s /q
+md %crowbar%
+md %crowbar%\Data
+copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
+copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%
+</Command>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>
@@ -128,13 +139,24 @@ set archiveb="$(SolutionDir)$(Configuration)\archiveSirData.csv"
 if exist %archiveb% del /f /q %archiveb%
 copy /y /b "$(SolutionDir)custom build step files\archiveSirData.csv" %archiveb%
 
-set models="$(SolutionDir)$(Configuration)\models"
-if exist %models%\ rd %models% /s /q
-robocopy "$(SolutionDir)custom build step files\models" %models% &gt; nul
-if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %errorlevel%</Command>
+set hlextract="$(SolutionDir)$(Configuration)\HLExtract"
+if exist %hlextract%\ rd %hlextract% /s /q
+md %hlextract%
+copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLExtract.exe" %hlextract%\HLExtract.exe
+copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLLib.dll" %hlextract%\HLLib.dll
+
+set crowbar="$(SolutionDir)$(Configuration)\Crowbar"
+set settings="$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml"
+if exist %crowbar%\Data rd %crowbar%\Data /s /q
+if exist %crowbar%\ rd %crowbar% /s /q
+md %crowbar%
+md %crowbar%\Data
+copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
+copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%
+</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\models\ctm_fbi.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_fbi_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gign.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_varianta.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantb.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantc.qc;$(SolutionDir)$(Configuration)\models\ctm_gign_variantd.qc;$(SolutionDir)$(Configuration)\models\ctm_gsg9.qc;$(SolutionDir)$(Configuration)\models\ctm_heavy.qc;$(SolutionDir)$(Configuration)\models\ctm_idf.qc;$(SolutionDir)$(Configuration)\models\ctm_sas.qc;$(SolutionDir)$(Configuration)\models\ctm_st6.qc;$(SolutionDir)$(Configuration)\models\ctm_swat.qc;$(SolutionDir)$(Configuration)\models\tm_anarchist.qc;$(SolutionDir)$(Configuration)\models\tm_phoenix.qc;$(SolutionDir)$(Configuration)\models\tm_pirate.qc;$(SolutionDir)$(Configuration)\models\tm_professional.qc;$(SolutionDir)$(Configuration)\models\tm_separatist.qc;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -148,27 +170,9 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
   <ItemGroup>
     <None Include="..\custom build step files\archiveBboxData.csv" />
     <None Include="..\custom build step files\archiveSirData.csv" />
-    <None Include="..\custom build step files\models\ctm_fbi.qc" />
-    <None Include="..\custom build step files\models\ctm_fbi_varianta.qc" />
-    <None Include="..\custom build step files\models\ctm_fbi_variantb.qc" />
-    <None Include="..\custom build step files\models\ctm_fbi_variantc.qc" />
-    <None Include="..\custom build step files\models\ctm_fbi_variantd.qc" />
-    <None Include="..\custom build step files\models\ctm_gign.qc" />
-    <None Include="..\custom build step files\models\ctm_gign_varianta.qc" />
-    <None Include="..\custom build step files\models\ctm_gign_variantb.qc" />
-    <None Include="..\custom build step files\models\ctm_gign_variantc.qc" />
-    <None Include="..\custom build step files\models\ctm_gign_variantd.qc" />
-    <None Include="..\custom build step files\models\ctm_gsg9.qc" />
-    <None Include="..\custom build step files\models\ctm_heavy.qc" />
-    <None Include="..\custom build step files\models\ctm_idf.qc" />
-    <None Include="..\custom build step files\models\ctm_sas.qc" />
-    <None Include="..\custom build step files\models\ctm_st6.qc" />
-    <None Include="..\custom build step files\models\ctm_swat.qc" />
-    <None Include="..\custom build step files\models\tm_anarchist.qc" />
-    <None Include="..\custom build step files\models\tm_phoenix.qc" />
-    <None Include="..\custom build step files\models\tm_pirate.qc" />
-    <None Include="..\custom build step files\models\tm_professional.qc" />
-    <None Include="..\custom build step files\models\tm_separatist.qc" />
+    <None Include="..\custom build step files\Crowbar\Crowbar.exe" />
+    <None Include="..\custom build step files\HLExtract\HLExtract.exe" />
+    <None Include="..\custom build step files\HLExtract\HLLib.dll" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csgo\Archive.h" />
@@ -176,6 +180,9 @@ if %errorlevel% leq 1 echo 'robocopy' copied files &amp;&amp; exit 0 else exit %
     <ClInclude Include="csgo\FindCsgo.h" />
     <ClInclude Include="csgo\SirData.h" />
     <ClInclude Include="TextFileOps\TextFileOps.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

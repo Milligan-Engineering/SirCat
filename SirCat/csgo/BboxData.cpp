@@ -1,8 +1,8 @@
-#ifndef STRICT //Enforce strict definitions of Windows data types
+#ifndef STRICT
 	#define STRICT
 #endif //STRICT
 
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+#ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
 #endif //WIN32_LEAN_AND_MEAN
 
@@ -10,6 +10,7 @@
 #include "..\TextFileOps\TextFileOps.h"
 #include <fstream>
 #include <string>
+#include <shellapi.h>
 #include <Windows.h>
 
 using namespace std;
@@ -47,16 +48,16 @@ bool BboxData::bMakeBboxObjArchive(const wstring csvName)
 	return bSuccess;
 }
 
-bool BboxData::bReadModelFiles()
+bool BboxData::bReadModelFiles(const wstring csgoDir)
 {
 	bool bSuccess = false;
 
-	if (bUnpackModels() && bDecompileModels())
+	if (bUnpackModels(csgoDir) && bDecompileModels())
 	{
 		HANDLE hFind;
 		WIN32_FIND_DATA FindFileData;
 
-		hFind = FindFirstFileW(static_cast<LPCWSTR>(L".\\models\\*.qc"), &FindFileData); //Begin fetching model file names
+		hFind = FindFirstFileW(static_cast<LPCWSTR>(L".\\legacy\\*.qc"), &FindFileData); //Begin fetching model file names
 
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
@@ -74,7 +75,7 @@ bool BboxData::bReadModelFiles()
 				{
 					wifstream modelFile;
 
-					modelFile.open(static_cast<wstring>(L".\\models\\") + static_cast<wstring>(FindFileData.cFileName));
+					modelFile.open(static_cast<wstring>(L".\\legacy\\") + static_cast<wstring>(FindFileData.cFileName));
 
 					if (!modelFile.fail())
 					{
@@ -122,25 +123,7 @@ bool BboxData::bReadModelFiles()
 		}
 	}
 
-	return bSuccess;
-}
-
-bool BboxData::bUnpackModels()
-{
-	bool bSuccess = false;
-
-	//******Call other program to do this or implement someone else's code******
-	bSuccess = true; //Set to true until function body is coded
-
-	return bSuccess;
-}
-
-bool BboxData::bDecompileModels()
-{
-	bool bSuccess = false;
-
-	//******Call other program to do this or implement someone else's code******
-	bSuccess = true; //Set to true until function body is coded
+	deleteTempFiles();
 
 	return bSuccess;
 }
@@ -195,4 +178,71 @@ bool BboxData::bWriteArchiveFile(BboxData &newBbox)
 	}
 
 	return bSuccess;
+}
+
+bool BboxData::bUnpackModels(const wstring csgoDir)
+{
+	wstring applicationNameWS = static_cast<wstring>(L".\\HLExtract\\HLExtract.exe");
+	wstring commandLineWS = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
+		+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
+
+	return bCreateProcess(applicationNameWS, commandLineWS);
+}
+
+bool BboxData::bDecompileModels()
+{
+	wstring applicationNameWS = static_cast<wstring>(L".\\Crowbar\\Crowbar.exe");
+	wstring commandLineWS = static_cast<wstring>(L"Crowbar.exe");
+
+	return bCreateProcess(applicationNameWS, commandLineWS);
+}
+
+bool BboxData::bCreateProcess(wstring applicationNameWS, wstring commandLineWS)
+{
+	bool bSuccess = false;
+	WCHAR *applicationName = &applicationNameWS[0];
+	WCHAR *commandLine = &commandLineWS[0];
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
+
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+	bSuccess = static_cast<bool>(CreateProcessW(applicationName, commandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi));
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+
+	return bSuccess;
+}
+
+void BboxData::deleteTempFiles()
+{
+	TCHAR dir[MAX_PATH];
+	int len;
+	SHFILEOPSTRUCT fileOp;
+
+	len = static_cast<int>(GetCurrentDirectoryW(MAX_PATH, dir));
+
+	if (len + 8 < MAX_PATH)
+	{
+		dir[len] = L'\\';
+		dir[len + 1] = L'l';
+		dir[len + 2] = L'e';
+		dir[len + 3] = L'g';
+		dir[len + 4] = L'a';
+		dir[len + 5] = L'c';
+		dir[len + 6] = L'y';
+		dir[len + 7] = L'\0';
+		dir[len + 8] = L'\0';
+		fileOp.hwnd = NULL;
+		fileOp.wFunc = FO_DELETE;
+		fileOp.pFrom = dir;
+		fileOp.pTo = NULL;
+		fileOp.fFlags = FOF_NOCONFIRMATION | FOF_SILENT;
+		fileOp.fAnyOperationsAborted = FALSE;
+		fileOp.hNameMappings = NULL;
+		fileOp.lpszProgressTitle = NULL;
+		SHFileOperationW(&fileOp);
+	}
 }

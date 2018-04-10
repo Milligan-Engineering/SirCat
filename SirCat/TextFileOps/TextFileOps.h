@@ -1,14 +1,14 @@
 #pragma once
 
-#ifndef STRICT //Enforce strict definitions of Windows data types
+#ifndef STRICT
 	#define STRICT
 #endif //STRICT
 
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+#ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
 #endif //WIN32_LEAN_AND_MEAN
 
-#include <iosfwd> //Forward declares wifstream without #include <fstream>
+#include <iosfwd>
 #include <string>
 #include <Windows.h>
 

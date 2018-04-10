@@ -2,15 +2,15 @@
 //File Name: main.cpp
 //Author: Casey Williams
 //Email Address: cjwilliams@my.milligan.edu
-//Assignment: Project Milestone #08
+//Assignment: Project Milestone #09
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 7, 2018
+//Last Changed: April 10, 2018
 
-#ifndef STRICT //Enforce strict definitions of Windows data types
+#ifndef STRICT
 	#define STRICT
 #endif //STRICT
 
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
+#ifndef WIN32_LEAN_AND_MEAN
 	#define WIN32_LEAN_AND_MEAN
 #endif //WIN32_LEAN_AND_MEAN
 
@@ -103,7 +103,8 @@ int main()
 					wcout << L"CS:GO installation found in directory:\n" << FindCsgo::inst().getTestDir() << endl << endl;
 					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data ...";
 
-					if (newData.bbox.bReadModelFiles() && newData.sir.bReadWeapFile(FindCsgo::inst().getTestDir()))
+					if (newData.bbox.bReadModelFiles(FindCsgo::inst().getTestDir())
+						&& newData.sir.bReadWeapFile(FindCsgo::inst().getTestDir()))
 					{
 						wstring badRowName, badColName, badNewVal, badArchiveVal;
 						bool bUpdate = true;
@@ -135,7 +136,8 @@ int main()
 
 			if (bRevertToArchive)
 			{
-				wcout << L"CS:GO not found or error reading its files. Reading hitbox and weapon data from archive file.\n\n";
+				wcout << endl << L"CS:GO not found or error reading its files.\n";
+				wcout << L"Reading hitbox and weapon data from archive file.\n\n";
 				archiveData.bbox.readArchive();
 				archiveData.sir.readArchive();
 			}
