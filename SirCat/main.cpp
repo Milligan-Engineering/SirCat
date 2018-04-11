@@ -89,22 +89,22 @@ int main()
 
 		if (menuOption == 1)
 		{
+			FindCsgo findCsgo;
 			wstring steamDir;
 
-			if (FindCsgo::inst().bFetchSteamDir(steamDir))
+			if (findCsgo.bFetchSteamDir(steamDir))
 			{
 				wcout << L"Steam installation found in directory:\n" << steamDir << endl << endl;
 
-				if (FindCsgo::inst().bCheckCsgoInstall() //CSGO found in default Steam library
-					|| FindCsgo::inst().bSearchSteamLibs()) //CSGO found in alternate Steam library
+				if (findCsgo.bCheckCsgoInstall() //CSGO found in default Steam library
+					|| findCsgo.bSearchSteamLibs()) //CSGO found in alternate Steam library
 				{
 					Data newData;
 
-					wcout << L"CS:GO installation found in directory:\n" << FindCsgo::inst().getTestDir() << endl << endl;
+					wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
 					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data ...";
 
-					if (newData.bbox.bReadModelFiles(FindCsgo::inst().getTestDir())
-						&& newData.sir.bReadWeapFile(FindCsgo::inst().getTestDir()))
+					if (newData.bbox.bReadModelFiles(findCsgo.getTestDir())	&& newData.sir.bReadWeapFile(findCsgo.getTestDir()))
 					{
 						wstring badRowName, badColName, badNewVal, badArchiveVal;
 						bool bUpdate = true;

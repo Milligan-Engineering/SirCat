@@ -85,7 +85,7 @@ bool BboxData::bReadModelFiles(const wstring csgoDir)
 						int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
 						int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 
-						if (TextFileOps::inst().parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
+						if (textFileOps.parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
 						{
 							bSuccess = false;
 							break;

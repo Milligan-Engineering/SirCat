@@ -12,7 +12,7 @@ bool Archive::bMakeObjArchive(const int numHeaders, wstring *headers[], const in
 
 	for (int i = 0; i < numHeaders; ++i)
 	{
-		if (TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, headers[i], sliceSize[i], sliceIsRow[i], 2, L',',
+		if (textFileOps.fetchDelimitedSlice(getInArchive(), csvName, headers[i], sliceSize[i], sliceIsRow[i], 2, L',',
 			numSlice[i]) != sliceSize[i])
 		{
 			bSuccess = false;
@@ -46,7 +46,7 @@ bool Archive::bCheckArchiveRow(const wstring row1[], const wstring row2[], int &
 
 void Archive::readArchiveRow(wstring archiveRow[], const int rowNum)
 {
-	TextFileOps::inst().fetchDelimitedSlice(getInArchive(), csvName, archiveRow, numColumns, true, 2, L',', rowNum);
+	textFileOps.fetchDelimitedSlice(getInArchive(), csvName, archiveRow, numColumns, true, 2, L',', rowNum);
 }
 
 void Archive::writeArchiveFileRow(const wstring newRow[])

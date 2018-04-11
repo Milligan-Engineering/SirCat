@@ -14,12 +14,6 @@
 
 using namespace std;
 
-FindCsgo &FindCsgo::inst()
-{
-	static FindCsgo inst;
-	return inst;
-}
-
 bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
 	HKEY hKey = NULL;
@@ -66,7 +60,7 @@ bool FindCsgo::bCheckCsgoInstall()
 		WCHAR searchResult[1][MAX_PATH];
 
 		//Verify CS:GO installation directory listed in manifest file contents
-		if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<wstring>(L"\"installdir\""), manifest, searchResult,
+		if (static_cast<bool>(textFileOps.parseTextFile(static_cast<wstring>(L"\"installdir\""), manifest, searchResult,
 			1, L"\t\"\0", 2)))
 		{
 			bFoundCsgoInstall = true;
@@ -93,7 +87,7 @@ bool FindCsgo::bSearchSteamLibs()
 			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
 			WCHAR searchResult[1][MAX_PATH];
 
-			if (static_cast<bool>(TextFileOps::inst().parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult,
+			if (static_cast<bool>(textFileOps.parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult,
 				1, L"\t\"\0", 2)))
 			{
 				testDir = static_cast<wstring>(searchResult[0]) + static_cast<wstring>(L"\\steamapps");

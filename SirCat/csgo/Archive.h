@@ -1,5 +1,6 @@
 #pragma once
 
+#include "..\TextFileOps\TextFileOps.h"
 #include <iosfwd>
 #include <string>
 
@@ -40,6 +41,7 @@ protected:
 	//Precondition: 
 	//Postcondition: 
 
+	TextFileOps textFileOps;
 	wstring csvName;
 	int numColumns;
 };

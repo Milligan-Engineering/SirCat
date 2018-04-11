@@ -13,12 +13,6 @@
 
 using namespace std;
 
-TextFileOps &TextFileOps::inst()
-{
-	static TextFileOps inst;
-	return inst;
-}
-
 int TextFileOps::fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[],
 	const int maxElements, const bool bSliceIsRow, const int skipToElement, const WCHAR delimiter,
 	const int numSlice)

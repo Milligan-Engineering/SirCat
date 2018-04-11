@@ -17,9 +17,8 @@ using namespace std;
 class TextFileOps
 {
 public:
-	static TextFileOps &inst();
-	//Precondition: 
-	//Postcondition: 
+	TextFileOps() = default;
+	~TextFileOps() = default;
 
 	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[],
 		const int maxElements, const bool bSliceIsRow = true, const int skipToElement = 1, const WCHAR delimiter = L',',
@@ -56,7 +55,4 @@ public:
 		//searchRes is filled, up to maxRes number of null-terminated wstrings *searchRes[MAX_PATH].
 		//If retChar is passed, the function will return if and when that character is found.
 		//Returns the number of null-terminated wstrings *searchRes[MAX_PATH] filled in the array of wstrings searchRes.
-private:
-	TextFileOps() = default;
-	~TextFileOps() = default;
 };

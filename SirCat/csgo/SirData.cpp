@@ -70,9 +70,9 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 			WCHAR parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
 
-			TextFileOps::inst().parseTextFile(searchTerm, weapFile, searchResult, 1);
+			textFileOps.parseTextFile(searchTerm, weapFile, searchResult, 1);
 			searchTerm = static_cast<wstring>(L"\"attributes\""); //Read until attributes are listed for each weapon
-			unparsedAttr = TextFileOps::inst().parseTextFile(searchTerm, weapFile, unparsedData, MAX_PATH, L"\t\"\0", 2, L'}');
+			unparsedAttr = textFileOps.parseTextFile(searchTerm, weapFile, unparsedData, MAX_PATH, L"\t\"\0", 2, L'}');
 
 			for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
 			{
@@ -122,7 +122,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 		{
 			WCHAR defCycletime[1][MAX_PATH];
 
-			TextFileOps::inst().parseTextFile(static_cast<wstring>(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
+			textFileOps.parseTextFile(static_cast<wstring>(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
 
 			for (int i = 0; i < k_num_weap; ++i)
 			{
