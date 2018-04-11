@@ -33,7 +33,9 @@ int TextFileOps::fetchDelimitedSlice(wifstream &delimitedFile, const wstring fil
 		targetNumElements = fetchNumRows(delimitedFile, filename, delimiter, numSlice) - skipToElement + 1;
 	}
 
-	if (numSlice <= maxNumSlice) //Check that the slice exists
+	if (maxElements == 0) //Send max number of elements needed for parsedSlice when maxElements == 0
+		numElements = targetNumElements;
+	else if (numSlice <= maxNumSlice) //Check that the slice exists
 	{
 		delimitedFile.open(filename);
 
@@ -67,7 +69,7 @@ int TextFileOps::fetchDelimitedSlice(wifstream &delimitedFile, const wstring fil
 				}
 
 				parsedElement[j] = L'\0'; //Add terminal null character to character array
-				parsedSlice[i] = static_cast<wstring>(parsedElement); //Fill element with character array
+				parsedSlice[i] = parsedElement;
 				++numElements;
 
 				while (!bSliceIsRow && !delimitedFile.eof() && character != L'\n') //Skip to next row for parsing a column
@@ -125,16 +127,17 @@ int TextFileOps::fetchNumRows(wifstream &delimitedFile, const wstring filename, 
 		while (!delimitedFile.eof())
 		{
 			if (bTooFewColumns = bSkipToColumnNum(delimitedFile, character, delimiter, numColumn)) //Single = is intentional
-				break; //Column requested to enumerate rows for does not exist and function will return 0
+				break; //Column requested to enumerate rows for does not exist
 
-			if (!delimitedFile.eof()) //Increment number of rows and skip to next row until end of file
+			if (!delimitedFile.eof()) //Increment number of rows and skip to next row
 			{
-				++numRows;
+				delimitedFile.get(character);
 
-				do
-				{
+				if (character != L'\n') //Skip blank rows
+					++numRows;
+
+				while (!delimitedFile.eof() && character != L'\n')
 					delimitedFile.get(character);
-				} while (!delimitedFile.eof() && character != L'\n');
 			}
 		}
 

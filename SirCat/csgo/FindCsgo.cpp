@@ -18,9 +18,8 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
 	HKEY hKey = NULL;
 	DWORD keyType = REG_SZ;
-	WCHAR keyData[MAX_PATH] = { NULL };
+	WCHAR keyData[MAX_PATH] = L"";
 	DWORD keyDataSize = sizeof(keyData);
-
 	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 
 	if (ret == ERROR_SUCCESS) //Check registry for 64-bit Windows installation
@@ -41,11 +40,11 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 
 	if (ret == ERROR_SUCCESS)
 	{
-		steamDir = static_cast<wstring>(keyData);
-		testDir = static_cast<wstring>(keyData) + static_cast<wstring>(L"\\steamapps");
+		steamDir = keyData;
+		testDir = steamDir + static_cast<wstring>(L"\\steamapps");
 	}
 
-	return !static_cast<bool>(ret); //0 (ERROR_SUCCESS) indicates success, so take logical NOT or ret
+	return ret == ERROR_SUCCESS;
 }
 
 bool FindCsgo::bCheckCsgoInstall()
@@ -60,8 +59,7 @@ bool FindCsgo::bCheckCsgoInstall()
 		WCHAR searchResult[1][MAX_PATH];
 
 		//Verify CS:GO installation directory listed in manifest file contents
-		if (static_cast<bool>(textFileOps.parseTextFile(static_cast<wstring>(L"\"installdir\""), manifest, searchResult,
-			1, L"\t\"\0", 2)))
+		if (textFileOps.parseTextFile(static_cast<wstring>(L"\"installdir\""), manifest, searchResult, 1, L"\t\"\0", 2) != 0)
 		{
 			bFoundCsgoInstall = true;
 			testDir += static_cast<wstring>(L"\\common\\") + static_cast<wstring>(searchResult[0]);
@@ -87,8 +85,7 @@ bool FindCsgo::bSearchSteamLibs()
 			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
 			WCHAR searchResult[1][MAX_PATH];
 
-			if (static_cast<bool>(textFileOps.parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult,
-				1, L"\t\"\0", 2)))
+			if (textFileOps.parseTextFile(static_cast<wstring>(searchTerm), libFile, searchResult, 1, L"\t\"\0", 2) != 0)
 			{
 				testDir = static_cast<wstring>(searchResult[0]) + static_cast<wstring>(L"\\steamapps");
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "..\TextFileOps\TextFileOps.h"
-#include <iosfwd>
+#include <fstream>
 #include <string>
 
 using namespace std;
@@ -44,4 +44,6 @@ protected:
 	TextFileOps textFileOps;
 	wstring csvName;
 	int numColumns;
+	wifstream inArchive;
+	wofstream outArchive;
 };

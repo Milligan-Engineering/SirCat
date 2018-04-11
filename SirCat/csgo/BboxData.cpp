@@ -55,7 +55,7 @@ bool BboxData::bReadModelFiles(const wstring csgoDir)
 	if (bUnpackModels(csgoDir) && bDecompileModels())
 	{
 		HANDLE hFind;
-		WIN32_FIND_DATA FindFileData;
+		WIN32_FIND_DATAW FindFileData;
 
 		hFind = FindFirstFileW(static_cast<LPCWSTR>(L".\\legacy\\*.qc"), &FindFileData); //Begin fetching model file names
 
@@ -80,7 +80,7 @@ bool BboxData::bReadModelFiles(const wstring csgoDir)
 					if (!modelFile.fail())
 					{
 						WCHAR searchResult[1][MAX_PATH];
-						wstring searchTerm = static_cast<wstring>(L"$hbox");
+						wstring searchTerm = L"$hbox";
 						int elementsToCopy[k_num_attr] = { 2, 3, 4, 5, 6, 7, 11 };
 						int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
 						int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
@@ -121,9 +121,9 @@ bool BboxData::bReadModelFiles(const wstring csgoDir)
 
 			FindClose(hFind);
 		}
-	}
 
-	deleteTempFiles();
+		deleteLegacyDir();
+	}
 
 	return bSuccess;
 }
@@ -182,7 +182,9 @@ bool BboxData::bWriteArchiveFile(BboxData &newBbox)
 
 bool BboxData::bUnpackModels(const wstring csgoDir)
 {
-	wstring applicationNameWS = static_cast<wstring>(L".\\HLExtract\\HLExtract.exe");
+	//******Check for existence of .\HLExtract\HLExtract.exe******
+
+	wstring applicationNameWS = L".\\HLExtract\\HLExtract.exe";
 	wstring commandLineWS = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
 		+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
 
@@ -191,24 +193,26 @@ bool BboxData::bUnpackModels(const wstring csgoDir)
 
 bool BboxData::bDecompileModels()
 {
-	wstring applicationNameWS = static_cast<wstring>(L".\\Crowbar\\Crowbar.exe");
-	wstring commandLineWS = static_cast<wstring>(L"Crowbar.exe");
+	//******Check for existence of .\Crowbar\Crowbar.exe******
+
+	wstring applicationNameWS = L".\\Crowbar\\Crowbar.exe";
+	wstring commandLineWS = L"Crowbar.exe";
 
 	return bCreateProcess(applicationNameWS, commandLineWS);
 }
 
 bool BboxData::bCreateProcess(wstring applicationNameWS, wstring commandLineWS)
 {
-	bool bSuccess = false;
+	bool bSuccess;
 	WCHAR *applicationName = &applicationNameWS[0];
 	WCHAR *commandLine = &commandLineWS[0];
-	STARTUPINFO si;
+	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
-	bSuccess = static_cast<bool>(CreateProcessW(applicationName, commandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi));
+	bSuccess = CreateProcessW(applicationName, commandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi) != 0;
 	WaitForSingleObject(pi.hProcess, INFINITE);
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
@@ -216,25 +220,19 @@ bool BboxData::bCreateProcess(wstring applicationNameWS, wstring commandLineWS)
 	return bSuccess;
 }
 
-void BboxData::deleteTempFiles()
+void BboxData::deleteLegacyDir()
 {
-	TCHAR dir[MAX_PATH];
-	int len;
-	SHFILEOPSTRUCT fileOp;
+	TCHAR dir[MAX_PATH + 1] = L"";
+	SHFILEOPSTRUCTW fileOp;
+	int len = static_cast<int>(GetCurrentDirectoryW(MAX_PATH, dir));
 
-	len = static_cast<int>(GetCurrentDirectoryW(MAX_PATH, dir));
-
-	if (len + 8 < MAX_PATH)
+	if (len + 8 <= MAX_PATH)
 	{
-		dir[len] = L'\\';
-		dir[len + 1] = L'l';
-		dir[len + 2] = L'e';
-		dir[len + 3] = L'g';
-		dir[len + 4] = L'a';
-		dir[len + 5] = L'c';
-		dir[len + 6] = L'y';
-		dir[len + 7] = L'\0';
-		dir[len + 8] = L'\0';
+		WCHAR legacySubDir[9] = L"\\legacy";
+
+		for (int i = 0; i < 9; ++i)
+			dir[len + i] = legacySubDir[i];
+
 		fileOp.hwnd = NULL;
 		fileOp.wFunc = FO_DELETE;
 		fileOp.pFrom = dir;

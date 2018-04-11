@@ -49,7 +49,7 @@ private:
 	//Precondition: 
 	//Postcondition:
 
-	void deleteTempFiles();
+	void deleteLegacyDir();
 	//Precondition: 
 	//Postcondition:
 

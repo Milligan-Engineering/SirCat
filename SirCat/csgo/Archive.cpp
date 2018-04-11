@@ -57,12 +57,10 @@ void Archive::writeArchiveFileRow(const wstring newRow[])
 
 wifstream &Archive::getInArchive()
 {
-	static wifstream inArchive;
 	return inArchive;
 }
 
 wofstream &Archive::getOutArchive()
 {
-	static wofstream outArchive;
 	return outArchive;
 }

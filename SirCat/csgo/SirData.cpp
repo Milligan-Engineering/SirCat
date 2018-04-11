@@ -31,10 +31,11 @@ bool SirData::bMakeSirObjArchive(const wstring csvName)
 	if (!bArchiveObjMade) //Only one archive can be made because this gets set to true inside
 	{
 		//Parameters to pass for slicing out headers that are member arrays
-		wstring *headers[3] = { weapNames, weapAlts, attrNames };
 		const int sliceSize[3] = { k_num_weap, k_num_weap, k_num_attr };
 		const bool sliceIsRow[3] = { false, false, true };
 		const int numSlice[3] = { 1, k_num_attr + 2, 1 };
+
+		wstring *headers[3] = { weapNames, weapAlts, attrNames };
 
 		Archive::csvName = csvName;
 
@@ -71,7 +72,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 			int unparsedAttr;
 
 			textFileOps.parseTextFile(searchTerm, weapFile, searchResult, 1);
-			searchTerm = static_cast<wstring>(L"\"attributes\""); //Read until attributes are listed for each weapon
+			searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
 			unparsedAttr = textFileOps.parseTextFile(searchTerm, weapFile, unparsedData, MAX_PATH, L"\t\"\0", 2, L'}');
 
 			for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
@@ -80,7 +81,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 
 				for (int k = 0; k < k_attr_len; ++k) //Enumerate characters for each returned unparsed attribute
 				{
-					if (iswdigit(static_cast<wint_t>(unparsedData[j][k]))) //Book's isdigit is throwing an exception for me
+					if (iswdigit(static_cast<wint_t>(unparsedData[j][k])))
 					{
 						int l;
 
@@ -110,7 +111,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 				for (int m = 0; m < k_num_attr; ++m) //unparsedData now is parsed attribute names, so compare to stored ones
 				{
 					if (unparsedData[j] == attrNames[m])
-						sirData[i][m] = static_cast<wstring>(parsedWeapData[j]);
+						sirData[i][m] = parsedWeapData[j];
 				}
 			}
 		}
@@ -127,7 +128,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 			for (int i = 0; i < k_num_weap; ++i)
 			{
 				if (sirData[i][0] == L"") //Weapons missing cycletime get the default value
-					sirData[i][0] = static_cast<wstring>(defCycletime[0]);
+					sirData[i][0] = defCycletime[0];
 			}
 
 			bSuccess = true;
