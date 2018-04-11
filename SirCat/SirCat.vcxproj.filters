@@ -77,9 +77,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml">
-      <Filter>custom build step files\Crowbar</Filter>
-    </Xml>
-  </ItemGroup>
 </Project>

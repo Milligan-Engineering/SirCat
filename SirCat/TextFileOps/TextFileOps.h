@@ -20,7 +20,7 @@ public:
 	TextFileOps() = default;
 	~TextFileOps() = default;
 
-	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[] = { NULL },
+	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[] = nullptr,
 		const int maxElements = 0, const bool bSliceIsRow = true, const int skipToElement = 1, const WCHAR delimiter = L',',
 		const int numSlice = 1);
 	//Precondition: 

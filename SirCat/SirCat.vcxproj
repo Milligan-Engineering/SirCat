@@ -76,15 +76,11 @@ copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLExtract.exe" %hlex
 copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLLib.dll" %hlextract%\HLLib.dll
 
 set crowbar="$(SolutionDir)$(Configuration)\Crowbar"
-set settings="$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml"
-if exist %crowbar%\Data rd %crowbar%\Data /s /q
 if exist %crowbar%\ rd %crowbar% /s /q
 md %crowbar%
-md %crowbar%\Data
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
-copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%
 </Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;%(Outputs)</Outputs>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>
@@ -146,17 +142,13 @@ copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLExtract.exe" %hlex
 copy /y /b "$(SolutionDir)custom build step files\HLExtract\HLLib.dll" %hlextract%\HLLib.dll
 
 set crowbar="$(SolutionDir)$(Configuration)\Crowbar"
-set settings="$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml"
-if exist %crowbar%\Data rd %crowbar%\Data /s /q
 if exist %crowbar%\ rd %crowbar% /s /q
 md %crowbar%
-md %crowbar%\Data
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
-copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;%(Outputs)</Outputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -180,9 +172,6 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClInclude Include="csgo\FindCsgo.h" />
     <ClInclude Include="csgo\SirData.h" />
     <ClInclude Include="TextFileOps\TextFileOps.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
