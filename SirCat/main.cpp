@@ -30,6 +30,10 @@ struct Data
 	SirData sir;
 };
 
+bool bReadGameFiles(Data &newData, const wstring csgoDir);
+//Precondition: 
+//Postcondition: 
+
 void updatePrompt(Data &archiveData, Data &newData);
 //Precondition: 
 //Postcondition: 
@@ -102,9 +106,9 @@ int main()
 					Data newData;
 
 					wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
-					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data ...";
+					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
 
-					if (newData.bbox.bReadModelFiles(findCsgo.getTestDir())	&& newData.sir.bReadWeapFile(findCsgo.getTestDir()))
+					if (bReadGameFiles(newData, findCsgo.getTestDir()))
 					{
 						wstring badRowName, badColName, badNewVal, badArchiveVal;
 						bool bUpdate = true;
@@ -114,12 +118,18 @@ int main()
 						archiveData.sir.readArchive();
 
 						if (archiveData.bbox.bCheckArchive(newData.bbox, badRowName, badColName, badNewVal, badArchiveVal))
-							wcout << endl << endl << L"Data mismatch detected in " << archiveData.bbox.getCsvName();
+						{
+							wcout << L"... done.\n\n";
+							wcout << L"Data mismatch detected in " << archiveData.bbox.getCsvName();
+						}
 						else if (archiveData.sir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
-							wcout << endl << endl << L"Data mismatch detected in " << archiveData.sir.getCsvName();
+						{
+							wcout << L"... done.\n\n";
+							wcout << L"Data mismatch detected in " << archiveData.sir.getCsvName();
+						}
 						else
 						{
-							wcout << L"done." << endl << "No discrepancies detected.\n\n";
+							wcout << L"... done. No discrepancies detected.\n\n";
 							bUpdate = false;
 						}
 
@@ -132,11 +142,14 @@ int main()
 						}
 					}
 				}
+				else
+					wcout << L"CS:GO installation not found.\n";
 			}
+			else
+				wcout << L"Steam installation not found.\n";
 
 			if (bRevertToArchive)
 			{
-				wcout << endl << L"CS:GO not found or error reading its files.\n";
 				wcout << L"Reading hitbox and weapon data from archive file.\n\n";
 				archiveData.bbox.readArchive();
 				archiveData.sir.readArchive();
@@ -155,6 +168,41 @@ int main()
 	} while (bUserMenu(menuOption));
 
 	return 0;
+}
+
+bool bReadGameFiles(Data &newData, const wstring csgoDir)
+{
+	bool bSuccess = false;
+
+	wcout << L"... Unpacking hitbox binaries from CS:GO VPK with HLExtract ...\n";
+
+	if (newData.bbox.bUnpackModels(csgoDir))
+	{
+		wcout << L"... Decompiling hitbox binaries with Crowbar ...\n";
+
+		if (newData.bbox.bDecompileModels())
+		{
+			wcout << L"... Reading decompiled hitbox files ...\n";
+
+			if (newData.bbox.bReadModelFiles())
+			{
+				wcout << L"... Reading weapon data from CS:GO items_game.txt ...\n";
+
+				if (newData.sir.bReadWeapFile(csgoDir))
+					bSuccess = true;
+				else
+					wcout << endl << L"Reading weapon data from CS:GO items_game.txt failed ...\n";
+			}
+			else
+				wcout << endl << L"Reading decompiled hitbox files failed.\n";
+		}
+		else
+			wcout << endl << L"Decompiling hitbox binaries failed.\n";
+	}
+	else
+		wcout << endl << L"Unpacking hitbox files from CS:GO VPK failed.\n";
+
+	return bSuccess;
 }
 
 void updatePrompt(Data &archiveData, Data &newData)

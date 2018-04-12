@@ -48,82 +48,99 @@ bool BboxData::bMakeBboxObjArchive(const wstring csvName)
 	return bSuccess;
 }
 
-bool BboxData::bReadModelFiles(const wstring csgoDir)
+bool BboxData::bUnpackModels(const wstring csgoDir)
+{
+	//******Check for existence of .\HLExtract\HLExtract.exe and .\HLExtract\HLLib.dll******
+
+	wstring applicationNameWS = L".\\HLExtract\\HLExtract.exe";
+	wstring commandLineWS = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
+		+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
+
+	return bCreateProcess(applicationNameWS, commandLineWS);
+}
+
+bool BboxData::bDecompileModels()
+{
+	//******Check for existence of .\Crowbar\Crowbar.exe******
+
+	wstring applicationNameWS = L".\\Crowbar\\Crowbar.exe";
+	wstring commandLineWS = L"Crowbar.exe";
+
+	return bCreateProcess(applicationNameWS, commandLineWS);
+}
+
+bool BboxData::bReadModelFiles()
 {
 	bool bSuccess = false;
+	HANDLE hFind;
+	WIN32_FIND_DATAW FindFileData;
 
-	if (bUnpackModels(csgoDir) && bDecompileModels())
+	hFind = FindFirstFileW(static_cast<LPCWSTR>(L".\\legacy\\*.qc"), &FindFileData); //Begin fetching model file names
+
+	if (hFind != INVALID_HANDLE_VALUE)
 	{
-		HANDLE hFind;
-		WIN32_FIND_DATAW FindFileData;
-
-		hFind = FindFirstFileW(static_cast<LPCWSTR>(L".\\legacy\\*.qc"), &FindFileData); //Begin fetching model file names
-
-		if (hFind != INVALID_HANDLE_VALUE)
+		for (int i = 0; i < k_num_model; ++i) //Collect attributes for each model in bboxData
 		{
-			for (int i = 0; i < k_num_model; ++i) //Collect attributes for each model in bboxData
+			size_t dotIndex = static_cast<wstring>(FindFileData.cFileName).find_last_of(L"."); //Where to trim file extension
+
+			if (static_cast<wstring>(FindFileData.cFileName).substr(static_cast<size_t>(0), dotIndex) != modelNames[i]
+				&& !static_cast<bool>(hFind) && i < k_num_model - 1 && GetLastError() != ERROR_NO_MORE_FILES)
 			{
-				size_t dotIndex = static_cast<wstring>(FindFileData.cFileName).find_last_of(L"."); //Where to trim file extension
+				bSuccess = false; //Model filename did not match expected modelNames[i] or FindNextFileW failed early
+				break;
+			}
+			else
+			{
+				wifstream modelFile;
 
-				if (static_cast<wstring>(FindFileData.cFileName).substr(static_cast<size_t>(0), dotIndex) != modelNames[i]
-					&& !static_cast<bool>(hFind) && i < k_num_model - 1 && GetLastError() != ERROR_NO_MORE_FILES)
+				modelFile.open(static_cast<wstring>(L".\\legacy\\") + static_cast<wstring>(FindFileData.cFileName));
+
+				if (!modelFile.fail())
 				{
-					bSuccess = false; //Model filename did not match expected modelNames[i] or FindNextFileW failed early
-					break;
-				}
-				else
-				{
-					wifstream modelFile;
+					WCHAR searchResult[1][MAX_PATH];
+					wstring searchTerm = L"$hbox";
+					int elementsToCopy[k_num_attr] = { 2, 3, 4, 5, 6, 7, 11 };
+					int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
+					int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 
-					modelFile.open(static_cast<wstring>(L".\\legacy\\") + static_cast<wstring>(FindFileData.cFileName));
-
-					if (!modelFile.fail())
+					if (textFileOps.parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
 					{
-						WCHAR searchResult[1][MAX_PATH];
-						wstring searchTerm = L"$hbox";
-						int elementsToCopy[k_num_attr] = { 2, 3, 4, 5, 6, 7, 11 };
-						int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
-						int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
-
-						if (textFileOps.parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
-						{
-							bSuccess = false;
-							break;
-						}
-
-						for (int j = 0; j < k_num_attr; ++j) //Collect each attribute for this model
-						{
-							wstring bboxDatumBuilder;
-
-							do
-							{
-								if (searchResult[0][charPos] == L' ')
-									++spaceDelimitedElement;
-
-								if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0][charPos] != L' ')
-									bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum at the element of interest
-
-								++charPos;
-
-								if (spaceDelimitedElement > elementsToCopy[j] || searchResult[0][charPos] == L'\0')
-									break;
-							} while (true);
-
-							bboxData[i][j] = bboxDatumBuilder;
-						}
-
-						bSuccess = true;
-						FindNextFileW(hFind, &FindFileData); //Fetch next model file name
-						modelFile.close();
+						bSuccess = false;
+						break;
 					}
+
+					for (int j = 0; j < k_num_attr; ++j) //Collect each attribute for this model
+					{
+						wstring bboxDatumBuilder;
+
+						do
+						{
+							if (searchResult[0][charPos] == L' ')
+								++spaceDelimitedElement;
+
+							if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0][charPos] != L' ')
+								bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum at the element of interest
+
+							++charPos;
+
+							if (spaceDelimitedElement > elementsToCopy[j] || searchResult[0][charPos] == L'\0')
+								break;
+						} while (true);
+
+						bboxData[i][j] = bboxDatumBuilder;
+					}
+
+					bSuccess = true;
+					FindNextFileW(hFind, &FindFileData); //Fetch next model file name
+					modelFile.close();
 				}
 			}
-
-			FindClose(hFind);
 		}
 
-		deleteLegacyDir();
+		FindClose(hFind);
 	}
+
+	deleteLegacyDir();
 
 	return bSuccess;
 }
@@ -178,27 +195,6 @@ bool BboxData::bWriteArchiveFile(BboxData &newBbox)
 	}
 
 	return bSuccess;
-}
-
-bool BboxData::bUnpackModels(const wstring csgoDir)
-{
-	//******Check for existence of .\HLExtract\HLExtract.exe******
-
-	wstring applicationNameWS = L".\\HLExtract\\HLExtract.exe";
-	wstring commandLineWS = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
-		+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
-
-	return bCreateProcess(applicationNameWS, commandLineWS);
-}
-
-bool BboxData::bDecompileModels()
-{
-	//******Check for existence of .\Crowbar\Crowbar.exe******
-
-	wstring applicationNameWS = L".\\Crowbar\\Crowbar.exe";
-	wstring commandLineWS = L"Crowbar.exe";
-
-	return bCreateProcess(applicationNameWS, commandLineWS);
 }
 
 bool BboxData::bCreateProcess(wstring applicationNameWS, wstring commandLineWS)

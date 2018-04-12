@@ -19,9 +19,17 @@ public:
 
 	bool bMakeBboxObjArchive(const wstring csvName);
 	//Precondition: 
+	//Postcondition:
+
+	bool bUnpackModels(const wstring csgoDir);
+	//Precondition: 
 	//Postcondition: 
 
-	bool bReadModelFiles(const wstring csgoDir);
+	bool bDecompileModels();
+	//Precondition: 
+	//Postcondition: 
+
+	bool bReadModelFiles();
 	//Precondition: 
 	//Postcondition: 
 
@@ -37,21 +45,13 @@ public:
 	//Precondition: 
 	//Postcondition: 
 private:
-	bool bUnpackModels(const wstring csgoDir);
+	bool bCreateProcess(wstring applicationName, wstring commandLineWString);
 	//Precondition: 
 	//Postcondition: 
 
-	bool bDecompileModels();
-	//Precondition: 
-	//Postcondition:
-
-	bool bCreateProcess(wstring applicationName, wstring commandLineWString);
-	//Precondition: 
-	//Postcondition:
-
 	void deleteLegacyDir();
 	//Precondition: 
-	//Postcondition:
+	//Postcondition: 
 
 	static bool bArchiveObjMade;
 	static wstring modelNames[k_num_model];

@@ -5,6 +5,11 @@
 
 using namespace std;
 
+wstring Archive::getCsvName()
+{
+	return csvName;
+}
+
 bool Archive::bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
 	const int numSlice[])
 {
@@ -21,11 +26,6 @@ bool Archive::bMakeObjArchive(const int numHeaders, wstring *headers[], const in
 	}
 
 	return bSuccess;
-}
-
-wstring Archive::getCsvName()
-{
-	return csvName;
 }
 
 bool Archive::bCheckArchiveRow(const wstring row1[], const wstring row2[], int &j)

@@ -9,17 +9,17 @@ using namespace std;
 class Archive
 {
 public:
-	bool bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
-		const int numSlice[]);
-	//Precondition: 
-	//Postcondition: 
-
 	wstring getCsvName();
 	//Precondition: 
 	//Postcondition: 
 protected:
 	Archive() = default;
 	~Archive() = default;
+
+	bool bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
+		const int numSlice[]);
+	//Precondition: 
+	//Postcondition: 
 
 	bool bCheckArchiveRow(const wstring row1[], const wstring row2[], int &j);
 	//Precondition: 
