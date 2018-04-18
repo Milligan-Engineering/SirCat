@@ -13,8 +13,13 @@ public:
 	//Precondition: 
 	//Postcondition: 
 protected:
-	Archive() = default;
-	~Archive() = default;
+	Archive();
+	//Precondition: 
+	//Postcondition: 
+
+	~Archive();
+	//Precondition: 
+	//Postcondition: 
 
 	bool bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
 		const int numSlice[]);
@@ -44,6 +49,10 @@ protected:
 	TextFileOps textFileOps;
 	wstring csvName;
 	int numColumns;
+	int numRows;
+	wstring **data;
+	wstring *columnHeaders;
+	wstring *rowHeaders;
 	wifstream inArchive;
 	wofstream outArchive;
 };

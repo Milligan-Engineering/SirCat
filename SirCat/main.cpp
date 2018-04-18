@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Project Milestone #09
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 11, 2018
+//Last Changed: April 12, 2018
 
 #ifndef STRICT
 	#define STRICT
@@ -81,7 +81,7 @@ int main()
 	int menuOption = 1;
 
 	if (!archiveData.bbox.bMakeBboxObjArchive(static_cast<wstring>(L"archiveBboxData.csv"))
-		|| !archiveData.sir.bMakeSirObjArchive(static_cast<wstring>(L"archiveSirData.csv")))
+		/*|| !archiveData.sir.bMakeSirObjArchive(static_cast<wstring>(L"archiveSirData.csv"))*/)
 	{
 		wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 		hitEnterToExit();
@@ -115,18 +115,18 @@ int main()
 
 						bRevertToArchive = false;
 						archiveData.bbox.readArchive();
-						archiveData.sir.readArchive();
+						//archiveData.sir.readArchive();
 
 						if (archiveData.bbox.bCheckArchive(newData.bbox, badRowName, badColName, badNewVal, badArchiveVal))
 						{
 							wcout << L"... done.\n\n";
 							wcout << L"Data mismatch detected in " << archiveData.bbox.getCsvName();
 						}
-						else if (archiveData.sir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
-						{
-							wcout << L"... done.\n\n";
-							wcout << L"Data mismatch detected in " << archiveData.sir.getCsvName();
-						}
+						//else if (archiveData.sir.bCheckArchive(newData.sir, badRowName, badColName, badNewVal, badArchiveVal))
+						//{
+							//wcout << L"... done.\n\n";
+							//wcout << L"Data mismatch detected in " << archiveData.sir.getCsvName();
+						//}
 						else
 						{
 							wcout << L"... done. No discrepancies detected.\n\n";
@@ -164,7 +164,6 @@ int main()
 
 		//******Ask user to enter a distance******
 		calcIdealFreq();
-
 	} while (bUserMenu(menuOption));
 
 	return 0;
@@ -188,10 +187,10 @@ bool bReadGameFiles(Data &newData, const wstring csgoDir)
 			{
 				wcout << L"... Reading weapon data from CS:GO items_game.txt ...\n";
 
-				if (newData.sir.bReadWeapFile(csgoDir))
+				//if (newData.sir.bReadWeapFile(csgoDir))
 					bSuccess = true;
-				else
-					wcout << endl << L"Reading weapon data from CS:GO items_game.txt failed ...\n";
+				//else
+					//wcout << endl << L"Reading weapon data from CS:GO items_game.txt failed ...\n";
 			}
 			else
 				wcout << endl << L"Reading decompiled hitbox files failed.\n";

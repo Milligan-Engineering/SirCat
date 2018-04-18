@@ -29,6 +29,15 @@ public:
 	//Precondition: 
 	//Postcondition: 
 private:
+	void newDynamicArray(WCHAR *&data);
+	//Precondition: 
+	//Postcondition: 
+
+	void deleteDynamicArray(WCHAR *&data);
+	//Precondition: 
+	//Postcondition: 
+
+	bool bDynamicArrayDeleted;
 	wstring testDir;
 	TextFileOps textFileOps;
 };

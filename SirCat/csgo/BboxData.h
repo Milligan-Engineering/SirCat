@@ -7,9 +7,6 @@ using namespace std;
 
 class BboxData : public Archive
 {
-private:
-	static const int k_num_model = 74; //Number of relevant player hitbox models
-	static const int k_num_attr = 7; //Number of relevant hitbox attributes
 public:
 	BboxData();
 	//Precondition: 
@@ -19,7 +16,7 @@ public:
 
 	bool bMakeBboxObjArchive(const wstring csvName);
 	//Precondition: 
-	//Postcondition:
+	//Postcondition: 
 
 	bool bUnpackModels(const wstring csgoDir);
 	//Precondition: 
@@ -45,16 +42,8 @@ public:
 	//Precondition: 
 	//Postcondition: 
 private:
-	bool bCreateProcess(wstring applicationName, wstring commandLineWString);
+	bool bCreateProcess(wstring applicationName, wstring commandLineWString,
+		unsigned long *pDwProcessId = nullptr, unsigned long dwCreationFlags = 0);
 	//Precondition: 
 	//Postcondition: 
-
-	void deleteLegacyDir();
-	//Precondition: 
-	//Postcondition: 
-
-	static bool bArchiveObjMade;
-	static wstring modelNames[k_num_model];
-	static wstring attrNames[k_num_attr];
-	wstring bboxData[k_num_model][k_num_attr];
 };

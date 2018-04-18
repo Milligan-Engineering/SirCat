@@ -17,14 +17,18 @@ using namespace std;
 bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
 	HKEY hKey = NULL;
-	DWORD keyType = REG_SZ;
-	WCHAR keyData[MAX_PATH] = L"";
-	DWORD keyDataSize = sizeof(keyData);
-	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
+	DWORD type = REG_SZ;
+	WCHAR *data = nullptr;
+	DWORD cbData = sizeof(WCHAR) * 32767;
+	LONG ret;
+
+	bDynamicArrayDeleted = true;
+	ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 
 	if (ret == ERROR_SUCCESS) //Check registry for 64-bit Windows installation
 	{
-		ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, reinterpret_cast<LPBYTE>(keyData), &keyDataSize);
+		newDynamicArray(data);
+		ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &type, reinterpret_cast<LPBYTE>(data), &cbData);
 		RegCloseKey(hKey);
 	}
 
@@ -33,16 +37,22 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 		ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 		if (ret == ERROR_SUCCESS)
 		{
-			ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &keyType, reinterpret_cast<LPBYTE>(keyData), &keyDataSize);
+			if (bDynamicArrayDeleted)
+				newDynamicArray(data);
+
+			ret = RegQueryValueExW(hKey, L"InstallPath", NULL, &type, reinterpret_cast<LPBYTE>(data), &cbData);
 			RegCloseKey(hKey);
 		}
 	}
 
 	if (ret == ERROR_SUCCESS)
 	{
-		steamDir = keyData;
+		steamDir = data;
 		testDir = steamDir + static_cast<wstring>(L"\\steamapps");
 	}
+
+	if (!bDynamicArrayDeleted)
+		deleteDynamicArray(data);
 
 	return ret == ERROR_SUCCESS;
 }
@@ -108,4 +118,20 @@ bool FindCsgo::bSearchSteamLibs()
 wstring FindCsgo::getTestDir()
 {
 	return testDir;
+}
+
+void FindCsgo::newDynamicArray(WCHAR *&data)
+{
+	bDynamicArrayDeleted = false;
+	data = new WCHAR[32767];
+
+	for (int i = 0; i < 32767; ++i)
+		data[i] = '\0';
+}
+
+void FindCsgo::deleteDynamicArray(WCHAR *&data)
+{
+	delete[] data;
+	data = nullptr;
+	bDynamicArrayDeleted = true;
 }

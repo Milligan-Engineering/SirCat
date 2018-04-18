@@ -10,6 +10,37 @@ wstring Archive::getCsvName()
 	return csvName;
 }
 
+Archive::Archive()
+{
+	data = nullptr;
+	columnHeaders = nullptr;
+	rowHeaders = nullptr;
+}
+
+Archive::~Archive()
+{
+	if (data != nullptr)
+	{
+		for (int i = 0; i < numRows; ++i)
+			delete[] data[i];
+
+		delete[] data;
+		data = nullptr;
+	}
+
+	if (columnHeaders != nullptr)
+	{
+		delete[] columnHeaders;
+		columnHeaders = nullptr;
+	}
+
+	if (rowHeaders != nullptr)
+	{
+		delete[] rowHeaders;
+		rowHeaders = nullptr;
+	}
+}
+
 bool Archive::bMakeObjArchive(const int numHeaders, wstring *headers[], const int sliceSize[], const bool sliceIsRow[],
 	const int numSlice[])
 {
