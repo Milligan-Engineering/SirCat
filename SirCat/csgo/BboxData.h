@@ -1,49 +1,54 @@
 #pragma once
 
+#ifndef STRICT
+	#define STRICT 1
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN 1
+#endif //WIN32_LEAN_AND_MEAN
+
 #include "Archive.h"
 #include <string>
+#include <Windows.h>
 
 using namespace std;
 
 class BboxData : public Archive
 {
 public:
-	BboxData();
+	BboxData() = default;
+
+	BboxData(const wstring csvName) : Archive(csvName) {};
 	//Precondition: 
 	//Postcondition: 
 
 	~BboxData() = default;
 
-	bool bMakeBboxObjArchive(const wstring csvName);
+	bool bUnpackModels(const wstring csgoDir) const;
 	//Precondition: 
 	//Postcondition: 
 
-	bool bUnpackModels(const wstring csgoDir);
-	//Precondition: 
-	//Postcondition: 
-
-	bool bDecompileModels();
+	bool bDecompileModels() const;
 	//Precondition: 
 	//Postcondition: 
 
 	bool bReadModelFiles();
 	//Precondition: 
 	//Postcondition: 
-
-	bool bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &badColName, wstring &badNewVal, wstring &badArchiveVal);
-	//Precondition: 
-	//Postcondition: 
-
-	void readArchive();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bWriteArchiveFile(BboxData &newBbox);
-	//Precondition: 
-	//Postcondition: 
 private:
-	bool bCreateProcess(wstring applicationName, wstring commandLineWString,
-		unsigned long *pDwProcessId = nullptr, unsigned long dwCreationFlags = 0);
+	struct WinInfo; //lParam in EnumWindowsProc points to a WinInfo struct
+
+	bool bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
+		PROCESS_INFORMATION *pPi = nullptr, bool bWaitForExit = true) const;
+	//Precondition: 
+	//Postcondition: 
+
+	static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
+	//Precondition: 
+	//Postcondition: 
+
+	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 	//Precondition: 
 	//Postcondition: 
 };

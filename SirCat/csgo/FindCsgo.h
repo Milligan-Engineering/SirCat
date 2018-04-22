@@ -1,15 +1,21 @@
 #pragma once
 
-#include "..\TextFileOps\TextFileOps.h"
 #include <string>
 
 using namespace std;
 
+class TextFileOps;
+
 class FindCsgo
 {
 public:
-	FindCsgo() = default;
-	~FindCsgo() = default;
+	FindCsgo();
+	//Precondition: 
+	//Postcondition: 
+
+	~FindCsgo();
+	//Precondition: 
+	//Postcondition: 
 
 	bool bFetchSteamDir(wstring &steamDir);
 	//Postcondition: If valid registry value for Steam installation is found, testDir is filled with the installation directory.
@@ -25,19 +31,18 @@ public:
 		//testDir is filled with one alt library path at a time and passed to the bCheckCsgoInstall function.
 		//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alt library path, and false otherwise.
 
-	wstring getTestDir();
+	wstring getTestDir() const;
 	//Precondition: 
 	//Postcondition: 
 private:
-	void newDynamicArray(WCHAR *&data);
+	wchar_t *newDynamicArray() const;
 	//Precondition: 
 	//Postcondition: 
 
-	void deleteDynamicArray(WCHAR *&data);
+	void deleteDynamicArray(wchar_t *&data) const;
 	//Precondition: 
 	//Postcondition: 
 
-	bool bDynamicArrayDeleted;
+	TextFileOps *textFileOps;
 	wstring testDir;
-	TextFileOps textFileOps;
 };

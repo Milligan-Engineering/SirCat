@@ -1,9 +1,13 @@
+#ifndef __STDC_WANT_LIB_EXT1__
+	#define __STDC_WANT_LIB_EXT1__ 1
+#endif //__STDC_WANT_LIB_EXT1__
+
 #ifndef STRICT
-	#define STRICT
+	#define STRICT 1
 #endif //STRICT
 
 #ifndef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN 1
 #endif //WIN32_LEAN_AND_MEAN
 
 #include "BboxData.h"
@@ -11,74 +15,109 @@
 #include <fstream>
 #include <iostream> ////////////////////////////////////////////////////
 #include <string>
-#include <shellapi.h>
+#include <wchar.h>
 #include <Windows.h>
 
 using namespace std;
 
-struct WinInfo
+struct BboxData::WinInfo
 {
-	unsigned long dwProcessId;
+	DWORD dwProcessId;
 	HWND hwnd;
+	DWORD dwThreadId;
 };
 
-BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
-
-BboxData::BboxData()
+bool BboxData::bUnpackModels(const wstring csgoDir) const
 {
-}
+	//******Check for existence of .\HLExtract\HLExtract.exe and .\HLExtract\HLLib.dll******
+	//******add comments******
 
-bool BboxData::bMakeBboxObjArchive(const wstring csvName)
-{
 	bool bSuccess = false;
+	const WCHAR applicationName[] = L".\\HLExtract\\HLExtract.exe";
+	WCHAR *commandLine = new WCHAR[32910];
 
-	numRows = textFileOps.fetchNumRows(getInArchive(), csvName) - 1;
-	numColumns = textFileOps.fetchNumColumns(getInArchive(), csvName) - 1;
-	rowHeaders = new wstring[numRows];
-	columnHeaders = new wstring[numColumns];
-	Archive::csvName = csvName;
+	wmemcpy_s(commandLine, 32910, L"HLExtract.exe -p \"", 19);
+	wcscat_s(commandLine, 32910, csgoDir.c_str());
+	wcscat_s(commandLine, 32910, L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
+	//WCHAR *commandLine = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
+		//+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
 
-	//Parameters to pass for slicing out headers
-	wstring *headers[2] = { rowHeaders, columnHeaders };
-	const int sliceSize[2] = { numRows, numColumns };
-	const bool sliceIsRow[2] = { false, true };
-	const int numSlice[2] = { 1, 1 };
-
-	if (bMakeObjArchive(2, headers, sliceSize, sliceIsRow, numSlice))
+	if (bCreateProcess(applicationName, commandLine))
 		bSuccess = true;
+
+	delete[] commandLine;
+	commandLine = nullptr;
 
 	return bSuccess;
 }
 
-bool BboxData::bUnpackModels(const wstring csgoDir)
-{
-	//******Check for existence of .\HLExtract\HLExtract.exe and .\HLExtract\HLLib.dll******
-
-	wstring applicationNameWS = L".\\HLExtract\\HLExtract.exe";
-	wstring commandLineWS = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
-		+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
-
-	return bCreateProcess(applicationNameWS, commandLineWS);
-}
-
-bool BboxData::bDecompileModels()
+bool BboxData::bDecompileModels() const
 {
 	//******Check for existence of .\Crowbar\Crowbar.exe******
+	//******Write requisite entries for Crowbar Settings.xml******
+	//******Use child windows in Decompile tab to set options?******
+	//******add comments******
 
-	bool bSuccess;
-	wstring applicationNameWS = L".\\Crowbar\\Crowbar.exe";
-	wstring commandLineWS = L"Crowbar.exe";
-	unsigned long dwProcessId = 0;
+	bool bSuccess = false;
+	const WCHAR applicationName[] = L".\\Crowbar\\Crowbar.exe";
+	WCHAR commandLine[] = L"Crowbar.exe";
+	PROCESS_INFORMATION pi;
 
-	if (bSuccess = bCreateProcess(applicationNameWS, commandLineWS, &dwProcessId, CREATE_NEW_PROCESS_GROUP)) //Single = is intentional
+	if (bCreateProcess(applicationName, commandLine, &pi, false))
 	{
-		WinInfo winInfo;
+			GUITHREADINFO gui;
+			WCHAR lpClassName[MAX_PATH];
+			DWORD nBufferLength;
+			WinInfo winInfo;
 
-		winInfo.dwProcessId = dwProcessId;
-		winInfo.hwnd = 0;
-		EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo));
-		wcout << winInfo.hwnd << endl << endl; ////////////////////////////////////////////////////////////////////////////
+			winInfo.dwProcessId = pi.dwProcessId;
+			winInfo.hwnd = 0;
+			BlockInput(TRUE);
+
+			while (GetForegroundWindow() != winInfo.hwnd)
+				EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo));
+
+			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, TRUE);
+			gui.cbSize = sizeof(GUITHREADINFO);
+
+			do
+			{
+				GetGUIThreadInfo(winInfo.dwThreadId, &gui);
+				GetClassNameW(gui.hwndFocus, lpClassName, MAX_PATH);
+			} while (wcsstr(lpClassName, L"WindowsForms10.EDIT") == nullptr);
+
+			nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
+
+			if (nBufferLength != 0)
+			{
+				WCHAR *lpBuffer = new WCHAR[nBufferLength + 8];
+
+				if (GetFullPathNameW(L".", nBufferLength, lpBuffer, NULL) == nBufferLength - 1)
+				{
+					wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\");
+
+					if (SendMessageW(gui.hwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)) == TRUE)
+					{
+						HWND childHwnd = gui.hwndFocus;
+						EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childHwnd));
+						SetFocus(childHwnd);
+
+						if (SendMessageW(childHwnd, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)) == TRUE)
+							bSuccess = true;
+					}
+				}
+
+				delete[] lpBuffer;
+				lpBuffer = nullptr;
+			}
+
+			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, FALSE);
+			BlockInput(FALSE); //Move after WaitForSingleObject after closing it is automated
+			WaitForSingleObject(pi.hProcess, INFINITE);
 	}
+
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
 
 	return bSuccess;
 }
@@ -86,43 +125,28 @@ bool BboxData::bDecompileModels()
 bool BboxData::bReadModelFiles()
 {
 	bool bSuccess = false;
-	HANDLE hFind;
-	WCHAR *lpFileName = nullptr;
 	WCHAR *lpBuffer = nullptr;
+	WCHAR *lpFileName = nullptr;
+	HANDLE hFind;
 	WIN32_FIND_DATAW FindFileData;
-	DWORD nBufferLength = GetFullPathNameW(static_cast<LPCWSTR>(L"."), 0, nullptr, NULL);
+	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
 
-	numRows = 74; ///////////////////////////////////////////////////////////////////////////////////////////////
-	numColumns = 7; ////////////////////////////////////////////////////////////////////////////////
-	data = new wstring*[numRows]; ////////////////////////////////////////////////////////////////////
-
-	for (int i = 0; i < numRows; ++i) ////////////////////////////////////////////////////////////////
-		data[i] = new wstring[numColumns]; //////////////////////////////////////////////////////////////
+	//******Check do-while loop for correct handling of ERROR_NO_MORE_FILES and other unexpected circumstances******
 
 	if (nBufferLength != 0)
 	{
-		WCHAR legacySubDir[] = L"\\legacy\\*";
-		WCHAR prefix[] = L"\\\\?\\";
-
 		lpBuffer = new WCHAR[nBufferLength + 13];
+		wmemcpy_s(lpBuffer, nBufferLength + 13, L"\\\\?\\", 4); //Prefix to permit extended-length path with later function calls
 
-		for (int i = 0; i < 4; ++i)
-			lpBuffer[i] = prefix[i];
-
-		if (GetFullPathNameW(static_cast<LPCWSTR>(L"."), nBufferLength, lpBuffer + 4, NULL) == nBufferLength - 1)
+		if (GetFullPathNameW(L".", nBufferLength, lpBuffer + 4, NULL) == nBufferLength - 1)
 		{
-			for (int i = 0; i < 10; ++i)
-				lpBuffer[nBufferLength + i + 3] = legacySubDir[i];
-
+			wcscat_s(lpBuffer, nBufferLength + 13, L"\\legacy\\*");
 			lpFileName = lpBuffer;
 		}
 	}
 
 	if (nBufferLength == 0 || lpFileName == nullptr)
-	{
-		WCHAR legacyRelDir[] = L".\\legacy\\*"; //Fall back to non-extended-length paths when extended-path functions fail
-		lpFileName = legacyRelDir;
-	}
+		lpFileName = const_cast<WCHAR *>(L".\\legacy\\*");
 
 	hFind = FindFirstFileW(lpFileName, &FindFileData); //Begin fetching model file names
 
@@ -140,37 +164,38 @@ bool BboxData::bReadModelFiles()
 
 		do //Collect attributes for each model in bboxData
 		{
-			size_t dotIndex = static_cast<wstring>(FindFileData.cFileName).find_last_of(L'.'); //Where to trim file extension
 			wstring absolutePath = static_cast<wstring>(lpFileName) + static_cast<wstring>(FindFileData.cFileName);
+			WCHAR *dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
 
 			//if (i < k_num_model - 1 && GetLastError() == ERROR_NO_MORE_FILES)
 			//{
 				//bSuccess = false; //Model filename did not match expected modelNames[i]
-				//DeleteFileW(static_cast<LPCWSTR>(absolutePath.c_str()));
+				//DeleteFileW(absolutePath.c_str());
 				//break;
 			//}
-			if (static_cast<wstring>(FindFileData.cFileName).substr(dotIndex) == L".qc")
+
+			if (wmemcmp(dotFileExt, L".qc", 3) == 0) //Check if file extension is qc
 			{
-				wifstream modelFile;
-				WCHAR searchResult[1][MAX_PATH];
 				wstring searchTerm = L"$hbox";
-				int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 };
-				int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
-				int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
+				WCHAR searchResult[1][MAX_PATH];
+				wifstream modelFile;
 
 				modelFile.open(static_cast<wstring>(L".\\legacy\\") + static_cast<wstring>(FindFileData.cFileName));
 
-				if (modelFile.fail() || textFileOps.parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
+				if (modelFile.fail() || textFileOps->parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
 				{
 					bSuccess = false;
 					modelFile.close();
-					DeleteFileW(static_cast<LPCWSTR>(absolutePath.c_str()));
+					DeleteFileW(absolutePath.c_str());
 					break;
 				}
 
 				for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
 				{
+					int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
+					int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 					wstring bboxDatumBuilder;
+					int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 };
 
 					do
 					{
@@ -194,7 +219,7 @@ bool BboxData::bReadModelFiles()
 				modelFile.close();
 			}
 
-			DeleteFileW(static_cast<LPCWSTR>(absolutePath.c_str()));
+			DeleteFileW(absolutePath.c_str());
 			FindNextFileW(hFind, &FindFileData); //Fetch next model file name
 		} while (i < numRows);
 
@@ -204,11 +229,11 @@ bool BboxData::bReadModelFiles()
 
 			FindNextFileW(hFind, &FindFileData);
 			absolutePath = static_cast<wstring>(lpFileName) + static_cast<wstring>(FindFileData.cFileName);
-			DeleteFileW(static_cast<LPCWSTR>(absolutePath.c_str()));
+			DeleteFileW(absolutePath.c_str());
 		}
 
 		FindClose(hFind);
-		RemoveDirectoryW(static_cast<LPCWSTR>(lpFileName));
+		RemoveDirectoryW(lpFileName);
 	}
 
 	if (nBufferLength != 0)
@@ -220,101 +245,63 @@ bool BboxData::bReadModelFiles()
 	return bSuccess;
 }
 
-bool BboxData::bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &badColName, wstring &badNewVal,
-	wstring &badArchiveVal)
-{
-	bool bUpdate = false;
-	int j;
-
-	for (int i = 0; i < numRows; ++i)
-	{
-		if (bUpdate = bCheckArchiveRow(newBbox.data[i], data[i], j)) //Single = is intentional
-		{
-			badRowName = rowHeaders[i];
-			badColName = columnHeaders[j];
-			badNewVal = newBbox.data[i][j];
-			badArchiveVal = data[i][j];
-			break; //Terminate the loop after first mismatch
-		}
-	}
-
-	return bUpdate;
-}
-
-void BboxData::readArchive()
-{
-	data = new wstring*[numRows];
-
-	for (int i = 0; i < numRows; ++i)
-	{
-		data[i] = new wstring[numColumns];
-		readArchiveRow(data[i], i + 2);
-	}
-}
-
-bool BboxData::bWriteArchiveFile(BboxData &newBbox)
-{
-	bool bSuccess = false;
-
-	getOutArchive().open(csvName);
-
-	if (!getOutArchive().fail())
-	{
-		writeArchiveFileRow(columnHeaders);
-		getOutArchive() << endl;
-
-		for (int i = 0; i < numRows; ++i)
-		{
-			getOutArchive() << rowHeaders[i];
-			writeArchiveFileRow(newBbox.data[i]);
-			getOutArchive() << endl;
-		}
-
-		bSuccess = true;
-		getOutArchive().close();
-	}
-
-	return bSuccess;
-}
-
-bool BboxData::bCreateProcess(wstring applicationNameWS, wstring commandLineWS,
-	unsigned long *pDwProcessId, unsigned long dwCreationFlags)
+bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
+	PROCESS_INFORMATION *pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
-	WCHAR *applicationName = &applicationNameWS[0];
-	WCHAR *commandLine = &commandLineWS[0];
+	//WCHAR *applicationName = &applicationNameWS[0];
+	//WCHAR *commandLine = &commandLineWS[0];
 	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
-	bSuccess = CreateProcessW(applicationName, commandLine, NULL, NULL, FALSE, dwCreationFlags, NULL, NULL, &si, &pi) != 0;
+	bSuccess = CreateProcessW(applicationName, commandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi) != 0;
 
-	if (pDwProcessId != nullptr)
-		*pDwProcessId = pi.dwProcessId;
+	if (pPi != nullptr)
+		*pPi = pi;
+	else
+	{
+		if (bWaitForExit)
+			WaitForSingleObject(pi.hProcess, INFINITE);
 
-	//if (dwCreationFlags == 0) //////////////////////////////////////////////////////////////////////////
-		WaitForSingleObject(pi.hProcess, INFINITE);
-
-	CloseHandle(pi.hProcess);
-	CloseHandle(pi.hThread);
+		CloseHandle(pi.hProcess);
+		CloseHandle(pi.hThread);
+	}
 
 	return bSuccess;
 }
 
-BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam)
+BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
-	WinInfo &winInfo = *reinterpret_cast<WinInfo*>(lParam);
-	unsigned long dwProcessId = 0;
+	WinInfo &winInfo = *reinterpret_cast<WinInfo *>(lParam);
+	DWORD dwProcessId = 0;
 
-	GetWindowThreadProcessId(hwnd, &dwProcessId);
+	winInfo.dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
 
 	if (winInfo.dwProcessId == dwProcessId && GetWindow(hwnd, GW_OWNER) == NULL && IsWindowVisible(hwnd) == TRUE)
 	{
 		bContinueEnum = FALSE;
 		winInfo.hwnd = hwnd;
+	}
+
+	return bContinueEnum;
+}
+
+BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
+{
+	BOOL bContinueEnum = TRUE;	
+	HWND &childHwnd = *reinterpret_cast<HWND *>(lParam);
+	WCHAR buffer[MAX_PATH];
+
+	GetClassNameW(hwnd, buffer, MAX_PATH);
+
+	if (wcsstr(buffer, L"WindowsForms10.EDIT") != nullptr && childHwnd != hwnd)
+	{
+		bContinueEnum = FALSE;
+		childHwnd = hwnd; //Found the other WindowsForms10.EDIT control, so send its hwnd back with LPARAM and stop enumerating
 	}
 
 	return bContinueEnum;

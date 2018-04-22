@@ -1,16 +1,7 @@
 #pragma once
 
-#ifndef STRICT
-	#define STRICT
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN
-#endif //WIN32_LEAN_AND_MEAN
-
 #include <iosfwd>
 #include <string>
-#include <Windows.h>
 
 using namespace std;
 
@@ -21,29 +12,31 @@ public:
 	~TextFileOps() = default;
 
 	int fetchDelimitedSlice(wifstream &delimitedFile, const wstring filename, wstring parsedSlice[] = nullptr,
-		const int maxElements = 0, const bool bSliceIsRow = true, const int skipToElement = 1, const WCHAR delimiter = L',',
-		const int numSlice = 1);
+		const int maxElements = 0, const bool bSliceIsRow = true, const int skipToElement = 1, const wchar_t delimiter = L',',
+		const int numSlice = 1) const;
 	//Precondition: 
 	//Postcondition: 
 
-	int fetchNumColumns(wifstream &delimitedFile, const wstring filename, const WCHAR delimiter = L',', const int numRow = 1);
+	int fetchNumColumns(wifstream &delimitedFile, const wstring filename,
+		const wchar_t delimiter = L',', const int numRow = 1) const;
 	//Precondition: 
 	//Postcondition: 
 
-	int fetchNumRows(wifstream &delimitedFile, const wstring filename, const WCHAR delimiter = L',', const int numColumn = 1);
+	int fetchNumRows(wifstream &delimitedFile, const wstring filename,
+		const wchar_t delimiter = L',', const int numColumn = 1) const;
 	//Precondition: 
 	//Postcondition: 
 
-	void skipToRowNum(wifstream &delimitedFile, WCHAR &character, const int numRow);
+	void skipToRowNum(wifstream &delimitedFile, wchar_t &character, const int numRow) const;
 	//Precondition: 
 	//Postcondition: 
 
-	bool bSkipToColumnNum(wifstream &delimitedFile, WCHAR &character, const WCHAR delimiter, const int numColumn);
+	bool bSkipToColumnNum(wifstream &delimitedFile, wchar_t &character, const wchar_t delimiter, const int numColumn) const;
 	//Precondition: 
 	//Postcondition: 
 
-	int parseTextFile(const wstring searchTerm, wifstream &searchFile, WCHAR searchRes[][MAX_PATH], const int maxRes,
-		const WCHAR ignoreChars[] = L"", const int numIgnoreChars = 0, const WCHAR retChar = L'\0');
+	int parseTextFile(const wstring searchTerm, wifstream &searchFile, wchar_t searchRes[][_MAX_PATH], const int maxRes,
+		const wchar_t ignoreChars[] = L"", const int numIgnoreChars = 0, const wchar_t retChar = L'\0') const;
 	//Precondition: searchTerm should not contain any whitespace characters.
 		//The file input stream searchFile has been successfully connected to a file.
 		//The two-dimensional array searchRes is modifiable.
