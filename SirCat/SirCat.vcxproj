@@ -180,6 +180,7 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClInclude Include="csgo\FindCsgo.h" />
     <ClInclude Include="csgo\SirData.h" />
     <ClInclude Include="TextFileOps\TextFileOps.h" />
+    <ClInclude Include="TextFileOps\vdf_parser.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml" />

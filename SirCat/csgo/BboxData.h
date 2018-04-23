@@ -33,11 +33,12 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	bool bReadModelFiles();
+	bool bReadModelFiles(const bool bCleanLegacyDir = false);
 	//Precondition: 
 	//Postcondition: 
 private:
-	struct WinInfo; //lParam in EnumWindowsProc points to a WinInfo struct
+	struct WinInfo;
+	struct ChildInfo;
 
 	bool bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
 		PROCESS_INFORMATION *pPi = nullptr, bool bWaitForExit = true) const;
@@ -50,5 +51,9 @@ private:
 
 	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 	//Precondition: 
-	//Postcondition: 
+	//Postcondition:
+
+	bool sendCheckMessage(HWND hWnd, const UINT Msg, LPARAM lParam, WCHAR *lpBuffer, const bool bRecheck = false) const;
+	//Precondition: 
+	//Postcondition:
 };

@@ -76,6 +76,9 @@
     <ClInclude Include="TextFileOps\TextFileOps.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TextFileOps\vdf_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml">

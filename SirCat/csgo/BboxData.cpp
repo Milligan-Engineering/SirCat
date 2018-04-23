@@ -27,6 +27,12 @@ struct BboxData::WinInfo
 	DWORD dwThreadId;
 };
 
+struct BboxData::ChildInfo
+{
+	HWND childHwnd;
+	int swExpression;
+};
+
 bool BboxData::bUnpackModels(const wstring csgoDir) const
 {
 	//******Check for existence of .\HLExtract\HLExtract.exe and .\HLExtract\HLLib.dll******
@@ -72,19 +78,19 @@ bool BboxData::bDecompileModels() const
 
 			winInfo.dwProcessId = pi.dwProcessId;
 			winInfo.hwnd = 0;
-			BlockInput(TRUE);
+			BlockInput(TRUE); //No user input so info about GUI elements with focus will be consistent 
 
-			while (GetForegroundWindow() != winInfo.hwnd)
-				EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo));
+			while (GetForegroundWindow() != winInfo.hwnd) //Loop until Crowbar's main window is 
+				EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo)); //Look for visible owner window using PID+TID
 
 			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, TRUE);
 			gui.cbSize = sizeof(GUITHREADINFO);
 
-			do
+			do //Loop allows time for child windows to load and retrieves hwnd of the edit control of interest
 			{
-				GetGUIThreadInfo(winInfo.dwThreadId, &gui);
+				GetGUIThreadInfo(winInfo.dwThreadId, &gui); //Gets the hwnd of the edit control with focus when Crowbar loads
 				GetClassNameW(gui.hwndFocus, lpClassName, MAX_PATH);
-			} while (wcsstr(lpClassName, L"WindowsForms10.EDIT") == nullptr);
+			} while (wcsstr(lpClassName, L"WindowsForms10.EDIT") == nullptr); //Exit loop when edit control has gained focus
 
 			nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
 
@@ -96,14 +102,23 @@ bool BboxData::bDecompileModels() const
 				{
 					wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\");
 
-					if (SendMessageW(gui.hwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)) == TRUE)
+					//Set Crowbar's input and output directories for decompiling to the directory with the unpacked model files
+					if (sendCheckMessage(gui.hwndFocus, WM_SETTEXT, reinterpret_cast<LPARAM>(lpBuffer), lpBuffer) == true)
 					{
-						HWND childHwnd = gui.hwndFocus;
-						EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childHwnd));
-						SetFocus(childHwnd);
+						ChildInfo childInfo;
 
-						if (SendMessageW(childHwnd, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)) == TRUE)
+						childInfo.childHwnd = gui.hwndFocus;
+						childInfo.swExpression = 1;
+						EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
+
+						if (sendCheckMessage(childInfo.childHwnd, WM_SETTEXT, reinterpret_cast<LPARAM>(lpBuffer), lpBuffer) == true)
+						{
+							childInfo.swExpression = 2;
+							EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
 							bSuccess = true;
+
+							sendCheckMessage(childInfo.childHwnd, BM_CLICK, NULL, lpBuffer); //Click 'Decompile'
+						}
 					}
 				}
 
@@ -122,7 +137,7 @@ bool BboxData::bDecompileModels() const
 	return bSuccess;
 }
 
-bool BboxData::bReadModelFiles()
+bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 {
 	bool bSuccess = false;
 	WCHAR *lpBuffer = nullptr;
@@ -174,7 +189,7 @@ bool BboxData::bReadModelFiles()
 				//break;
 			//}
 
-			if (wmemcmp(dotFileExt, L".qc", 3) == 0) //Check if file extension is qc
+			if (wmemcmp(dotFileExt, L".qc", 3) == 0 && !bCleanLegacyDir) //Check if file extension is qc
 			{
 				wstring searchTerm = L"$hbox";
 				WCHAR searchResult[1][MAX_PATH];
@@ -293,16 +308,61 @@ BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;	
-	HWND &childHwnd = *reinterpret_cast<HWND *>(lParam);
+	ChildInfo &childInfo = *reinterpret_cast<ChildInfo *>(lParam);
 	WCHAR buffer[MAX_PATH];
 
 	GetClassNameW(hwnd, buffer, MAX_PATH);
 
-	if (wcsstr(buffer, L"WindowsForms10.EDIT") != nullptr && childHwnd != hwnd)
+	switch (childInfo.swExpression)
 	{
-		bContinueEnum = FALSE;
-		childHwnd = hwnd; //Found the other WindowsForms10.EDIT control, so send its hwnd back with LPARAM and stop enumerating
+	case 1:
+		if (wcsstr(buffer, L"WindowsForms10.EDIT") != nullptr && childInfo.childHwnd != hwnd)
+		{
+			bContinueEnum = FALSE;
+			childInfo.childHwnd = hwnd; //Found the other WindowsForms10.EDIT control, so send its hwnd back with LPARAM and stop enumerating
+		}
+
+		break;
+	case 2:
+		if (wcsstr(buffer, L"WindowsForms10.BUTTON") != nullptr)
+		{
+			GetWindowTextW(hwnd, buffer, 10);
+
+			if (wcscmp(buffer, L"Decompile") == 0)
+			{
+				bContinueEnum = FALSE;
+				childInfo.childHwnd = hwnd;
+			}
+		}
+		
+		break;
+	default:
+		break;
 	}
 
 	return bContinueEnum;
+}
+
+bool BboxData::sendCheckMessage(HWND hWnd, const UINT Msg, LPARAM lParam, WCHAR *lpBuffer, const bool bRecheck) const
+{
+	bool bSuccess = false;
+
+	//SetActiveWindow(hWnd);
+	SetFocus(hWnd);
+
+	if (SendMessageW(hWnd, Msg, NULL, lParam) == TRUE);
+	{
+		WCHAR buffer[MAX_PATH];
+
+		GetWindowTextW(hWnd, buffer, MAX_PATH);
+		wcout << buffer << endl;
+
+		if (wcscmp(buffer, lpBuffer) == 0)
+			bSuccess = true;
+		//else if (!bRecheck)
+			//bSuccess = sendCheckMessage(hWnd, Msg, lParam, lpBuffer, true);
+		bSuccess = true;
+	}
+
+	return bSuccess;
 }

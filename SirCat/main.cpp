@@ -77,6 +77,11 @@ void calcIdealFreq();
 int main()
 {
 	int menuOption = 1;
+	wchar_t startWchar;
+
+	wcout << endl << L"Hello and welcome to SirCat! Hit enter to begin... ";
+	bTakeOnlyOneWchar(startWchar);
+	wcout << endl;
 
 	do
 	{
@@ -211,7 +216,10 @@ bool bReadGameFiles(Data &newData, const wstring csgoDir)
 				wcout << endl << L"Reading decompiled hitbox files failed.\n";
 		}
 		else
+		{
+			newData.bbox.bReadModelFiles(true);
 			wcout << endl << L"Decompiling hitbox binaries failed.\n";
+		}
 	}
 	else
 		wcout << endl << L"Unpacking hitbox files from CS:GO VPK failed.\n";
@@ -246,8 +254,8 @@ void updatePrompt(Data &archiveData, Data &newData)
 		switch (menuOption = takeOnlyOneInt(L"12", 2))
 		{
 		case 1:
-			if (archiveData.bbox.bWriteArchiveFile(static_cast<wstring>(L"archiveBboxData.csv"))
-				&& archiveData.sir.bWriteArchiveFile(static_cast<wstring>(L"archiveSirData.csv")))
+			if (newData.bbox.bWriteArchiveFile(static_cast<wstring>(L"archiveBboxData.csv"))
+				&& newData.sir.bWriteArchiveFile(static_cast<wstring>(L"archiveSirData.csv")))
 				wcout << endl << endl << L"Archive files updated." << endl << endl;
 			else
 				wcout << endl << endl << L"Failed to update archive files." << endl << endl;
