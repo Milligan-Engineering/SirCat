@@ -21,12 +21,6 @@ SirData::SirData(const wstring csvName) : Archive(csvName)
 	setAltModes();
 }
 
-SirData::~SirData()
-{
-	delete[] altModes;
-	altModes = nullptr;
-}
-
 bool SirData::bReadWeapFile(const wstring csgoDir)
 {
 	//Constants relating to CS:GO game data in items_game.txt
@@ -125,11 +119,13 @@ SirData::AltMode *SirData::getAltModes() const
 
 void SirData::setAltModes()
 {
-	altModes = new AltMode[6];
-	altModes[0] = { L"weapon_aug", L"scoped" };
-	altModes[1] = { L"weapon_ssg556", L"scoped" };
-	altModes[2] = { L"weapon_g3sg1", L"scoped" };
-	altModes[3] = { L"weapon_scar20", L"scoped" };
-	altModes[4] = { L"weapon_m4a1_silencer", L"silencer-off" };
-	altModes[5] = { L"weapon_usp_silencer", L"silencer-off" };
+	AltMode setAltModes[6];
+	setAltModes[0] = { L"weapon_aug", L"scoped" };
+	setAltModes[1] = { L"weapon_ssg556", L"scoped" };
+	setAltModes[2] = { L"weapon_g3sg1", L"scoped" };
+	setAltModes[3] = { L"weapon_scar20", L"scoped" };
+	setAltModes[4] = { L"weapon_m4a1_silencer", L"silencer-off" };
+	setAltModes[5] = { L"weapon_usp_silencer", L"silencer-off" };
+
+	altModes = setAltModes;
 }

@@ -22,14 +22,15 @@ struct Data
 	SirData sir;
 
 	Data() = default; //Call default constructors for Data's member objects when an instance of a Data struct is created
-	Data(wstring bboxCsvName, wstring sirCsvName) : bbox(bboxCsvName), sir(sirCsvName) {} //Call other constructors
+	Data(wstring bboxCsvName, wstring sirCsvName) : bbox(bboxCsvName), sir(sirCsvName) {} //Call constructors that use CSV data
+	Data(BboxData &otherBbox, SirData &otherSir) : bbox(otherBbox), sir(otherSir) {} //Call copy constructors
 };
 
 bool bReadGameFiles(Data &newData, const wstring csgoDir);
 //Precondition: 
 //Postcondition:
 
-void listNonMatches(Archive::NonMatch *nonMatches, int numNonMatches);
+void listNonMatches(const Archive *const archive);
 //Precondition: 
 //Postcondition:
 
@@ -101,63 +102,26 @@ int main()
 				if (findCsgo.bCheckCsgoInstall() //CSGO found in default Steam library
 					|| findCsgo.bSearchSteamLibs()) //CSGO found in alternate Steam library
 				{
-					Data newData;
-					Archive *pArchiveChild = &csvData.bbox;///////////////////////////////////////////////////////////////
-														   ///////////////////////////////////////////////////////////////
-					newData.bbox.temp(pArchiveChild, true, true, true, true, true);///////////////////////////////////////////////////////////////
-					pArchiveChild = &csvData.sir;///////////////////////////////////////////////////////////////
-					newData.sir.temp(pArchiveChild, true, true, true, true, true);///////////////////////////////////////////////////////////////
+					Data newData(csvData.bbox, csvData.sir);
+
 					wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
 					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
 
 					if (bReadGameFiles(newData, findCsgo.getTestDir()))
 					{
-						bool bUpdate = true;
-						Archive::NonMatch *nonMatchesBbox = nullptr;
-						Archive::NonMatch *nonMatchesSir = nullptr;
-						int numNonMatchesBbox = 0;
-						int numNonMatchesSir = 0;
-
 						bRevertToArchive = false;
 						wcout << L"... done.";
-						numNonMatchesBbox = csvData.bbox.compareArchives(&newData.bbox, false, &nonMatchesBbox);
-						numNonMatchesSir = csvData.sir.compareArchives(&newData.sir, false, &nonMatchesSir);
+						csvData.bbox.compareArchives(static_cast<Archive*>(&newData.bbox));
+						csvData.sir.compareArchives(static_cast<Archive*>(&newData.sir));
 
-						if (numNonMatchesBbox == 0 && numNonMatchesSir == 0)
-						{
+						if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
 							wcout << L" No discrepancies detected.\n\n";
-							bUpdate = false;
-						}
-
-						if (bUpdate)
+						else
 						{
 							wcout << endl;
-
-							if (numNonMatchesBbox > 0)
-							{
-								wcout << endl << L"Data non-match detected in " << csvData.bbox.getCsvName() << ":\n";
-								listNonMatches(nonMatchesBbox, numNonMatchesBbox);
-							}
-
-							if (numNonMatchesSir > 0)
-							{
-								wcout << endl << L"Data non-match detected in " << csvData.sir.getCsvName() << ":\n";
-								listNonMatches(nonMatchesSir, numNonMatchesSir);
-							}
-
+							listNonMatches(static_cast<Archive*>(&csvData.bbox));
+							listNonMatches(static_cast<Archive*>(&csvData.sir));
 							updatePrompt(csvData, newData);
-
-							if (nonMatchesBbox != nullptr)
-							{
-								delete[] nonMatchesBbox;
-								nonMatchesBbox = nullptr;
-							}
-
-							if (nonMatchesSir != nullptr)
-							{
-								delete[] nonMatchesSir;
-								nonMatchesSir = nullptr;
-							}
 						}
 					}
 				}
@@ -222,18 +186,24 @@ bool bReadGameFiles(Data &newData, const wstring csgoDir)
 	return bSuccess;
 }
 
-void listNonMatches(Archive::NonMatch *nonMatches, int numNonMatches)
+void listNonMatches(const Archive *const archive)
 {
-	for (int i = 0; i < numNonMatches; ++i)
+	if (archive->getNumNonMatches() > 0)
 	{
-		wcout << L"Nonmatching data for " << nonMatches[i].otherRowHeader << L" " << nonMatches[i].commonColumnHeader << endl;
+		wcout << endl << L"Data non-match detected in " << archive->getCsvName() << ":\n";
 
-		if (nonMatches[i].datum.empty())
-			wcout << L"** New data--not matched in archive file **\n";
-		else
-			wcout << L"Value from archive file: " << nonMatches[i].datum << endl;
+		for (int i = 0; i < archive->getNumNonMatches(); ++i)
+		{
+			wcout << L"Nonmatching data for " << archive->getNonMatches()[i].otherRowHeader << L" "
+				<< archive->getNonMatches()[i].commonColumnHeader << endl;
 
-		wcout << L"Value from CS:GO's game files: " << nonMatches[i].otherDatum << endl << endl;
+			if (archive->getNonMatches()[i].datum.empty())
+				wcout << L"** New data--not matched in archive file **\n";
+			else
+				wcout << L"Value from archive file: " << archive->getNonMatches()[i].datum << endl;
+
+			wcout << L"Value from CS:GO's game files: " << archive->getNonMatches()[i].otherDatum << endl << endl;
+		}
 	}
 }
 

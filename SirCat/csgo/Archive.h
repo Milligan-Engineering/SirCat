@@ -18,9 +18,7 @@ public:
 		wstring datum;
 	};
 
-	void temp(const Archive *const otherArchive, bool b1, bool b2, bool b3, bool b4, bool b5);///////////////////////////////////////////////
-	//////////////////////////////////////////////////////////////
-	int compareArchives(const Archive *const otherArchive, const bool bGetNonMatchSize, NonMatch **nonMatches = nullptr) const;
+	int compareArchives(const Archive *const otherArchive, const bool bGetNonMatchSize = false);
 	//Precondition: 
 	//Postcondition: 
 
@@ -29,6 +27,14 @@ public:
 	//Postcondition: 
 
 	wstring getCsvName() const;
+	//Precondition: 
+	//Postcondition: 
+
+	NonMatch *getNonMatches() const;
+	//Precondition: 
+	//Postcondition: 
+
+	int getNumNonMatches() const;
 	//Precondition: 
 	//Postcondition: 
 
@@ -44,9 +50,15 @@ protected:
 	//Precondition: 
 	//Postcondition: 
 
-	~Archive();
+	Archive(const Archive &otherArchive);
 	//Precondition: 
 	//Postcondition: 
+
+	~Archive();
+	//Precondition: 
+	//Postcondition:
+
+	Archive &operator= (const Archive &otherArchive) = delete; //Disallow copy of Archive objects using the = operator
 
 	wifstream &getInArchive() const;
 	//Precondition: 
@@ -74,5 +86,7 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
+	NonMatch *nonMatches;
+	int numNonMatches;
 	bool bSuccessUseCsv;
 };

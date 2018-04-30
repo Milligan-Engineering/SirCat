@@ -18,9 +18,7 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	~SirData();
-	//Precondition: 
-	//Postcondition: 
+	~SirData() = default;
 
 	bool bReadWeapFile(const wstring csgoDir);
 	//Precondition: 

@@ -13,7 +13,6 @@
 #include "BboxData.h"
 #include "..\TextFileOps\TextFileOps.h"
 #include <fstream>
-#include <iostream> ////////////////////////////////////////////////////
 #include <string>
 #include <wchar.h>
 #include <Windows.h>

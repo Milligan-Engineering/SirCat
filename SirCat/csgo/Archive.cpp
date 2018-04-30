@@ -5,46 +5,23 @@
 
 using namespace std;
 
-void Archive::temp(const Archive *const otherArchive, bool b1, bool b2, bool b3, bool b4, bool b5)///////////////////////////
-{///////////////////////////////////////////////
-	if (b1)///////////////////////////////////////////////
-		numRows = otherArchive->numRows;///////////////////////////////////////////////
-	if (b2)///////////////////////////////////////////////
-		numColumns = otherArchive->numColumns; ///////////////////////////////////////////////
-	if (b3) //////////////////////////////////////
-	{///////////////////////////////////////////////
-		rowHeaders = new wstring[numRows];///////////////////////////////////////////////
-		for (int i = 0; i < numRows; ++i)///////////////////////////////////////////////
-			rowHeaders[i] = otherArchive->rowHeaders[i];///////////////////////////////////////////////
-	}///////////////////////////////////////////////
-	if (b4) ///////////////////////////////////////////////
-	{///////////////////////////////////////////////
-		columnHeaders = new wstring[numColumns];////////////////////////////////////////////
-		for (int j = 0; j < numColumns; ++j)////////////////////////////////////////////
-			columnHeaders[j] = otherArchive->columnHeaders[j]; ///////////////////////////////////////////////
-	}///////////////////////////////////////////////
-	if (b5)////////////////////////////////////////////
-	{////////////////////////////////////////////
-		data = new wstring*[numRows];////////////////////////////////////////////
-		////////////////////////////////////////////
-		for (int i = 0; i < numRows; ++i)////////////////////////////////////////////
-			data[i] = new wstring[numColumns];////////////////////////////////////////////
-	}////////////////////////////////////////////
-}////////////////////////////////////////////
-
-int Archive::compareArchives(const Archive *const otherArchive, const bool bGetNonMatchSize, NonMatch **nonMatches) const
+int Archive::compareArchives(const Archive *const otherArchive, const bool bGetNonMatchSize)
 {
 	int ret = 0;
-	int retHold = 0;
 
 	if (!bGetNonMatchSize)
 	{
 		if ((ret = compareArchives(otherArchive, true)) > 0) //Single = is intentional
 		{
-			*nonMatches = new NonMatch[ret];
-			retHold = ret;
+			if (nonMatches != nullptr)
+			{
+				delete[] nonMatches;
+				nonMatches = nullptr;
+			}
+
+			nonMatches = new NonMatch[ret];
+			numNonMatches = ret;
 		}
-		//******handle deleting these arrays in the class somewhere******
 	}
 
 	for (int otherI = 0; otherI < otherArchive->numRows; ++otherI)
@@ -62,10 +39,10 @@ int Archive::compareArchives(const Archive *const otherArchive, const bool bGetN
 						else if (nonMatches != nullptr)
 						{
 							--ret;
-							(*nonMatches)[ret].otherRowHeader = otherArchive->rowHeaders[otherI];
-							(*nonMatches)[ret].commonColumnHeader = columnHeaders[j];
-							(*nonMatches)[ret].otherDatum = otherArchive->data[otherI][j];
-							(*nonMatches)[ret].datum = data[i][j];
+							nonMatches[ret].otherRowHeader = otherArchive->rowHeaders[otherI];
+							nonMatches[ret].commonColumnHeader = columnHeaders[j];
+							nonMatches[ret].otherDatum = otherArchive->data[otherI][j];
+							nonMatches[ret].datum = data[i][j];
 						}
 					}
 				}
@@ -81,18 +58,15 @@ int Archive::compareArchives(const Archive *const otherArchive, const bool bGetN
 					else if (nonMatches != nullptr)
 					{
 						--ret;
-						(*nonMatches)[ret].otherRowHeader = otherArchive->rowHeaders[otherI];
-						(*nonMatches)[ret].commonColumnHeader = columnHeaders[j];
-						(*nonMatches)[ret].otherDatum = otherArchive->data[otherI][j];
-						(*nonMatches)[ret].datum = wstring();
+						nonMatches[ret].otherRowHeader = otherArchive->rowHeaders[otherI];
+						nonMatches[ret].commonColumnHeader = columnHeaders[j];
+						nonMatches[ret].otherDatum = otherArchive->data[otherI][j];
+						nonMatches[ret].datum = wstring();
 					}
 				}
 			}
 		}
 	}
-
-	if (nonMatches != nullptr && retHold > 0)
-		ret = retHold;
 
 	return ret;
 }
@@ -130,6 +104,16 @@ wstring Archive::getCsvName() const
 	return csvName;
 }
 
+Archive::NonMatch *Archive::getNonMatches() const
+{
+	return nonMatches;
+}
+
+int Archive::getNumNonMatches() const
+{
+	return numNonMatches;
+}
+
 bool Archive::getBSuccessUseCsv() const
 {
 	return bSuccessUseCsv;
@@ -147,6 +131,8 @@ Archive::Archive()
 	textFileOps = new TextFileOps;
 	inArchive = new wifstream;
 	outArchive = new wofstream;
+	nonMatches = nullptr;
+	numNonMatches = 0;
 	bSuccessUseCsv = false;
 }
 
@@ -164,6 +150,25 @@ Archive::Archive(const wstring csvName) : Archive()
 	Archive::csvName = csvName;
 	bSuccessUseCsv = true; //Default to true because useCsv sets bSuccessUseCsv to false if there is an error
 	useCsv();
+}
+
+Archive::Archive(const Archive &otherArchive) : Archive()
+{
+	numColumns = otherArchive.numColumns;
+	columnHeaders = new wstring[numColumns];
+
+	for (int j = 0; j < numColumns; ++j)
+		columnHeaders[j] = otherArchive.columnHeaders[j];
+
+	numRows = otherArchive.numRows;
+	rowHeaders = new wstring[numRows];
+	data = new wstring*[numRows];
+
+	for (int i = 0; i < numRows; ++i)
+	{
+		rowHeaders[i] = otherArchive.rowHeaders[i];
+		data[i] = new wstring[numColumns];
+	}
 }
 
 Archive::~Archive()
@@ -195,6 +200,12 @@ Archive::~Archive()
 	inArchive = nullptr;
 	delete outArchive;
 	outArchive = nullptr;
+
+	if (nonMatches != nullptr)
+	{
+		delete[] nonMatches;
+		nonMatches = nullptr;
+	}
 }
 
 wifstream &Archive::getInArchive() const
