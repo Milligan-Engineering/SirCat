@@ -16,8 +16,11 @@
     <Filter Include="custom build step files">
       <UniqueIdentifier>{08e6e64f-1587-45d1-a0ea-d981e7454eb0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="custom build step files\models">
-      <UniqueIdentifier>{fc665878-c5c8-4ad4-b05f-5be9ca46692d}</UniqueIdentifier>
+    <Filter Include="custom build step files\HLExtract">
+      <UniqueIdentifier>{10fee783-77af-4c62-8780-c64c5823da6d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="custom build step files\Crowbar">
+      <UniqueIdentifier>{dad95088-ecb9-4ea3-bcda-48bca6bcb855}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -47,68 +50,14 @@
     <None Include="..\custom build step files\archiveBboxData.csv">
       <Filter>custom build step files</Filter>
     </None>
-    <None Include="..\custom build step files\models\ctm_fbi.qc">
-      <Filter>custom build step files\models</Filter>
+    <None Include="..\custom build step files\HLExtract\HLExtract.exe">
+      <Filter>custom build step files\HLExtract</Filter>
     </None>
-    <None Include="..\custom build step files\models\ctm_fbi_varianta.qc">
-      <Filter>custom build step files\models</Filter>
+    <None Include="..\custom build step files\HLExtract\HLLib.dll">
+      <Filter>custom build step files\HLExtract</Filter>
     </None>
-    <None Include="..\custom build step files\models\ctm_fbi_variantb.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_fbi_variantc.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_fbi_variantd.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_gign.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_gign_varianta.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_gign_variantb.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_gign_variantc.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_gign_variantd.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_gsg9.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_heavy.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_idf.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_sas.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_st6.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\ctm_swat.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\tm_anarchist.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\tm_phoenix.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\tm_pirate.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\tm_professional.qc">
-      <Filter>custom build step files\models</Filter>
-    </None>
-    <None Include="..\custom build step files\models\tm_separatist.qc">
-      <Filter>custom build step files\models</Filter>
+    <None Include="..\custom build step files\Crowbar\Crowbar.exe">
+      <Filter>custom build step files\Crowbar</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -127,5 +76,13 @@
     <ClInclude Include="TextFileOps\TextFileOps.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TextFileOps\vdf_parser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml">
+      <Filter>custom build step files\Crowbar</Filter>
+    </Xml>
   </ItemGroup>
 </Project>

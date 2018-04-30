@@ -4,10 +4,16 @@
 
 using namespace std;
 
+class TextFileOps;
+
 class FindCsgo
 {
 public:
-	static FindCsgo &inst();
+	FindCsgo();
+	//Precondition: 
+	//Postcondition: 
+
+	~FindCsgo();
 	//Precondition: 
 	//Postcondition: 
 
@@ -25,12 +31,18 @@ public:
 		//testDir is filled with one alt library path at a time and passed to the bCheckCsgoInstall function.
 		//Returns true and stops enumerating if bCheckCsgoInstall returns true for an alt library path, and false otherwise.
 
-	wstring getTestDir();
+	wstring getTestDir() const;
 	//Precondition: 
 	//Postcondition: 
 private:
-	FindCsgo() = default;
-	~FindCsgo() = default;
+	wchar_t *newDynamicArray() const;
+	//Precondition: 
+	//Postcondition: 
 
+	void deleteDynamicArray(wchar_t *&data) const;
+	//Precondition: 
+	//Postcondition: 
+
+	TextFileOps *textFileOps;
 	wstring testDir;
 };

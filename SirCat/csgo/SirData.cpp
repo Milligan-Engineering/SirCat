@@ -1,51 +1,24 @@
-#ifndef STRICT //Enforce strict definitions of Windows data types
-	#define STRICT
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN //Exclude rarely-used stuff from Windows headers
-	#define WIN32_LEAN_AND_MEAN
-#endif //WIN32_LEAN_AND_MEAN
-
 #include "SirData.h"
 #include "..\TextFileOps\TextFileOps.h"
 #include <fstream>
 #include <string>
-#include <Windows.h>
 
 using namespace std;
 
-bool SirData::bArchiveObjMade = false;
-wstring SirData::weapNames[] = { L"" };
-wstring SirData::weapAlts[] = { L"" };
-wstring SirData::attrNames[] = { L"" };
+struct SirData::AltMode
+{
+	const wchar_t *weaponName;
+	const wchar_t *altModeName;
+};
 
 SirData::SirData()
 {
-	numColumns = k_num_attr;
+	setAltModes();
 }
 
-bool SirData::bMakeSirObjArchive(const wstring csvName)
+SirData::SirData(const wstring csvName) : Archive(csvName)
 {
-	bool bSuccess = false;
-
-	if (!bArchiveObjMade) //Only one archive can be made because this gets set to true inside
-	{
-		//Parameters to pass for slicing out headers that are member arrays
-		wstring *headers[3] = { weapNames, weapAlts, attrNames };
-		const int sliceSize[3] = { k_num_weap, k_num_weap, k_num_attr };
-		const bool sliceIsRow[3] = { false, false, true };
-		const int numSlice[3] = { 1, k_num_attr + 2, 1 };
-
-		Archive::csvName = csvName;
-
-		if (bMakeObjArchive(3, headers, sliceSize, sliceIsRow, numSlice))
-		{
-			bArchiveObjMade = true;
-			bSuccess = true;
-		}
-	}
-
-	return bSuccess;
+	setAltModes();
 }
 
 bool SirData::bReadWeapFile(const wstring csgoDir)
@@ -58,21 +31,21 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	bool bSuccess = false;
 	wifstream weapFile;
 
-	weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
+	weapFile.open(csgoDir + wstring(L"\\csgo\\scripts\\items\\items_game.txt"));
 
 	if (!weapFile.fail())
 	{
-		for (int i = 0; i < k_num_weap; ++i) //Collect weapon data for each weapon
+		for (int i = 0; i < numRows; ++i) //Collect weapon data for each weapon
 		{
-			WCHAR searchResult[1][MAX_PATH];
-			wstring searchTerm = static_cast<wstring>(L"\"") + weapNames[i] + static_cast<wstring>(L"_prefab\"");
-			WCHAR unparsedData[k_num_unparsed_attr][MAX_PATH];
-			WCHAR parsedWeapData[k_num_unparsed_attr][k_data_len];
+			wchar_t searchResult[1][_MAX_PATH];
+			wstring searchTerm = wstring(L"\"") + rowHeaders[i] + wstring(L"_prefab\"");
+			wchar_t unparsedData[k_num_unparsed_attr][_MAX_PATH];
+			wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
 
-			TextFileOps::inst().parseTextFile(searchTerm, weapFile, searchResult, 1);
-			searchTerm = static_cast<wstring>(L"\"attributes\""); //Read until attributes are listed for each weapon
-			unparsedAttr = TextFileOps::inst().parseTextFile(searchTerm, weapFile, unparsedData, MAX_PATH, L"\t\"\0", 2, L'}');
+			textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1);
+			searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
+			unparsedAttr = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, _MAX_PATH, L"\t\"\0", 2, L'}');
 
 			for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
 			{
@@ -80,7 +53,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 
 				for (int k = 0; k < k_attr_len; ++k) //Enumerate characters for each returned unparsed attribute
 				{
-					if (iswdigit(static_cast<wint_t>(unparsedData[j][k]))) //Book's isdigit is throwing an exception for me
+					if (iswdigit(static_cast<wint_t>(unparsedData[j][k])))
 					{
 						int l;
 
@@ -107,27 +80,27 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 						break; //Stop enumerating characters for unparsed attribute if number digit was found
 				}
 
-				for (int m = 0; m < k_num_attr; ++m) //unparsedData now is parsed attribute names, so compare to stored ones
+				for (int m = 0; m < numColumns; ++m) //unparsedData now is parsed attribute names, so compare to stored ones
 				{
-					if (unparsedData[j] == attrNames[m])
-						sirData[i][m] = static_cast<wstring>(parsedWeapData[j]);
+					if (unparsedData[j] == columnHeaders[m])
+						data[i][m] = parsedWeapData[j];
 				}
 			}
 		}
 
 		weapFile.close(); //Close and reopen to start searching from the beginning
-		weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
+		weapFile.open(csgoDir + wstring(L"\\csgo\\scripts\\items\\items_game.txt"));
 
 		if (!weapFile.fail())
 		{
-			WCHAR defCycletime[1][MAX_PATH];
+			wchar_t defCycletime[1][_MAX_PATH];
 
-			TextFileOps::inst().parseTextFile(static_cast<wstring>(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
+			textFileOps->parseTextFile(wstring(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
 
-			for (int i = 0; i < k_num_weap; ++i)
+			for (int i = 0; i < numRows; ++i)
 			{
-				if (sirData[i][0] == L"") //Weapons missing cycletime get the default value
-					sirData[i][0] = static_cast<wstring>(defCycletime[0]);
+				if (data[i][0] == L"") //Weapons missing cycletime get the default value
+					data[i][0] = defCycletime[0];
 			}
 
 			bSuccess = true;
@@ -139,54 +112,20 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	return bSuccess;
 }
 
-bool SirData::bCheckArchive(SirData &newSir, wstring &badRowName, wstring &badColName, wstring &badNewVal,
-	wstring &badArchiveVal)
+SirData::AltMode *SirData::getAltModes() const
 {
-	bool bUpdate = false;
-	int j;
-
-	for (int i = 0; i < k_num_weap; ++i)
-	{
-		if (bUpdate = bCheckArchiveRow(newSir.sirData[i], sirData[i], j)) //Single = is intentional
-		{
-			badRowName = weapNames[i];
-			badColName = attrNames[j];
-			badNewVal = newSir.sirData[i][j];
-			badArchiveVal = sirData[i][j];
-			break; //Terminate the loop after first mismatch
-		}
-	}
-
-	return bUpdate;
+	return altModes;
 }
 
-void SirData::readArchive()
+void SirData::setAltModes()
 {
-	for (int i = 0; i < k_num_weap; ++i)
-		readArchiveRow(sirData[i], i + 2);
-}
+	AltMode setAltModes[6];
+	setAltModes[0] = { L"weapon_aug", L"scoped" };
+	setAltModes[1] = { L"weapon_ssg556", L"scoped" };
+	setAltModes[2] = { L"weapon_g3sg1", L"scoped" };
+	setAltModes[3] = { L"weapon_scar20", L"scoped" };
+	setAltModes[4] = { L"weapon_m4a1_silencer", L"silencer-off" };
+	setAltModes[5] = { L"weapon_usp_silencer", L"silencer-off" };
 
-bool SirData::bWriteArchiveFile(SirData &newSir)
-{
-	bool bSuccess = false;
-
-	getOutArchive().open(csvName);
-
-	if (!getOutArchive().fail())
-	{
-		writeArchiveFileRow(attrNames);
-		getOutArchive() << L",use alt mode" << endl;
-
-		for (int i = 0; i < k_num_weap; ++i)
-		{
-			getOutArchive() << weapNames[i];
-			writeArchiveFileRow(newSir.sirData[i]);
-			getOutArchive() << L',' << weapAlts[i] << endl;
-		}
-
-		bSuccess = true;
-		getOutArchive().close();
-	}
-
-	return bSuccess;
+	altModes = setAltModes;
 }

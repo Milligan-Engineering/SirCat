@@ -1,52 +1,55 @@
 #pragma once
 
+#ifndef STRICT
+	#define STRICT 1
+#endif //STRICT
+
+#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN 1
+#endif //WIN32_LEAN_AND_MEAN
+
 #include "Archive.h"
 #include <string>
+#include <Windows.h>
 
 using namespace std;
 
 class BboxData : public Archive
 {
-private:
-	static const int k_num_model = 21; //Number of relevant player hitbox models
-	static const int k_num_attr = 7; //Number of relevant hitbox attributes
 public:
-	BboxData();
+	BboxData() = default;
+
+	BboxData(const wstring csvName) : Archive(csvName) {};
 	//Precondition: 
 	//Postcondition: 
 
 	~BboxData() = default;
 
-	bool bMakeBboxObjArchive(const wstring csvName);
+	bool bUnpackModels(const wstring csgoDir) const;
 	//Precondition: 
 	//Postcondition: 
 
-	bool bReadModelFiles();
+	bool bDecompileModels() const;
 	//Precondition: 
 	//Postcondition: 
 
-	bool bUnpackModels();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bDecompileModels();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bCheckArchive(BboxData &newBbox, wstring &badRowName, wstring &badColName, wstring &badNewVal, wstring &badArchiveVal);
-	//Precondition: 
-	//Postcondition: 
-
-	void readArchive();
-	//Precondition: 
-	//Postcondition: 
-
-	bool bWriteArchiveFile(BboxData &newBbox);
+	bool bReadModelFiles(const bool bCleanLegacyDir = false);
 	//Precondition: 
 	//Postcondition: 
 private:
-	static bool bArchiveObjMade;
-	static wstring modelNames[k_num_model];
-	static wstring attrNames[k_num_attr];
-	wstring bboxData[k_num_model][k_num_attr];
+	struct WinInfo;
+	struct ChildInfo;
+
+	bool bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
+		PROCESS_INFORMATION *pPi = nullptr, bool bWaitForExit = true) const;
+	//Precondition: 
+	//Postcondition: 
+
+	static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
+	//Precondition: 
+	//Postcondition: 
+
+	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
+	//Precondition: 
+	//Postcondition: 
 };
