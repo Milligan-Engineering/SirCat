@@ -45,8 +45,6 @@ bool BboxData::bUnpackModels(const wstring csgoDir) const
 	wmemcpy_s(commandLine, 32910, L"HLExtract.exe -p \"", 19);
 	wcscat_s(commandLine, 32910, csgoDir.c_str());
 	wcscat_s(commandLine, 32910, L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
-	//WCHAR *commandLine = static_cast<wstring>(L"HLExtract.exe -p \"") + csgoDir
-		//+ static_cast<wstring>(L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
 
 	if (bCreateProcess(applicationName, commandLine))
 		bSuccess = true;
@@ -80,7 +78,7 @@ bool BboxData::bDecompileModels() const
 			winInfo.hwnd = 0;
 			BlockInput(TRUE); //No user input so info about GUI elements with focus will be consistent 
 
-			while (GetForegroundWindow() != winInfo.hwnd) //Loop until Crowbar's main window is 
+			while (GetForegroundWindow() != winInfo.hwnd) //Loop until Crowbar's main window is created
 				EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo)); //Look for visible owner window using PID+TID
 
 			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, TRUE);
@@ -100,26 +98,32 @@ bool BboxData::bDecompileModels() const
 
 				if (GetFullPathNameW(L".", nBufferLength, lpBuffer, NULL) == nBufferLength - 1)
 				{
+					ChildInfo childInfo;
+					RECT conRect;
+					RECT crowbarRect;
+
+					GetWindowRect(GetConsoleWindow(), &conRect);
+					GetWindowRect(winInfo.hwnd, &crowbarRect);
+					MoveWindow(winInfo.hwnd, static_cast<int>(conRect.right), static_cast<int>(conRect.top),
+						static_cast<int>(crowbarRect.right - crowbarRect.left),
+						static_cast<int>(crowbarRect.bottom - crowbarRect.top), TRUE);
 					wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\");
+					SetFocus(gui.hwndFocus);
+					SendMessageW(gui.hwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer));
+					childInfo.childHwnd = gui.hwndFocus;
+					childInfo.swExpression = 1;
+					EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
+					SetFocus(childInfo.childHwnd);
+					SendMessageW(childInfo.childHwnd, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer));
+					childInfo.swExpression = 2;
+					EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
+					SendMessageW(childInfo.childHwnd, BM_CLICK, NULL, NULL);
 
-					//Set Crowbar's input and output directories for decompiling to the directory with the unpacked model files
-					if (sendCheckMessage(gui.hwndFocus, WM_SETTEXT, reinterpret_cast<LPARAM>(lpBuffer), lpBuffer) == true)
-					{
-						ChildInfo childInfo;
+					while (IsWindowEnabled(childInfo.childHwnd) != FALSE); //Wait for decompile to begin
 
-						childInfo.childHwnd = gui.hwndFocus;
-						childInfo.swExpression = 1;
-						EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
+					while (IsWindowEnabled(childInfo.childHwnd) == FALSE); //Wait for decompile to end
 
-						if (sendCheckMessage(childInfo.childHwnd, WM_SETTEXT, reinterpret_cast<LPARAM>(lpBuffer), lpBuffer) == true)
-						{
-							childInfo.swExpression = 2;
-							EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
-							bSuccess = true;
-
-							sendCheckMessage(childInfo.childHwnd, BM_CLICK, NULL, lpBuffer); //Click 'Decompile'
-						}
-					}
+					bSuccess = true;
 				}
 
 				delete[] lpBuffer;
@@ -127,8 +131,9 @@ bool BboxData::bDecompileModels() const
 			}
 
 			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, FALSE);
-			BlockInput(FALSE); //Move after WaitForSingleObject after closing it is automated
+			SendMessageW(winInfo.hwnd, WM_CLOSE, NULL, NULL);
 			WaitForSingleObject(pi.hProcess, INFINITE);
+			BlockInput(FALSE);
 	}
 
 	CloseHandle(pi.hProcess);
@@ -179,7 +184,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 
 		do //Collect attributes for each model in bboxData
 		{
-			wstring absolutePath = static_cast<wstring>(lpFileName) + static_cast<wstring>(FindFileData.cFileName);
+			wstring absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
 			WCHAR *dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
 
 			//if (i < k_num_model - 1 && GetLastError() == ERROR_NO_MORE_FILES)
@@ -195,7 +200,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 				WCHAR searchResult[1][MAX_PATH];
 				wifstream modelFile;
 
-				modelFile.open(static_cast<wstring>(L".\\legacy\\") + static_cast<wstring>(FindFileData.cFileName));
+				modelFile.open(wstring(L".\\legacy\\") + wstring(FindFileData.cFileName));
 
 				if (modelFile.fail() || textFileOps->parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
 				{
@@ -243,7 +248,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 			wstring absolutePath;
 
 			FindNextFileW(hFind, &FindFileData);
-			absolutePath = static_cast<wstring>(lpFileName) + static_cast<wstring>(FindFileData.cFileName);
+			absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
 			DeleteFileW(absolutePath.c_str());
 		}
 
@@ -264,8 +269,6 @@ bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const c
 	PROCESS_INFORMATION *pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
-	//WCHAR *applicationName = &applicationNameWS[0];
-	//WCHAR *commandLine = &commandLineWS[0];
 	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 
@@ -326,7 +329,7 @@ BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 	case 2:
 		if (wcsstr(buffer, L"WindowsForms10.BUTTON") != nullptr)
 		{
-			GetWindowTextW(hwnd, buffer, 10);
+			GetWindowTextW(hwnd, buffer, 11);
 
 			if (wcscmp(buffer, L"Decompile") == 0)
 			{
@@ -341,28 +344,4 @@ BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 	}
 
 	return bContinueEnum;
-}
-
-bool BboxData::sendCheckMessage(HWND hWnd, const UINT Msg, LPARAM lParam, WCHAR *lpBuffer, const bool bRecheck) const
-{
-	bool bSuccess = false;
-
-	//SetActiveWindow(hWnd);
-	SetFocus(hWnd);
-
-	if (SendMessageW(hWnd, Msg, NULL, lParam) == TRUE);
-	{
-		WCHAR buffer[MAX_PATH];
-
-		GetWindowTextW(hWnd, buffer, MAX_PATH);
-		wcout << buffer << endl;
-
-		if (wcscmp(buffer, lpBuffer) == 0)
-			bSuccess = true;
-		//else if (!bRecheck)
-			//bSuccess = sendCheckMessage(hWnd, Msg, lParam, lpBuffer, true);
-		bSuccess = true;
-	}
-
-	return bSuccess;
 }

@@ -2,9 +2,9 @@
 //File Name: main.cpp
 //Author: Casey Williams
 //Email Address: cjwilliams@my.milligan.edu
-//Assignment: Project Milestone #10
+//Assignment: Final Project Presentation
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 22, 2018
+//Last Changed: April 30, 2018
 
 #include "csgo\BboxData.h"
 #include "csgo\SirData.h"
@@ -77,16 +77,11 @@ void calcIdealFreq();
 int main()
 {
 	int menuOption = 1;
-	wchar_t startWchar;
-
-	wcout << endl << L"Hello and welcome to SirCat! Hit enter to begin... ";
-	bTakeOnlyOneWchar(startWchar);
-	wcout << endl;
-
+	
 	do
 	{
 		bool bRevertToArchive = true;
-		Data csvData(static_cast<wstring>(L"archiveBboxData.csv"), static_cast<wstring>(L"archiveSirData.csv"));
+		Data csvData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
 
 		if (!csvData.bbox.getBSuccessUseCsv() || !csvData.sir.getBSuccessUseCsv())
 		{
@@ -254,8 +249,8 @@ void updatePrompt(Data &archiveData, Data &newData)
 		switch (menuOption = takeOnlyOneInt(L"12", 2))
 		{
 		case 1:
-			if (newData.bbox.bWriteArchiveFile(static_cast<wstring>(L"archiveBboxData.csv"))
-				&& newData.sir.bWriteArchiveFile(static_cast<wstring>(L"archiveSirData.csv")))
+			if (newData.bbox.bWriteArchiveFile(wstring(L"archiveBboxData.csv"))
+				&& newData.sir.bWriteArchiveFile(wstring(L"archiveSirData.csv")))
 				wcout << endl << endl << L"Archive files updated." << endl << endl;
 			else
 				wcout << endl << endl << L"Failed to update archive files." << endl << endl;

@@ -61,6 +61,11 @@
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
     </ClCompile>
     <CustomBuildStep>
+      <Command>echo off</Command>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
+      <Message>Performing Custom Build Step 2</Message>
+    </CustomBuildStep>
+    <PreBuildEvent>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
 copy /y /b "$(SolutionDir)custom build step files\archiveBboxData.csv" %archivea%
@@ -82,17 +87,10 @@ if exist %crowbar%\ rd %crowbar% /s /q
 md %crowbar%
 md %crowbar%\Data
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
-copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%
-</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
-    </CustomBuildStep>
-    <PreBuildEvent>
-      <Command>
-      </Command>
+copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>
-      </Message>
+      <Message>Performing Custom Build Step</Message>
     </PreBuildEvent>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -131,6 +129,13 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
       </StackReserveSize>
     </Link>
     <CustomBuildStep>
+      <Command>echo off</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
+      <Message>Performing Custom Build Step 2</Message>
+    </CustomBuildStep>
+    <PreBuildEvent>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
 copy /y /b "$(SolutionDir)custom build step files\archiveBboxData.csv" %archivea%
@@ -152,12 +157,11 @@ if exist %crowbar%\ rd %crowbar% /s /q
 md %crowbar%
 md %crowbar%\Data
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
-copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%
-</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
-    </CustomBuildStep>
+copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Performing Custom Build Step</Message>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="csgo\Archive.cpp" />
@@ -168,7 +172,16 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClCompile Include="TextFileOps\TextFileOps.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\custom build step files\archiveBboxData.csv" />
+    <None Include="..\custom build step files\archiveBboxData.csv">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </DeploymentContent>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </DeploymentContent>
+    </None>
     <None Include="..\custom build step files\archiveSirData.csv" />
     <None Include="..\custom build step files\Crowbar\Crowbar.exe" />
     <None Include="..\custom build step files\HLExtract\HLExtract.exe" />

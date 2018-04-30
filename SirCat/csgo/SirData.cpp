@@ -37,14 +37,14 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	bool bSuccess = false;
 	wifstream weapFile;
 
-	weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
+	weapFile.open(csgoDir + wstring(L"\\csgo\\scripts\\items\\items_game.txt"));
 
 	if (!weapFile.fail())
 	{
 		for (int i = 0; i < numRows; ++i) //Collect weapon data for each weapon
 		{
 			wchar_t searchResult[1][_MAX_PATH];
-			wstring searchTerm = static_cast<wstring>(L"\"") + rowHeaders[i] + static_cast<wstring>(L"_prefab\"");
+			wstring searchTerm = wstring(L"\"") + rowHeaders[i] + wstring(L"_prefab\"");
 			wchar_t unparsedData[k_num_unparsed_attr][_MAX_PATH];
 			wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
@@ -95,13 +95,13 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 		}
 
 		weapFile.close(); //Close and reopen to start searching from the beginning
-		weapFile.open(csgoDir + static_cast<wstring>(L"\\csgo\\scripts\\items\\items_game.txt"));
+		weapFile.open(csgoDir + wstring(L"\\csgo\\scripts\\items\\items_game.txt"));
 
 		if (!weapFile.fail())
 		{
 			wchar_t defCycletime[1][_MAX_PATH];
 
-			textFileOps->parseTextFile(static_cast<wstring>(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
+			textFileOps->parseTextFile(wstring(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
 
 			for (int i = 0; i < numRows; ++i)
 			{

@@ -49,7 +49,7 @@ int Archive::compareArchives(const Archive *const otherArchive, const bool bGetN
 
 	for (int otherI = 0; otherI < otherArchive->numRows; ++otherI)
 	{
-		for (int i = 1; i < numRows; ++i)
+		for (int i = 0; i < numRows; ++i)
 		{
 			if (otherArchive->rowHeaders[otherI] == rowHeaders[i])
 			{

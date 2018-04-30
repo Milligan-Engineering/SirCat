@@ -51,9 +51,5 @@ private:
 
 	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 	//Precondition: 
-	//Postcondition:
-
-	bool sendCheckMessage(HWND hWnd, const UINT Msg, LPARAM lParam, WCHAR *lpBuffer, const bool bRecheck = false) const;
-	//Precondition: 
-	//Postcondition:
+	//Postcondition: 
 };
