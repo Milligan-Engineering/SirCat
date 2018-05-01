@@ -29,7 +29,6 @@ FindCsgo::~FindCsgo()
 bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
 	HKEY hKey = NULL;
-	//DWORD type = REG_SZ;
 	WCHAR *data = nullptr;
 	DWORD cbData = sizeof(WCHAR) * 32767;
 	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);

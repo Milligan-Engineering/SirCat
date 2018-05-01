@@ -50,7 +50,7 @@ int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars);
 //Precondition: numValidChars is the size of validChars.
 //Postcondition: Get one and only one input character, convert it to int, and return the integer;
 
-int WcharDigitToInt(const wchar_t wcharDigit);
+int wcharDigitToInt(const wchar_t wcharDigit);
 //Precondition: 
 //Postcondition: 
 
@@ -59,6 +59,10 @@ int pickModelSide(const BboxData &bbox);
 //Postcondition: 
 
 int pickModel(const wstring modelPrefix, const BboxData &bbox);
+//Precondition: 
+//Postcondition: 
+
+wchar_t intDigitToWchar(const int intDigit);
 //Precondition: 
 //Postcondition: 
 
@@ -88,6 +92,7 @@ int main()
 		bool bRevertToArchive = true;
 		bool bUseCsvData = true;
 		Data csvData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
+		
 
 		if (!csvData.bbox.getBSuccessUseCsv() || !csvData.sir.getBSuccessUseCsv())
 		{
@@ -299,7 +304,7 @@ int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars)
 		{
 			if (character == validChars[i])
 			{
-				integer = WcharDigitToInt(character);
+				integer = wcharDigitToInt(character);
 				break;
 			}
 		}
@@ -308,7 +313,7 @@ int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars)
 	return integer;
 }
 
-int WcharDigitToInt(const wchar_t wcharDigit)
+int wcharDigitToInt(const wchar_t wcharDigit)
 {
 	return (static_cast<int>(wcharDigit) - static_cast<int>(L'0'));
 }
@@ -337,7 +342,7 @@ int pickModelSide(const BboxData &bbox)
 			wcout << endl << endl << L"That is not a valid menu option.";
 		}
 
-		if (modelIndex == 0)
+		if (modelIndex == -1)
 			menuOption = 0;
 	} while (menuOption == 0); //Loop until a valid menu option is input
 
@@ -348,46 +353,94 @@ int pickModel(const wstring modelPrefix, const BboxData &bbox)
 {
 	int modelIndex;
 	int numMenuModels;
-	int menuOption = 0;
+	int menuOption;
 
 	do
 	{
-		wstring menuModel = L" ";
+		wstring menuModels[9];
 		wstring validChars;
 
 		numMenuModels = 0;
+		menuModels[0] = L" ";
 		wcout << endl << endl;
 
 		for (int i = 0; i < bbox.getNumRows(); ++i)
 		{
-			if (bbox.getRowHeader(i).substr(0, menuModel.length()) != menuModel //Don't list model variants yet
-				&& bbox.getRowHeader(i).substr(0, 2) == modelPrefix)
+			if (bbox.getRowHeader(i).substr(0, menuModels[numMenuModels].length()) != menuModels[numMenuModels]
+				&& bbox.getRowHeader(i).substr(0, 2) == modelPrefix) //List only CT or T models
 			{
-				if (bbox.getRowHeader(i).find_first_of(L'_') != bbox.getRowHeader(i).find_last_of(L'_'))
-					menuModel = bbox.getRowHeader(i).substr(0, bbox.getRowHeader(i).find_last_of(L'_')); //Models with no base
+				if (bbox.getRowHeader(i).find_first_of(L'_') != bbox.getRowHeader(i).find_last_of(L'_')) //Models with no base
+					menuModels[++numMenuModels] = bbox.getRowHeader(i).substr(0, bbox.getRowHeader(i).find_last_of(L'_'));
 				else
-					menuModel = bbox.getRowHeader(i);
+					menuModels[++numMenuModels] = bbox.getRowHeader(i); //Base models
 
-				wcout << ++numMenuModels << L" - " << menuModel << endl; //Build model menu
-				validChars += static_cast<wchar_t>(numMenuModels + static_cast<int>(L'0'));
+				wcout << numMenuModels << L" - " << menuModels[numMenuModels] << endl; //Build model menu
+				validChars += intDigitToWchar(numMenuModels);
 			}
 		}
 
 		wcout << ++numMenuModels << L" - go back to team selection\n";
 		wcout << L"Now select a base model: ";
-		validChars += static_cast<wchar_t>(numMenuModels + static_cast<int>(L'0'));
+		validChars += intDigitToWchar(numMenuModels);
 		menuOption = takeOnlyOneInt(validChars.c_str(), numMenuModels);
 
 		if (menuOption == 0)
 			wcout << endl << endl << L"That is not a valid menu option.";
+		else if (menuOption == numMenuModels)
+			modelIndex = -1; //Will restart team selection in pickModelSide
 		else
-			modelIndex = menuOption;
+		{
+			int i;
+			int n;
+			int subMenuOption;
+
+			do
+			{
+				validChars.clear();
+				numMenuModels = 0;
+				wcout << endl << endl;
+
+				for (i = 0; i < bbox.getNumRows(); ++i)
+				{
+					if (bbox.getRowHeader(i).substr(0, menuModels[menuOption].length()) == menuModels[menuOption])
+					{
+						for (n = 0; n < bbox.getNumRows() - i; /*intentionally blank*/)
+						{
+							if (bbox.getRowHeader(i + n).substr(0, menuModels[menuOption].length()) == menuModels[menuOption])
+							{
+								wcout << ++n << L" - " << bbox.getRowHeader(i + n - 1) << endl; //Build variant model menu
+								validChars += intDigitToWchar(n);
+							}
+							else
+								break; //Exit loop when base model changes
+						}
+
+						break;
+					}
+				}
+
+				wcout << ++n << L" - go back to base model selection\n";
+				wcout << L"Now select a model variant: ";
+				validChars += intDigitToWchar(n);
+				subMenuOption = takeOnlyOneInt(validChars.c_str(), n);
+
+				if (subMenuOption == 0)
+					wcout << endl << endl << L"That is not a valid menu option.";
+			} while (subMenuOption == 0); //Loop until a valid menu option is input
+
+			if (subMenuOption == n)
+				menuOption = 0; //Restart base model selection
+			else
+				modelIndex = i + subMenuOption - 1;
+		}
 	} while (menuOption == 0); //Loop until a valid menu option is input
 
-	if (modelIndex == numMenuModels)
-		modelIndex = 0; //Will restart team selection in pickModelSide
-
 	return modelIndex;
+}
+
+wchar_t intDigitToWchar(const int intDigit)
+{
+	return static_cast<wchar_t>(intDigit + static_cast<int>(L'0'));
 }
 
 int pickWeapon()
