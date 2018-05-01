@@ -23,57 +23,61 @@ struct Data
 
 	Data() = default; //Call default constructors for Data's member objects when an instance of a Data struct is created
 	Data(wstring bboxCsvName, wstring sirCsvName) : bbox(bboxCsvName), sir(sirCsvName) {} //Call constructors that use CSV data
-	Data(BboxData &otherBbox, SirData &otherSir) : bbox(otherBbox), sir(otherSir) {} //Call copy constructors
+	Data(Data &otherData) : bbox(otherData.bbox), sir(otherData.sir) {} //Call copy constructors
 };
+
+void hitEnterToExit();
+//Precondition: 
+//Postcondition: 
+
+bool bTakeOnlyOneWchar(wchar_t &character);
+//Precondition: character is modifiable.
+//Postcondition: Sets character to first character input 
 
 bool bReadGameFiles(Data &newData, const wstring csgoDir);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
 void listNonMatches(const Archive *const archive);
 //Precondition: 
-//Postcondition:
+//Postcondition: 
 
-void updatePrompt(Data &archiveData, Data &newData);
+bool bUpdatePrompt(Data &newData);
+//Precondition: 
+//Postcondition: 
+
+int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars);
+//Precondition: numValidChars is the size of validChars.
+//Postcondition: Get one and only one input character, convert it to int, and return the integer;
+
+int WcharDigitToInt(const wchar_t wcharDigit);
+//Precondition: 
+//Postcondition: 
+
+int pickModelSide(const BboxData &bbox);
+//Precondition: 
+//Postcondition: 
+
+int pickModel(const wstring modelPrefix, const BboxData &bbox);
+//Precondition: 
+//Postcondition: 
+
+int pickWeapon();
+//Precondition: 
+//Postcondition: 
+
+bool bUserModifyData();
+//Precondition: 
+//Postcondition: 
+
+void calcIdealFreq();
 //Precondition: 
 //Postcondition: 
 
 bool bUserMenu(int &menuOption);
 //Precondition: menuOption is modifiable.
 //Postcondition: menuOption is updated according to user input in response to a program menu.
-	//Returns true if the program should continue or false if the program should exit.
-
-int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars);
-//Precondition: numValidChars is the size of validChars.
-//Postcondition: Get one and only one input character, convert it to int, and return the integer;
-
-bool bTakeOnlyOneWchar(wchar_t &character);
-//Precondition: character is modifiable.
-//Postcondition: Sets character to first character input 
-
-int WcharDigitToInt(const wchar_t wcharDigit);
-//Precondition: 
-//Postcondition: 
-
-void hitEnterToExit();
-//Precondition: 
-//Postcondition: 
-
-int pickModel();
-//Precondition: 
-//Postcondition:
-
-int pickWeapon();
-//Precondition: 
-//Postcondition:
-
-bool bUserModifyData();
-//Precondition: 
-//Postcondition:
-
-void calcIdealFreq();
-//Precondition: 
-//Postcondition:
+//Returns true if the program should continue or false if the program should exit.
 
 int main()
 {
@@ -82,6 +86,7 @@ int main()
 	do
 	{
 		bool bRevertToArchive = true;
+		bool bUseCsvData = true;
 		Data csvData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
 
 		if (!csvData.bbox.getBSuccessUseCsv() || !csvData.sir.getBSuccessUseCsv())
@@ -94,6 +99,7 @@ int main()
 		{
 			FindCsgo findCsgo;
 			wstring steamDir;
+			Data newData(csvData);
 
 			if (findCsgo.bFetchSteamDir(steamDir))
 			{
@@ -102,8 +108,6 @@ int main()
 				if (findCsgo.bCheckCsgoInstall() //CSGO found in default Steam library
 					|| findCsgo.bSearchSteamLibs()) //CSGO found in alternate Steam library
 				{
-					Data newData(csvData.bbox, csvData.sir);
-
 					wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
 					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
 
@@ -111,17 +115,18 @@ int main()
 					{
 						bRevertToArchive = false;
 						wcout << L"... done.";
-						csvData.bbox.compareArchives(static_cast<Archive*>(&newData.bbox));
-						csvData.sir.compareArchives(static_cast<Archive*>(&newData.sir));
+						csvData.bbox.compareArchives(static_cast<Archive *>(&newData.bbox));
+						csvData.sir.compareArchives(static_cast<Archive *>(&newData.sir));
 
 						if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
 							wcout << L" No discrepancies detected.\n\n";
 						else
 						{
 							wcout << endl;
-							listNonMatches(static_cast<Archive*>(&csvData.bbox));
-							listNonMatches(static_cast<Archive*>(&csvData.sir));
-							updatePrompt(csvData, newData);
+							listNonMatches(static_cast<Archive *>(&csvData.bbox));
+							listNonMatches(static_cast<Archive *>(&csvData.sir));
+							if (bUpdatePrompt(newData))
+								bUseCsvData = false;
 						}
 					}
 				}
@@ -134,8 +139,16 @@ int main()
 			if (bRevertToArchive)
 				wcout << L"Reading hitbox and weapon data from archive file.\n\n";
 
-			pickModel();
-			pickWeapon();
+			if (bUseCsvData)
+			{
+				pickModelSide(csvData.bbox);
+				pickWeapon();
+			}
+			else
+			{
+				pickModelSide(newData.bbox);
+				pickWeapon();
+			}
 		}
 
 		if (menuOption < 3)
@@ -146,6 +159,40 @@ int main()
 	} while (bUserMenu(menuOption));
 
 	return 0;
+}
+
+void hitEnterToExit()
+{
+	wchar_t exitWchar;
+
+	wcout << endl << L"Hit enter to exit: ";
+	bTakeOnlyOneWchar(exitWchar);
+	wcout << endl;
+	exit(1);
+}
+
+bool bTakeOnlyOneWchar(wchar_t &character)
+{
+	bool bValidInput = false;
+	bool bFirstChar = true;
+	wchar_t input;
+
+	do
+	{
+		wcin.get(input);
+
+		if (bFirstChar)
+		{
+			character = input;
+			bValidInput = true;
+			bFirstChar = false;
+		}
+		else if (input != L'\n')
+			bValidInput = false;
+
+	} while (input != L'\n');
+
+	return bValidInput;
 }
 
 bool bReadGameFiles(Data &newData, const wstring csgoDir)
@@ -207,8 +254,9 @@ void listNonMatches(const Archive *const archive)
 	}
 }
 
-void updatePrompt(Data &archiveData, Data &newData)
+bool bUpdatePrompt(Data &newData)
 {
+	bool bUpdated = false;
 	int menuOption = 0;
 
 	do
@@ -221,9 +269,12 @@ void updatePrompt(Data &archiveData, Data &newData)
 		case 1:
 			if (newData.bbox.bWriteArchiveFile(wstring(L"archiveBboxData.csv"))
 				&& newData.sir.bWriteArchiveFile(wstring(L"archiveSirData.csv")))
-				wcout << endl << endl << L"Archive files updated." << endl << endl;
+			{
+				wcout << endl << endl << L"Archive files updated.";
+				bUpdated = true;
+			}
 			else
-				wcout << endl << endl << L"Failed to update archive files." << endl << endl;
+				wcout << endl << endl << L"Failed to update archive files.";
 
 			break;
 		case 2:
@@ -233,37 +284,8 @@ void updatePrompt(Data &archiveData, Data &newData)
 			wcout << endl << endl << L"That is not a valid menu option.\n\n";
 		}
 	} while (menuOption == 0);
-}
 
-bool bUserMenu(int &menuOption)
-{
-	bool bContinue = true;
-	
-	do
-	{
-		wcout << L"1 - start over for a fresh calculation, starting from actual game data\n";
-		wcout << L"2 - modify hitbox and weapon data for another calculation\n";
-		wcout << L"3 - pick distance for another calculation with the same hitbox and weapon data\n";
-		wcout << L"4 - exit the program\n";
-		wcout << L"Please enter a choice from the preceding menu options: ";
-
-		switch (menuOption = takeOnlyOneInt(L"1234", 4))
-		{
-		case 1:
-		case 2:
-		case 3:
-			wcout << endl << endl;
-			break;
-		case 4:
-			wcout << endl;
-			bContinue = false;
-			break;
-		default:
-			wcout << endl << endl << L"That is not a valid menu option.\n";
-		}
-	} while (menuOption == 0); //Loop until a valid menu option is input
-
-	return bContinue;
+	return bUpdated;
 }
 
 int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars)
@@ -286,51 +308,84 @@ int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars)
 	return integer;
 }
 
-bool bTakeOnlyOneWchar(wchar_t &character)
-{
-	bool bValidInput = false;
-	bool bFirstChar = true;
-	wchar_t input;
-
-	do
-	{
-		wcin.get(input);
-
-		if (bFirstChar)
-		{
-			character = input;
-			bValidInput = true;
-			bFirstChar = false;
-		}
-		else if (input != L'\n')
-			bValidInput = false;
-
-	} while (input != L'\n');
-
-	return bValidInput;
-}
-
 int WcharDigitToInt(const wchar_t wcharDigit)
 {
 	return (static_cast<int>(wcharDigit) - static_cast<int>(L'0'));
 }
 
-void hitEnterToExit()
-{
-	wchar_t exitWchar;
-
-	wcout << endl << L"Hit enter to exit: ";
-	bTakeOnlyOneWchar(exitWchar);
-	wcout << endl;
-	exit(1);
-}
-
-int pickModel()
+int pickModelSide(const BboxData &bbox)
 {
 	int modelIndex;
+	int menuOption = 0;
 
-	//******Display a list of models and ask user to pick one******
-	modelIndex = 0; //Set to 0 until function body is coded
+	do
+	{
+		wcout << endl << endl;
+		wcout << L"1 - Counter-Terrorists\n";
+		wcout << L"2 - Terrorists\n";
+		wcout << L"To pick a player model for calculations, first select a team: ";
+
+		switch (menuOption = takeOnlyOneInt(L"12", 2))
+		{
+		case 1:
+			modelIndex = pickModel(wstring(L"ct"), bbox);
+			break;
+		case 2:
+			modelIndex = pickModel(wstring(L"tm"), bbox);
+			break;
+		default:
+			wcout << endl << endl << L"That is not a valid menu option.";
+		}
+
+		if (modelIndex == 0)
+			menuOption = 0;
+	} while (menuOption == 0); //Loop until a valid menu option is input
+
+	return modelIndex;
+}
+
+int pickModel(const wstring modelPrefix, const BboxData &bbox)
+{
+	int modelIndex;
+	int numMenuModels;
+	int menuOption = 0;
+
+	do
+	{
+		wstring menuModel = L" ";
+		wstring validChars;
+
+		numMenuModels = 0;
+		wcout << endl << endl;
+
+		for (int i = 0; i < bbox.getNumRows(); ++i)
+		{
+			if (bbox.getRowHeader(i).substr(0, menuModel.length()) != menuModel //Don't list model variants yet
+				&& bbox.getRowHeader(i).substr(0, 2) == modelPrefix)
+			{
+				if (bbox.getRowHeader(i).find_first_of(L'_') != bbox.getRowHeader(i).find_last_of(L'_'))
+					menuModel = bbox.getRowHeader(i).substr(0, bbox.getRowHeader(i).find_last_of(L'_')); //Models with no base
+				else
+					menuModel = bbox.getRowHeader(i);
+
+				wcout << ++numMenuModels << L" - " << menuModel << endl; //Build model menu
+				validChars += static_cast<wchar_t>(numMenuModels + static_cast<int>(L'0'));
+			}
+		}
+
+		wcout << ++numMenuModels << L" - go back to team selection\n";
+		wcout << L"Now select a base model: ";
+		validChars += static_cast<wchar_t>(numMenuModels + static_cast<int>(L'0'));
+		menuOption = takeOnlyOneInt(validChars.c_str(), numMenuModels);
+
+		if (menuOption == 0)
+			wcout << endl << endl << L"That is not a valid menu option.";
+		else
+			modelIndex = menuOption;
+	} while (menuOption == 0); //Loop until a valid menu option is input
+
+	if (modelIndex == numMenuModels)
+		modelIndex = 0; //Will restart team selection in pickModelSide
 
 	return modelIndex;
 }
@@ -357,4 +412,38 @@ bool bUserModifyData()
 void calcIdealFreq()
 {
 	//******Amazing maths go here******
+}
+
+bool bUserMenu(int &menuOption)
+{
+	bool bContinue = true;
+
+	do
+	{
+		wcout << endl << endl;
+		wcout << L"1 - start over for a fresh calculation, starting from actual game data\n";
+		wcout << L"2 - modify hitbox and weapon data for another calculation\n";
+		wcout << L"3 - pick distance for another calculation with the same hitbox and weapon data\n";
+		wcout << L"4 - exit the program\n";
+		wcout << L"Please enter a choice from the preceding menu options: ";
+
+		switch (menuOption = takeOnlyOneInt(L"1234", 4))
+		{
+		case 1:
+			wcout << endl << endl;
+			break;
+		case 2:
+			break;
+		case 3:
+			break;
+		case 4:
+			wcout << endl;
+			bContinue = false;
+			break;
+		default:
+			wcout << endl << endl << L"That is not a valid menu option.";
+		}
+	} while (menuOption == 0); //Loop until a valid menu option is input
+
+	return bContinue;
 }

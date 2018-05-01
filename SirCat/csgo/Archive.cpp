@@ -99,6 +99,31 @@ bool Archive::bWriteArchiveFile(const wstring csvName)
 	return bSuccess;
 }
 
+int Archive::getNumRows() const
+{
+	return numRows;
+}
+
+int Archive::getNumColumns() const
+{
+	return numColumns;
+}
+
+wstring Archive::getRowHeader(const int i) const
+{
+	return rowHeaders[i];
+}
+
+wstring Archive::getColumnHeader(const int j) const
+{
+	return columnHeaders[j];
+}
+
+wstring Archive::getDatum(const int i, const int j) const
+{
+	return data[i][j];
+}
+
 wstring Archive::getCsvName() const
 {
 	return csvName;

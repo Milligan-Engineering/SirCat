@@ -26,6 +26,26 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
+	int getNumRows() const;
+	//Precondition: 
+	//Postcondition: 
+
+	int getNumColumns() const;
+	//Precondition: 
+	//Postcondition: 
+
+	wstring getRowHeader(const int i) const;
+	//Precondition: 
+	//Postcondition: 
+
+	wstring getColumnHeader(const int j) const;
+	//Precondition: 
+	//Postcondition: 
+
+	wstring getDatum(const int i, const int j) const;
+	//Precondition: 
+	//Postcondition: 
+
 	wstring getCsvName() const;
 	//Precondition: 
 	//Postcondition: 
