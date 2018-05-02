@@ -8,13 +8,21 @@ using namespace std;
 class SirData : public Archive
 {
 public:
-	struct AltMode;
+	struct AltMode
+	{
+		const wchar_t *weaponName;
+		const wchar_t *altModeName;
+	}; //Need full definition to delcare AltMode array member
 
 	SirData();
 	//Precondition: 
-	//Postcondition:
+	//Postcondition: 
 
 	SirData(const wstring csvName);
+	//Precondition: 
+	//Postcondition: 
+
+	SirData(const SirData &otherSirData);
 	//Precondition: 
 	//Postcondition: 
 
@@ -24,7 +32,7 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	AltMode *getAltModes() const;
+	const AltMode *getAltModes() const;
 	//Precondition: 
 	//Postcondition: 
 private:
@@ -32,5 +40,5 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
-	AltMode *altModes;
+	AltMode altModes[6];
 };

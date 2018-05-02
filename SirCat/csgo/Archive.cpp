@@ -5,43 +5,31 @@
 
 using namespace std;
 
-int Archive::compareArchives(const Archive *const otherArchive, const bool bGetNonMatchSize)
+int Archive::compareArchives(const Archive &otherArchive, const bool bGetNonMatchSize)
 {
 	int ret = 0;
 
 	if (!bGetNonMatchSize)
-	{
-		if ((ret = compareArchives(otherArchive, true)) > 0) //Single = is intentional
-		{
-			if (nonMatches != nullptr)
-			{
-				delete[] nonMatches;
-				nonMatches = nullptr;
-			}
+		allocNonMatches(otherArchive, ret);
 
-			nonMatches = new NonMatch[ret];
-			numNonMatches = ret;
-		}
-	}
-
-	for (int otherI = 0; otherI < otherArchive->numRows; ++otherI)
+	for (int otherI = 0; otherI < otherArchive.numRows; ++otherI)
 	{
 		for (int i = 0; i < numRows; ++i)
 		{
-			if (otherArchive->rowHeaders[otherI] == rowHeaders[i])
+			if (otherArchive.rowHeaders[otherI] == rowHeaders[i])
 			{
 				for (int j = 0; j < numColumns; ++j)
 				{
-					if (otherArchive->data[otherI][j] != data[i][j])
+					if (otherArchive.data[otherI][j] != data[i][j])
 					{
 						if (bGetNonMatchSize)
 							++ret;
 						else if (nonMatches != nullptr)
 						{
 							--ret;
-							nonMatches[ret].otherRowHeader = otherArchive->rowHeaders[otherI];
+							nonMatches[ret].otherRowHeader = otherArchive.rowHeaders[otherI];
 							nonMatches[ret].commonColumnHeader = columnHeaders[j];
-							nonMatches[ret].otherDatum = otherArchive->data[otherI][j];
+							nonMatches[ret].otherDatum = otherArchive.data[otherI][j];
 							nonMatches[ret].datum = data[i][j];
 						}
 					}
@@ -58,9 +46,9 @@ int Archive::compareArchives(const Archive *const otherArchive, const bool bGetN
 					else if (nonMatches != nullptr)
 					{
 						--ret;
-						nonMatches[ret].otherRowHeader = otherArchive->rowHeaders[otherI];
+						nonMatches[ret].otherRowHeader = otherArchive.rowHeaders[otherI];
 						nonMatches[ret].commonColumnHeader = columnHeaders[j];
-						nonMatches[ret].otherDatum = otherArchive->data[otherI][j];
+						nonMatches[ret].otherDatum = otherArchive.data[otherI][j];
 						nonMatches[ret].datum = wstring();
 					}
 				}
@@ -78,7 +66,7 @@ bool Archive::bWriteArchiveFile(const wstring csvName)
 	if (!csvName.empty())
 		Archive::csvName = csvName;
 
-	getOutArchive().open(csvName);
+	getOutArchive().open(Archive::csvName);
 
 	if (!getOutArchive().fail())
 	{
@@ -147,10 +135,10 @@ bool Archive::getBSuccessUseCsv() const
 Archive::Archive()
 {
 	//Default values for when the default constructor is not called by the other delegating constructor
-	numRows = 0;
 	numColumns = 0;
-	rowHeaders = nullptr;
+	numRows = 0;
 	columnHeaders = nullptr;
+	rowHeaders = nullptr;
 	data = nullptr;
 	csvName = wstring();
 	textFileOps = new TextFileOps;
@@ -163,10 +151,10 @@ Archive::Archive()
 
 Archive::Archive(const wstring csvName) : Archive()
 {
-	numRows = textFileOps->fetchNumRows(getInArchive(), csvName) - 1;
 	numColumns = textFileOps->fetchNumColumns(getInArchive(), csvName) - 1;
-	rowHeaders = new wstring[numRows];
+	numRows = textFileOps->fetchNumRows(getInArchive(), csvName) - 1;
 	columnHeaders = new wstring[numColumns];
+	rowHeaders = new wstring[numRows];
 	data = new wstring*[numRows];
 
 	for (int i = 0; i < numRows; ++i)
@@ -177,7 +165,7 @@ Archive::Archive(const wstring csvName) : Archive()
 	useCsv();
 }
 
-Archive::Archive(const Archive &otherArchive) : Archive()
+Archive::Archive(const Archive &otherArchive, void *voidParam) : Archive()
 {
 	numColumns = otherArchive.numColumns;
 	columnHeaders = new wstring[numColumns];
@@ -198,16 +186,16 @@ Archive::Archive(const Archive &otherArchive) : Archive()
 
 Archive::~Archive()
 {
-	if (rowHeaders != nullptr)
-	{
-		delete[] rowHeaders;
-		rowHeaders = nullptr;
-	}
-
 	if (columnHeaders != nullptr)
 	{
 		delete[] columnHeaders;
 		columnHeaders = nullptr;
+	}
+
+	if (rowHeaders != nullptr)
+	{
+		delete[] rowHeaders;
+		rowHeaders = nullptr;
 	}
 
 	if (data != nullptr)
@@ -233,6 +221,47 @@ Archive::~Archive()
 	}
 }
 
+Archive &Archive::operator= (const Archive &otherArchive)
+{
+	if (this != &otherArchive) //Protect against invalid self-assignment
+	{
+		if (columnHeaders != nullptr)
+			delete[] columnHeaders;
+
+		numColumns = otherArchive.numColumns;
+		columnHeaders = new wstring[numColumns];
+
+		for (int j = 0; j < numColumns; ++j)
+			columnHeaders[j] = otherArchive.columnHeaders[j];
+
+		if (rowHeaders != nullptr)
+			delete[] rowHeaders;
+
+		if (data != nullptr)
+		{
+			for (int i = 0; i < numRows; ++i)
+				delete[] data[i];
+
+			delete[] data;
+		}
+
+		numRows = otherArchive.numRows;
+		rowHeaders = new wstring[numRows];
+		data = new wstring*[numRows];
+
+		for (int i = 0; i < numRows; ++i)
+		{
+			rowHeaders[i] = otherArchive.rowHeaders[i];
+			data[i] = new wstring[numColumns];
+
+			for (int j = 0; j < numColumns; ++j)
+				data[i][j] = otherArchive.data[i][j];
+		}
+	}
+
+	return *this;
+}
+
 wifstream &Archive::getInArchive() const
 {
 	return *inArchive;
@@ -241,6 +270,21 @@ wifstream &Archive::getInArchive() const
 wofstream &Archive::getOutArchive() const
 {
 	return *outArchive;
+}
+
+void Archive::allocNonMatches(const Archive &otherArchive, int &ret)
+{
+	if ((ret = compareArchives(otherArchive, true)) > 0) //Single = is intentional
+	{
+		if (nonMatches != nullptr)
+		{
+			delete[] nonMatches;
+			nonMatches = nullptr;
+		}
+
+		nonMatches = new NonMatch[ret];
+		numNonMatches = ret;
+	}
 }
 
 void Archive::useCsv()

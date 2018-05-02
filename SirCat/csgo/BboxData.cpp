@@ -22,8 +22,8 @@ using namespace std;
 struct BboxData::WinInfo
 {
 	DWORD dwProcessId;
-	HWND hwnd;
 	DWORD dwThreadId;
+	HWND hwnd;
 };
 
 struct BboxData::ChildInfo
@@ -34,9 +34,6 @@ struct BboxData::ChildInfo
 
 bool BboxData::bUnpackModels(const wstring csgoDir) const
 {
-	//******Check for existence of .\HLExtract\HLExtract.exe and .\HLExtract\HLLib.dll******
-	//******add comments******
-
 	bool bSuccess = false;
 	const WCHAR applicationName[] = L".\\HLExtract\\HLExtract.exe";
 	WCHAR *commandLine = new WCHAR[32910];
@@ -56,84 +53,13 @@ bool BboxData::bUnpackModels(const wstring csgoDir) const
 
 bool BboxData::bDecompileModels() const
 {
-	//******Check for existence of .\Crowbar\Crowbar.exe******
-	//******Write requisite entries for Crowbar Settings.xml******
-	//******Use child windows in Decompile tab to set options?******
-	//******add comments******
-
 	bool bSuccess = false;
 	const WCHAR applicationName[] = L".\\Crowbar\\Crowbar.exe";
-	WCHAR commandLine[] = L"Crowbar.exe";
 	PROCESS_INFORMATION pi;
+	WCHAR commandLine[] = L"Crowbar.exe";
 
 	if (bCreateProcess(applicationName, commandLine, &pi, false))
-	{
-			GUITHREADINFO gui;
-			WCHAR lpClassName[MAX_PATH];
-			DWORD nBufferLength;
-			WinInfo winInfo;
-
-			winInfo.dwProcessId = pi.dwProcessId;
-			winInfo.hwnd = 0;
-			BlockInput(TRUE); //No user input so info about GUI elements with focus will be consistent 
-
-			while (GetForegroundWindow() != winInfo.hwnd) //Loop until Crowbar's main window is created
-				EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo)); //Look for visible owner window using PID+TID
-
-			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, TRUE);
-			gui.cbSize = sizeof(GUITHREADINFO);
-
-			do //Loop allows time for child windows to load and retrieves hwnd of the edit control of interest
-			{
-				GetGUIThreadInfo(winInfo.dwThreadId, &gui); //Gets the hwnd of the edit control with focus when Crowbar loads
-				GetClassNameW(gui.hwndFocus, lpClassName, MAX_PATH);
-			} while (wcsstr(lpClassName, L"WindowsForms10.EDIT") == nullptr); //Exit loop when edit control has gained focus
-
-			nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
-
-			if (nBufferLength != 0)
-			{
-				WCHAR *lpBuffer = new WCHAR[nBufferLength + 8];
-
-				if (GetFullPathNameW(L".", nBufferLength, lpBuffer, NULL) == nBufferLength - 1)
-				{
-					ChildInfo childInfo;
-					RECT conRect;
-					RECT crowbarRect;
-
-					GetWindowRect(GetConsoleWindow(), &conRect);
-					GetWindowRect(winInfo.hwnd, &crowbarRect);
-					MoveWindow(winInfo.hwnd, static_cast<int>(conRect.right), static_cast<int>(conRect.top),
-						static_cast<int>(crowbarRect.right - crowbarRect.left),
-						static_cast<int>(crowbarRect.bottom - crowbarRect.top), TRUE);
-					wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\");
-					SetFocus(gui.hwndFocus);
-					SendMessageW(gui.hwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer));
-					childInfo.childHwnd = gui.hwndFocus;
-					childInfo.swExpression = 1;
-					EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
-					SetFocus(childInfo.childHwnd);
-					SendMessageW(childInfo.childHwnd, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer));
-					childInfo.swExpression = 2;
-					EnumChildWindows(GetParent(gui.hwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
-					SendMessageW(childInfo.childHwnd, BM_CLICK, NULL, NULL);
-
-					while (IsWindowEnabled(childInfo.childHwnd) != FALSE); //Wait for decompile to begin
-
-					while (IsWindowEnabled(childInfo.childHwnd) == FALSE); //Wait for decompile to end
-
-					bSuccess = true;
-				}
-
-				delete[] lpBuffer;
-				lpBuffer = nullptr;
-			}
-
-			AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, FALSE);
-			SendMessageW(winInfo.hwnd, WM_CLOSE, NULL, NULL);
-			WaitForSingleObject(pi.hProcess, INFINITE);
-			BlockInput(FALSE);
-	}
+		bSuccess = bWaitForCrowbarWindow(pi);
 
 	CloseHandle(pi.hProcess);
 	CloseHandle(pi.hThread);
@@ -141,12 +67,89 @@ bool BboxData::bDecompileModels() const
 	return bSuccess;
 }
 
+bool BboxData::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
+{
+	bool bSuccess = false;
+	GUITHREADINFO gui;
+	WCHAR lpClassName[MAX_PATH];
+	WinInfo winInfo;
+
+	winInfo.dwProcessId = pi.dwProcessId;
+	winInfo.hwnd = 0;
+	BlockInput(TRUE); //No user input so info about GUI elements with focus will be consistent 
+
+	while (GetForegroundWindow() != winInfo.hwnd) //Loop until Crowbar's main window is created
+		EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo)); //Look for visible owner window using PID+TID
+
+	AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, TRUE);
+	gui.cbSize = sizeof(GUITHREADINFO);
+
+	do //Loop allows time for child windows to load and retrieves hwnd of the edit control of interest
+	{
+		GetGUIThreadInfo(winInfo.dwThreadId, &gui); //Gets the hwnd of the edit control with focus when Crowbar loads
+		GetClassNameW(gui.hwndFocus, lpClassName, MAX_PATH);
+	} while (wcsstr(lpClassName, L"WindowsForms10.EDIT") == nullptr); //Exit loop when edit control has gained focus
+
+	bSuccess = bAutomateCrowbar(winInfo.hwnd, gui.hwndFocus);
+	AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, FALSE);
+	SendMessageW(winInfo.hwnd, WM_CLOSE, NULL, NULL); //Tell Crowbar to close
+	WaitForSingleObject(pi.hProcess, INFINITE);
+	BlockInput(FALSE);
+
+	return bSuccess;
+}
+
+bool BboxData::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocus) const
+{
+	bool bSuccess = false;
+	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
+
+	if (nBufferLength != 0)
+	{
+		WCHAR *lpBuffer = new WCHAR[nBufferLength + 8];
+
+		if (GetFullPathNameW(L".", nBufferLength, lpBuffer, NULL) == nBufferLength - 1) //Get program's current working directory
+		{
+			ChildInfo childInfo;
+			RECT conRect;
+			RECT croRect;
+
+			GetWindowRect(GetConsoleWindow(), &conRect);
+			GetWindowRect(winInfoHwnd, &croRect);
+			MoveWindow(winInfoHwnd, static_cast<int>(conRect.right), static_cast<int>(conRect.top), //Crowbar blocks the console
+				static_cast<int>(croRect.right - croRect.left),	static_cast<int>(croRect.bottom - croRect.top), TRUE);
+			wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\"); //Subdirectoy of current working directory w/ HLExtract output
+			SetFocus(guiHwndFocus);
+			SendMessageW(guiHwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)); //Set 'MDL input:' to subdirectory
+			childInfo.childHwnd = guiHwndFocus;
+			childInfo.swExpression = 1;
+			EnumChildWindows(GetParent(guiHwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo)); //Find 'Output to:'
+			SetFocus(childInfo.childHwnd);
+			SendMessageW(childInfo.childHwnd, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)); //Set it to subdirectory
+			childInfo.swExpression = 2;
+			EnumChildWindows(GetParent(guiHwndFocus), EnumChildProc, reinterpret_cast<LPARAM>(&childInfo));
+			SendMessageW(childInfo.childHwnd, BM_CLICK, NULL, NULL); //Click the 'Decompile' button
+
+			while (IsWindowEnabled(childInfo.childHwnd) != FALSE); //'Decompile' is disabled when Crowbar begins decompiling
+
+			while (IsWindowEnabled(childInfo.childHwnd) == FALSE); //Wait for 'Decompile' to be re-enabled when it's done
+
+			bSuccess = true;
+		}
+
+		delete[] lpBuffer;
+		lpBuffer = nullptr;
+	}
+
+	return bSuccess;
+}
+
 bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 {
 	bool bSuccess = false;
+	HANDLE hFind;
 	WCHAR *lpBuffer = nullptr;
 	WCHAR *lpFileName = nullptr;
-	HANDLE hFind;
 	WIN32_FIND_DATAW FindFileData;
 	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
 
@@ -183,8 +186,8 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 
 		do //Collect attributes for each model in bboxData
 		{
-			wstring absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
 			WCHAR *dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
+			wstring absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
 
 			//if (i < k_num_model - 1 && GetLastError() == ERROR_NO_MORE_FILES)
 			//{
@@ -195,8 +198,8 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 
 			if (wmemcmp(dotFileExt, L".qc", 3) == 0 && !bCleanLegacyDir) //Check if file extension is qc
 			{
-				wstring searchTerm = L"$hbox";
 				WCHAR searchResult[1][MAX_PATH];
+				wstring searchTerm = L"$hbox";
 				wifstream modelFile;
 
 				modelFile.open(wstring(L".\\legacy\\") + wstring(FindFileData.cFileName));
@@ -212,9 +215,9 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 				for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
 				{
 					int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
+					int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 };
 					int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 					wstring bboxDatumBuilder;
-					int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 };
 
 					do
 					{
@@ -268,12 +271,12 @@ bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const c
 	PROCESS_INFORMATION *pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
-	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
+	STARTUPINFOW si;
 
+	ZeroMemory(&pi, sizeof(pi));
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
-	ZeroMemory(&pi, sizeof(pi));
 	bSuccess = CreateProcessW(applicationName, commandLine, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi) != 0;
 
 	if (pPi != nullptr)
@@ -293,8 +296,8 @@ bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const c
 BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
-	WinInfo &winInfo = *reinterpret_cast<WinInfo *>(lParam);
 	DWORD dwProcessId = 0;
+	WinInfo &winInfo = *reinterpret_cast<WinInfo *>(lParam);
 
 	winInfo.dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
 

@@ -23,6 +23,10 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
+	BboxData(const BboxData &otherBboxData) : Archive(otherBboxData, nullptr) {};
+	//Precondition: 
+	//Postcondition: 
+
 	~BboxData() = default;
 
 	bool bUnpackModels(const wstring csgoDir) const;
@@ -30,6 +34,14 @@ public:
 	//Postcondition: 
 
 	bool bDecompileModels() const;
+	//Precondition: 
+	//Postcondition: 
+
+	bool bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const;
+	//Precondition: 
+	//Postcondition: 
+
+	bool bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocus) const;
 	//Precondition: 
 	//Postcondition: 
 

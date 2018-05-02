@@ -5,12 +5,6 @@
 
 using namespace std;
 
-struct SirData::AltMode
-{
-	const wchar_t *weaponName;
-	const wchar_t *altModeName;
-};
-
 SirData::SirData()
 {
 	setAltModes();
@@ -21,12 +15,16 @@ SirData::SirData(const wstring csvName) : Archive(csvName)
 	setAltModes();
 }
 
+SirData::SirData(const SirData &otherSirData) : Archive(otherSirData, nullptr)
+{
+	setAltModes();
+}
+
 bool SirData::bReadWeapFile(const wstring csgoDir)
 {
-	//Constants relating to CS:GO game data in items_game.txt
-	const int k_num_unparsed_attr = 70;
+	const int k_attr_len = 30; //Constants relating to CS:GO game data in items_game.txt
 	const int k_data_len = 10;
-	const int k_attr_len = 30;
+	const int k_num_unparsed_attr = 70;
 
 	bool bSuccess = false;
 	wifstream weapFile;
@@ -37,11 +35,11 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	{
 		for (int i = 0; i < numRows; ++i) //Collect weapon data for each weapon
 		{
-			wchar_t searchResult[1][_MAX_PATH];
-			wstring searchTerm = wstring(L"\"") + rowHeaders[i] + wstring(L"_prefab\"");
-			wchar_t unparsedData[k_num_unparsed_attr][_MAX_PATH];
-			wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
 			int unparsedAttr;
+			wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
+			wchar_t searchResult[1][_MAX_PATH];
+			wchar_t unparsedData[k_num_unparsed_attr][_MAX_PATH];
+			wstring searchTerm = wstring(L"\"") + rowHeaders[i] + wstring(L"_prefab\"");
 
 			textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1);
 			searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
@@ -112,20 +110,17 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	return bSuccess;
 }
 
-SirData::AltMode *SirData::getAltModes() const
+const SirData::AltMode *SirData::getAltModes() const
 {
 	return altModes;
 }
 
 void SirData::setAltModes()
 {
-	AltMode setAltModes[6];
-	setAltModes[0] = { L"weapon_aug", L"scoped" };
-	setAltModes[1] = { L"weapon_ssg556", L"scoped" };
-	setAltModes[2] = { L"weapon_g3sg1", L"scoped" };
-	setAltModes[3] = { L"weapon_scar20", L"scoped" };
-	setAltModes[4] = { L"weapon_m4a1_silencer", L"silencer-off" };
-	setAltModes[5] = { L"weapon_usp_silencer", L"silencer-off" };
-
-	altModes = setAltModes;
+	altModes[0] = { L"weapon_aug", L"scoped" };
+	altModes[1] = { L"weapon_ssg556", L"scoped" };
+	altModes[2] = { L"weapon_g3sg1", L"scoped" };
+	altModes[3] = { L"weapon_scar20", L"scoped" };
+	altModes[4] = { L"weapon_m4a1_silencer", L"silencer-off" };
+	altModes[5] = { L"weapon_usp_silencer", L"silencer-off" };
 }

@@ -23,7 +23,7 @@ struct Data
 
 	Data() = default; //Call default constructors for Data's member objects when an instance of a Data struct is created
 	Data(wstring bboxCsvName, wstring sirCsvName) : bbox(bboxCsvName), sir(sirCsvName) {} //Call constructors that use CSV data
-	Data(Data &otherData) : bbox(otherData.bbox), sir(otherData.sir) {} //Call copy constructors
+	Data(Data &otherData) : bbox(otherData.bbox), sir(otherData.sir) {} //Call psuedo-copy constructors
 };
 
 void hitEnterToExit();
@@ -34,7 +34,7 @@ bool bTakeOnlyOneWchar(wchar_t &character);
 //Precondition: character is modifiable.
 //Postcondition: Sets character to first character input
 
-bool bAttemptFindCsgo(bool &bUseCsvData, Data &csvData, Data &newData);
+bool bAttemptFindCsgo(Data &csvData, Data &newData);
 //Precondition: 
 //Postcondition: 
 
@@ -42,15 +42,15 @@ bool bReadGameFiles(const wstring csgoDir, Data &newData);
 //Precondition: 
 //Postcondition: 
 
-bool bCompAndUpdate(Data &csvData, Data &newData);
+void compAndUpdate(Data &csvData, Data &newData);
 //Precondition: 
 //Postcondition: 
 
-void listNonMatches(const Archive *const archive);
+void listNonMatches(const Archive &archive);
 //Precondition: 
 //Postcondition: 
 
-bool bUpdatePrompt(Data &newData);
+void updatePrompt(Data &csvData, const Data &newData);
 //Precondition: 
 //Postcondition: 
 
@@ -112,22 +112,12 @@ int main()
 		if (menuOption == 1)
 		{
 			Data newData(csvData);
-			bool bUseCsvData;
-			bool bRevertToArchive = bAttemptFindCsgo(bUseCsvData, csvData, newData);
 
-			if (bRevertToArchive)
+			if (!bAttemptFindCsgo(csvData, newData))
 				wcout << L"Using hitbox and weapon data from archive file.\n\n";
 
-			if (bUseCsvData)
-			{
-				pickModelSide(csvData.bbox);
-				pickWeapon();
-			}
-			else
-			{
-				pickModelSide(newData.bbox);
-				pickWeapon();
-			}
+			pickModelSide(csvData.bbox);
+			pickWeapon();
 		}
 
 		if (menuOption < 3)
@@ -174,9 +164,9 @@ bool bTakeOnlyOneWchar(wchar_t &character)
 	return bValidInput;
 }
 
-bool bAttemptFindCsgo(bool &bUseCsvData, Data &csvData, Data &newData)
+bool bAttemptFindCsgo(Data &csvData, Data &newData)
 {
-	bool bRevertToArchive = true;
+	bool bFoundCsgo = false;
 	FindCsgo findCsgo;
 	wstring steamDir;
 
@@ -192,8 +182,8 @@ bool bAttemptFindCsgo(bool &bUseCsvData, Data &csvData, Data &newData)
 
 			if (bReadGameFiles(findCsgo.getTestDir(), newData))
 			{
-				bRevertToArchive = false;
-				bUseCsvData = bCompAndUpdate(csvData, newData);
+				bFoundCsgo = true;
+				compAndUpdate(csvData, newData);
 			}
 		}
 		else
@@ -202,7 +192,7 @@ bool bAttemptFindCsgo(bool &bUseCsvData, Data &csvData, Data &newData)
 	else
 		wcout << L"Steam installation not found.\n";
 
-	return bRevertToArchive;
+	return bFoundCsgo;
 }
 
 bool bReadGameFiles(const wstring csgoDir, Data &newData)
@@ -243,53 +233,47 @@ bool bReadGameFiles(const wstring csgoDir, Data &newData)
 	return bSuccess;
 }
 
-bool bCompAndUpdate(Data &csvData, Data &newData)
+void compAndUpdate(Data &csvData, Data &newData)
 {
-	bool bUseCsvData = true;
-
 	wcout << L"... done.";
-	csvData.bbox.compareArchives(static_cast<Archive *>(&newData.bbox));
-	csvData.sir.compareArchives(static_cast<Archive *>(&newData.sir));
+	csvData.bbox.compareArchives(*static_cast<Archive *>(&newData.bbox));
+	csvData.sir.compareArchives(*static_cast<Archive *>(&newData.sir));
 
 	if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
 		wcout << L" No discrepancies detected.\n\n";
 	else
 	{
 		wcout << endl;
-		listNonMatches(static_cast<Archive *>(&csvData.bbox));
-		listNonMatches(static_cast<Archive *>(&csvData.sir));
+		listNonMatches(*static_cast<Archive *>(&csvData.bbox));
+		listNonMatches(*static_cast<Archive *>(&csvData.sir));
 
-		if (bUpdatePrompt(newData))
-			bUseCsvData = false;
+		updatePrompt(csvData, newData);
 	}
-
-	return bUseCsvData;
 }
 
-void listNonMatches(const Archive *const archive)
+void listNonMatches(const Archive &archive)
 {
-	if (archive->getNumNonMatches() > 0)
+	if (archive.getNumNonMatches() > 0)
 	{
-		wcout << endl << L"Data non-match detected in " << archive->getCsvName() << ":\n";
+		wcout << endl << L"Data non-match detected in " << archive.getCsvName() << ":\n";
 
-		for (int i = 0; i < archive->getNumNonMatches(); ++i)
+		for (int i = 0; i < archive.getNumNonMatches(); ++i)
 		{
-			wcout << L"Nonmatching data for " << archive->getNonMatches()[i].otherRowHeader << L" "
-				<< archive->getNonMatches()[i].commonColumnHeader << endl;
+			wcout << L"Nonmatching data for " << archive.getNonMatches()[i].otherRowHeader << L" "
+				<< archive.getNonMatches()[i].commonColumnHeader << endl;
 
-			if (archive->getNonMatches()[i].datum.empty())
+			if (archive.getNonMatches()[i].datum.empty())
 				wcout << L"** New data--not matched in archive file **\n";
 			else
-				wcout << L"Value from archive file: " << archive->getNonMatches()[i].datum << endl;
+				wcout << L"Value from archive file: " << archive.getNonMatches()[i].datum << endl;
 
-			wcout << L"Value from CS:GO's game files: " << archive->getNonMatches()[i].otherDatum << endl << endl;
+			wcout << L"Value from CS:GO's game files: " << archive.getNonMatches()[i].otherDatum << endl << endl;
 		}
 	}
 }
 
-bool bUpdatePrompt(Data &newData)
+void updatePrompt(Data &csvData, const Data &newData)
 {
-	bool bUpdated = false;
 	int menuOption = 0;
 
 	do
@@ -300,12 +284,11 @@ bool bUpdatePrompt(Data &newData)
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			if (newData.bbox.bWriteArchiveFile(wstring(L"archiveBboxData.csv"))
-				&& newData.sir.bWriteArchiveFile(wstring(L"archiveSirData.csv")))
-			{
+			csvData.bbox = newData.bbox;
+			csvData.sir = newData.sir;
+
+			if (csvData.bbox.bWriteArchiveFile() && csvData.sir.bWriteArchiveFile())
 				wcout << endl << endl << L"Archive files updated.";
-				bUpdated = true;
-			}
 			else
 				wcout << endl << endl << L"Failed to update archive files.";
 
@@ -317,8 +300,6 @@ bool bUpdatePrompt(Data &newData)
 			wcout << endl << endl << L"That is not a valid menu option.\n\n";
 		}
 	} while (menuOption == 0);
-
-	return bUpdated;
 }
 
 int takeOnlyOneInt(const int numValidChars, const wchar_t validChars[])
@@ -348,7 +329,7 @@ int wcharDigitToInt(const wchar_t wcharDigit)
 
 int pickModelSide(const BboxData &bbox)
 {
-	int modelIndex;
+	int modelIndex = -1;
 	int menuOption = 0;
 
 	do

@@ -15,17 +15,6 @@
 
 using namespace std;
 
-FindCsgo::FindCsgo()
-{
-	textFileOps = new TextFileOps;
-}
-
-FindCsgo::~FindCsgo()
-{
-	delete textFileOps;
-	textFileOps = nullptr;
-}
-
 bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
 	HKEY hKey = NULL;
@@ -80,7 +69,7 @@ bool FindCsgo::bCheckCsgoInstall()
 		WCHAR searchResult[1][MAX_PATH];
 
 		//Verify CS:GO installation directory listed in manifest file contents
-		if (textFileOps->parseTextFile(wstring(L"\"installdir\""), manifest, searchResult, 1, L"\t\"\0", 2) != 0)
+		if (textFileOps.parseTextFile(wstring(L"\"installdir\""), manifest, searchResult, 1, L"\t\"\0", 2) != 0)
 		{
 			DWORD nBufferLength;
 
@@ -124,7 +113,7 @@ bool FindCsgo::bSearchSteamLibs()
 	bool bFoundCsgoInstall = false;
 	wifstream libFile;
 
-	libFile.open(testDir + wstring(L"\\libraryfolders.vdf"));
+	libFile.open(testDir + wstring(L"\\libraryfolders.vdf")); //File contains other user defined Steam libraries if they exist
 
 	if (!libFile.fail())
 	{
@@ -133,7 +122,7 @@ bool FindCsgo::bSearchSteamLibs()
 			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
 			WCHAR searchResult[1][MAX_PATH];
 
-			if (textFileOps->parseTextFile(wstring(searchTerm), libFile, searchResult, 1, L"\t\"\0", 2) != 0)
+			if (textFileOps.parseTextFile(wstring(searchTerm), libFile, searchResult, 1, L"\t\"\0", 2) != 0)
 			{
 				testDir = wstring(searchResult[0]) + wstring(L"\\steamapps");
 
@@ -143,7 +132,7 @@ bool FindCsgo::bSearchSteamLibs()
 					break;
 				}
 			}
-			else
+			else //No other user defined Steam libraries found
 				break;
 		}
 

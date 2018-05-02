@@ -1,21 +1,15 @@
 #pragma once
 
+#include "..\TextFileOps\TextFileOps.h"
 #include <string>
 
 using namespace std;
 
-class TextFileOps;
-
 class FindCsgo
 {
 public:
-	FindCsgo();
-	//Precondition: 
-	//Postcondition: 
-
-	~FindCsgo();
-	//Precondition: 
-	//Postcondition: 
+	FindCsgo() = default;
+	~FindCsgo() = default;
 
 	bool bFetchSteamDir(wstring &steamDir);
 	//Postcondition: If valid registry value for Steam installation is found, testDir is filled with the installation directory.
@@ -43,6 +37,6 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
-	TextFileOps *textFileOps;
+	TextFileOps textFileOps;
 	wstring testDir;
 };

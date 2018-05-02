@@ -16,9 +16,9 @@ public:
 		wstring commonColumnHeader;
 		wstring otherDatum;
 		wstring datum;
-	};
+	}; //Need full definition for references to NonMatch structures outside of the class
 
-	int compareArchives(const Archive *const otherArchive, const bool bGetNonMatchSize = false);
+	int compareArchives(const Archive &otherArchive, const bool bGetNonMatchSize = false);
 	//Precondition: 
 	//Postcondition: 
 
@@ -70,15 +70,19 @@ protected:
 	//Precondition: 
 	//Postcondition: 
 
-	Archive(const Archive &otherArchive);
+	Archive(const Archive &otherArchive, void *voidParam);
 	//Precondition: 
 	//Postcondition: 
+
+	Archive(const Archive &otherArchive) = delete; //Don't allow normal copy constructor usage
 
 	~Archive();
 	//Precondition: 
 	//Postcondition:
 
-	Archive &operator= (const Archive &otherArchive) = delete; //Disallow copy of Archive objects using the = operator
+	Archive &operator= (const Archive &otherArchive);
+	//Precondition: 
+	//Postcondition: 
 
 	wifstream &getInArchive() const;
 	//Precondition: 
@@ -98,6 +102,10 @@ protected:
 	wifstream *inArchive;
 	wofstream *outArchive;
 private:
+	void allocNonMatches(const Archive &otherArchive, int &ret);
+	//Precondition: 
+	//Postcondition: 
+
 	void useCsv();
 	//Precondition: 
 	//Postcondition: 
@@ -106,7 +114,7 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
-	NonMatch *nonMatches;
-	int numNonMatches;
 	bool bSuccessUseCsv;
+	int numNonMatches;
+	NonMatch *nonMatches;
 };
