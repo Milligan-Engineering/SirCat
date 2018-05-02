@@ -64,4 +64,13 @@ private:
 	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 	//Precondition: 
 	//Postcondition: 
+
+	void fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
+		WIN32_FIND_DATAW &FindFileData) const;
+	//Precondition: 
+	//Postcondition: 
+
+	int fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData);
+	//Precondition: 
+	//Postcondition: 
 };

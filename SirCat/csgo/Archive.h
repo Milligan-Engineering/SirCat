@@ -74,7 +74,7 @@ protected:
 	//Precondition: 
 	//Postcondition: 
 
-	Archive(const Archive &otherArchive) = delete; //Don't allow normal copy constructor usage
+	Archive(const Archive &otherArchive) = delete; //Disallow copy constructor
 
 	~Archive();
 	//Precondition: 

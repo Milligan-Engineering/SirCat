@@ -36,7 +36,7 @@ bool BboxData::bUnpackModels(const wstring csgoDir) const
 {
 	bool bSuccess = false;
 	const WCHAR applicationName[] = L".\\HLExtract\\HLExtract.exe";
-	WCHAR *commandLine = new WCHAR[32910];
+	WCHAR *commandLine = new WCHAR[32910]; //Sufficiently large to accomodate max extended-length path and command line
 
 	wmemcpy_s(commandLine, 32910, L"HLExtract.exe -p \"", 19);
 	wcscat_s(commandLine, 32910, csgoDir.c_str());
@@ -146,36 +146,14 @@ bool BboxData::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocu
 
 bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 {
-	bool bSuccess = false;
+	int success = 0;
 	HANDLE hFind;
 	WCHAR *lpBuffer = nullptr;
 	WCHAR *lpFileName = nullptr;
 	WIN32_FIND_DATAW FindFileData;
 	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
 
-	//******Check do-while loop for correct handling of ERROR_NO_MORE_FILES and other unexpected circumstances******
-
-	if (nBufferLength != 0)
-	{
-		lpBuffer = new WCHAR[nBufferLength + 13];
-		wmemcpy_s(lpBuffer, nBufferLength + 13, L"\\\\?\\", 4); //Prefix to permit extended-length path with later function calls
-
-		if (GetFullPathNameW(L".", nBufferLength, lpBuffer + 4, NULL) == nBufferLength - 1)
-		{
-			wcscat_s(lpBuffer, nBufferLength + 13, L"\\legacy\\*");
-			lpFileName = lpBuffer;
-		}
-	}
-
-	if (nBufferLength == 0 || lpFileName == nullptr)
-		lpFileName = const_cast<WCHAR *>(L".\\legacy\\*");
-
-	hFind = FindFirstFileW(lpFileName, &FindFileData); //Begin fetching model file names
-
-	if (lpFileName == lpBuffer)
-		lpFileName[nBufferLength + 11] = L'\0'; //Remove * so the path can be prepended to FindFileData.cFileName later
-	else
-		lpFileName[9] = L'\0'; //For non-extended-length path
+	fetchModelFileDir(static_cast<int>(nBufferLength), hFind, lpBuffer, lpFileName, FindFileData);
 
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
@@ -184,66 +162,21 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 		while (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			FindNextFileW(hFind, &FindFileData); //Skip the parent directory result
 
-		do //Collect attributes for each model in bboxData
+		while (i < numRows)
 		{
 			WCHAR *dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
 			wstring absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
 
-			//if (i < k_num_model - 1 && GetLastError() == ERROR_NO_MORE_FILES)
-			//{
-				//bSuccess = false; //Model filename did not match expected modelNames[i]
-				//DeleteFileW(absolutePath.c_str());
-				//break;
-			//}
-
-			if (wmemcmp(dotFileExt, L".qc", 3) == 0 && !bCleanLegacyDir) //Check if file extension is qc
-			{
-				WCHAR searchResult[1][MAX_PATH];
-				wstring searchTerm = L"$hbox";
-				wifstream modelFile;
-
-				modelFile.open(wstring(L".\\legacy\\") + wstring(FindFileData.cFileName));
-
-				if (modelFile.fail() || textFileOps->parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
-				{
-					bSuccess = false;
-					modelFile.close();
-					DeleteFileW(absolutePath.c_str());
-					break;
-				}
-
-				for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
-				{
-					int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
-					int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 };
-					int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
-					wstring bboxDatumBuilder;
-
-					do
-					{
-						if (searchResult[0][charPos] == L' ')
-							++spaceDelimitedElement;
-
-						if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0][charPos] != L' ')
-							bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum at the element of interest
-
-						++charPos;
-
-						if (spaceDelimitedElement > elementsToCopy[j] || searchResult[0][charPos] == L'\0')
-							break;
-					} while (true);
-
-					data[i][j] = bboxDatumBuilder;
-				}
-
-				++i;
-				bSuccess = true;
-				modelFile.close();
-			}
+			if (wmemcmp(dotFileExt, L".qc", 3) == 0 && !bCleanLegacyDir) //Only parse model files with .qc extension
+				success = fetchModelBboxData(i, FindFileData);
 
 			DeleteFileW(absolutePath.c_str());
+
+			if (success == -1)
+				break;
+
 			FindNextFileW(hFind, &FindFileData); //Fetch next model file name
-		} while (i < numRows);
+		}
 
 		while (GetLastError() != ERROR_NO_MORE_FILES) //Delete remaining files after last model file
 		{
@@ -261,10 +194,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 	if (nBufferLength != 0)
 		delete[] lpBuffer;
 
-	lpBuffer = nullptr;
-	lpFileName = nullptr;
-
-	return bSuccess;
+	return (success > 0); //Return true only if successful (success > 0)
 }
 
 bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
@@ -297,9 +227,9 @@ BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
 	DWORD dwProcessId = 0;
-	WinInfo &winInfo = *reinterpret_cast<WinInfo *>(lParam);
+	WinInfo &winInfo = *reinterpret_cast<WinInfo *>(lParam); //lParam cast to WinInfo serves as input & output parameter
 
-	winInfo.dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId);
+	winInfo.dwThreadId = GetWindowThreadProcessId(hwnd, &dwProcessId); //Use to find Crowbar's main window
 
 	if (winInfo.dwProcessId == dwProcessId && GetWindow(hwnd, GW_OWNER) == NULL && IsWindowVisible(hwnd) == TRUE)
 	{
@@ -313,30 +243,30 @@ BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;	
-	ChildInfo &childInfo = *reinterpret_cast<ChildInfo *>(lParam);
+	ChildInfo &childInfo = *reinterpret_cast<ChildInfo *>(lParam); //lParam cast to childInfo serves as input & output parameter
 	WCHAR buffer[MAX_PATH];
 
-	GetClassNameW(hwnd, buffer, MAX_PATH);
+	GetClassNameW(hwnd, buffer, MAX_PATH); //Use to narrow down the control type inside the following switch
 
 	switch (childInfo.swExpression)
 	{
 	case 1:
-		if (wcsstr(buffer, L"WindowsForms10.EDIT") != nullptr && childInfo.childHwnd != hwnd)
+		if (wcsstr(buffer, L"WindowsForms10.EDIT") != nullptr && childInfo.childHwnd != hwnd) //Skip 'MDL input:' child window
 		{
 			bContinueEnum = FALSE;
-			childInfo.childHwnd = hwnd; //Found the other WindowsForms10.EDIT control, so send its hwnd back with LPARAM and stop enumerating
+			childInfo.childHwnd = hwnd; //Find the 'Output to:' child window
 		}
 
 		break;
 	case 2:
 		if (wcsstr(buffer, L"WindowsForms10.BUTTON") != nullptr)
 		{
-			GetWindowTextW(hwnd, buffer, 11);
+			GetWindowTextW(hwnd, buffer, 11); //Other buttons start with "Decompile" but length 11 copies an extra character
 
-			if (wcscmp(buffer, L"Decompile") == 0)
+			if (wcscmp(buffer, L"Decompile") == 0) //Make sure button's string contains only the string "Decompile"
 			{
 				bContinueEnum = FALSE;
-				childInfo.childHwnd = hwnd;
+				childInfo.childHwnd = hwnd; //Find the 'Decompile' button child window
 			}
 		}
 		
@@ -346,4 +276,76 @@ BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 	}
 
 	return bContinueEnum;
+}
+
+void BboxData::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
+	WIN32_FIND_DATAW &FindFileData) const
+{
+	if (nBufferLength != 0)
+	{
+		lpBuffer = new WCHAR[nBufferLength + 13];
+		wmemcpy_s(lpBuffer, nBufferLength + 13, L"\\\\?\\", 4); //Prefix to permit extended-length path with later function calls
+
+		if (GetFullPathNameW(L".", nBufferLength, lpBuffer + 4, NULL) == nBufferLength - 1)
+		{
+			wcscat_s(lpBuffer, nBufferLength + 13, L"\\legacy\\*"); //Add subdirectory where the model files were created
+			lpFileName = lpBuffer;
+		}
+	}
+
+	if (nBufferLength == 0 || lpFileName == nullptr)
+		lpFileName = const_cast<WCHAR *>(L".\\legacy\\*"); //Use non-extended-length path if finding extended-length path fails
+
+	hFind = FindFirstFileW(lpFileName, &FindFileData); //Begin fetching model file names
+
+	if (lpFileName == lpBuffer) //First 'file' is the search directory
+		lpFileName[nBufferLength + 11] = L'\0'; //Remove * so the path can be prepended to FindFileData.cFileName later
+	else
+		lpFileName[9] = L'\0'; //For non-extended-length path
+}
+
+int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
+{
+	int success = 0;
+	WCHAR searchResult[1][MAX_PATH];
+	wstring searchTerm = L"$hbox"; //Search term to find the line that contains bbox data
+	wifstream modelFile;
+
+	modelFile.open(wstring(L".\\legacy\\") + wstring(FindFileData.cFileName));
+
+	if (modelFile.fail() || textFileOps->parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
+		success = -1; //Failed opening model file or it didn't contain the expected bbox data
+	else
+	{
+		for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
+		{
+			int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
+			int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 }; //Only collect bbox size data and not angles
+			int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
+			wstring bboxDatumBuilder;
+
+			do
+			{
+				if (searchResult[0][charPos] == L' ')
+					++spaceDelimitedElement;
+
+				if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0][charPos] != L' ')
+					bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum
+
+				++charPos;
+
+				if (spaceDelimitedElement > elementsToCopy[j] || searchResult[0][charPos] == L'\0')
+					break;
+			} while (true);
+
+			data[i][j] = bboxDatumBuilder; //Bbox datum is built, add it to bbox data array
+		}
+
+		++i;
+		success = 1;
+	}
+
+	modelFile.close();
+
+	return success;
 }
