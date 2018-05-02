@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Final Project Presentation
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: April 30, 2018
+//Last Changed: May 1, 2018
 
 #include "csgo\BboxData.h"
 #include "csgo\SirData.h"
@@ -32,9 +32,17 @@ void hitEnterToExit();
 
 bool bTakeOnlyOneWchar(wchar_t &character);
 //Precondition: character is modifiable.
-//Postcondition: Sets character to first character input 
+//Postcondition: Sets character to first character input
 
-bool bReadGameFiles(Data &newData, const wstring csgoDir);
+bool bAttemptFindCsgo(bool &bUseCsvData, Data &csvData, Data &newData);
+//Precondition: 
+//Postcondition: 
+
+bool bReadGameFiles(const wstring csgoDir, Data &newData);
+//Precondition: 
+//Postcondition: 
+
+bool bCompAndUpdate(Data &csvData, Data &newData);
 //Precondition: 
 //Postcondition: 
 
@@ -46,7 +54,7 @@ bool bUpdatePrompt(Data &newData);
 //Precondition: 
 //Postcondition: 
 
-int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars);
+int takeOnlyOneInt(const int numValidChars, const wchar_t validChars[]);
 //Precondition: numValidChars is the size of validChars.
 //Postcondition: Get one and only one input character, convert it to int, and return the integer;
 
@@ -58,7 +66,11 @@ int pickModelSide(const BboxData &bbox);
 //Precondition: 
 //Postcondition: 
 
-int pickModel(const wstring modelPrefix, const BboxData &bbox);
+int pickModelBase(const BboxData &bbox, const wstring modelPrefix);
+//Precondition: 
+//Postcondition: 
+
+int pickModelVariant(const BboxData &bbox, const wstring baseModel);
 //Precondition: 
 //Postcondition: 
 
@@ -89,10 +101,7 @@ int main()
 	
 	do
 	{
-		bool bRevertToArchive = true;
-		bool bUseCsvData = true;
 		Data csvData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
-		
 
 		if (!csvData.bbox.getBSuccessUseCsv() || !csvData.sir.getBSuccessUseCsv())
 		{
@@ -102,47 +111,12 @@ int main()
 
 		if (menuOption == 1)
 		{
-			FindCsgo findCsgo;
-			wstring steamDir;
 			Data newData(csvData);
-
-			if (findCsgo.bFetchSteamDir(steamDir))
-			{
-				wcout << L"Steam installation found in directory:\n" << steamDir << endl << endl;
-
-				if (findCsgo.bCheckCsgoInstall() //CSGO found in default Steam library
-					|| findCsgo.bSearchSteamLibs()) //CSGO found in alternate Steam library
-				{
-					wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
-					wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
-
-					if (bReadGameFiles(newData, findCsgo.getTestDir()))
-					{
-						bRevertToArchive = false;
-						wcout << L"... done.";
-						csvData.bbox.compareArchives(static_cast<Archive *>(&newData.bbox));
-						csvData.sir.compareArchives(static_cast<Archive *>(&newData.sir));
-
-						if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
-							wcout << L" No discrepancies detected.\n\n";
-						else
-						{
-							wcout << endl;
-							listNonMatches(static_cast<Archive *>(&csvData.bbox));
-							listNonMatches(static_cast<Archive *>(&csvData.sir));
-							if (bUpdatePrompt(newData))
-								bUseCsvData = false;
-						}
-					}
-				}
-				else
-					wcout << L"CS:GO installation not found.\n";
-			}
-			else
-				wcout << L"Steam installation not found.\n";
+			bool bUseCsvData;
+			bool bRevertToArchive = bAttemptFindCsgo(bUseCsvData, csvData, newData);
 
 			if (bRevertToArchive)
-				wcout << L"Reading hitbox and weapon data from archive file.\n\n";
+				wcout << L"Using hitbox and weapon data from archive file.\n\n";
 
 			if (bUseCsvData)
 			{
@@ -200,7 +174,38 @@ bool bTakeOnlyOneWchar(wchar_t &character)
 	return bValidInput;
 }
 
-bool bReadGameFiles(Data &newData, const wstring csgoDir)
+bool bAttemptFindCsgo(bool &bUseCsvData, Data &csvData, Data &newData)
+{
+	bool bRevertToArchive = true;
+	FindCsgo findCsgo;
+	wstring steamDir;
+
+	if (findCsgo.bFetchSteamDir(steamDir))
+	{
+		wcout << L"Steam installation found in directory:\n" << steamDir << endl << endl;
+
+		if (findCsgo.bCheckCsgoInstall() //CSGO found in default Steam library
+			|| findCsgo.bSearchSteamLibs()) //CSGO found in alternate Steam library
+		{
+			wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
+			wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
+
+			if (bReadGameFiles(findCsgo.getTestDir(), newData))
+			{
+				bRevertToArchive = false;
+				bUseCsvData = bCompAndUpdate(csvData, newData);
+			}
+		}
+		else
+			wcout << L"CS:GO installation not found.\n";
+	}
+	else
+		wcout << L"Steam installation not found.\n";
+
+	return bRevertToArchive;
+}
+
+bool bReadGameFiles(const wstring csgoDir, Data &newData)
 {
 	bool bSuccess = false;
 
@@ -238,6 +243,29 @@ bool bReadGameFiles(Data &newData, const wstring csgoDir)
 	return bSuccess;
 }
 
+bool bCompAndUpdate(Data &csvData, Data &newData)
+{
+	bool bUseCsvData = true;
+
+	wcout << L"... done.";
+	csvData.bbox.compareArchives(static_cast<Archive *>(&newData.bbox));
+	csvData.sir.compareArchives(static_cast<Archive *>(&newData.sir));
+
+	if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
+		wcout << L" No discrepancies detected.\n\n";
+	else
+	{
+		wcout << endl;
+		listNonMatches(static_cast<Archive *>(&csvData.bbox));
+		listNonMatches(static_cast<Archive *>(&csvData.sir));
+
+		if (bUpdatePrompt(newData))
+			bUseCsvData = false;
+	}
+
+	return bUseCsvData;
+}
+
 void listNonMatches(const Archive *const archive)
 {
 	if (archive->getNumNonMatches() > 0)
@@ -269,7 +297,7 @@ bool bUpdatePrompt(Data &newData)
 		wcout << L"Would you like to update the archive file with the new game data?\n";
 		wcout << L"Please enter 1 for yes, or 2 for no: ";
 
-		switch (menuOption = takeOnlyOneInt(L"12", 2))
+		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
 			if (newData.bbox.bWriteArchiveFile(wstring(L"archiveBboxData.csv"))
@@ -293,7 +321,7 @@ bool bUpdatePrompt(Data &newData)
 	return bUpdated;
 }
 
-int takeOnlyOneInt(const wchar_t validChars[], const int numValidChars)
+int takeOnlyOneInt(const int numValidChars, const wchar_t validChars[])
 {
 	int integer = 0;
 	wchar_t character;
@@ -330,13 +358,13 @@ int pickModelSide(const BboxData &bbox)
 		wcout << L"2 - Terrorists\n";
 		wcout << L"To pick a player model for calculations, first select a team: ";
 
-		switch (menuOption = takeOnlyOneInt(L"12", 2))
+		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			modelIndex = pickModel(wstring(L"ct"), bbox);
+			modelIndex = pickModelBase(bbox, wstring(L"ct"));
 			break;
 		case 2:
-			modelIndex = pickModel(wstring(L"tm"), bbox);
+			modelIndex = pickModelBase(bbox, wstring(L"tm"));
 			break;
 		default:
 			wcout << endl << endl << L"That is not a valid menu option.";
@@ -349,91 +377,102 @@ int pickModelSide(const BboxData &bbox)
 	return modelIndex;
 }
 
-int pickModel(const wstring modelPrefix, const BboxData &bbox)
+int pickModelBase(const BboxData &bbox, const wstring modelPrefix)
 {
 	int modelIndex;
-	int numMenuModels;
 	int menuOption;
+	int numBaseModels;
 
 	do
 	{
 		wstring menuModels[9];
 		wstring validChars;
 
-		numMenuModels = 0;
+		numBaseModels = 0;
 		menuModels[0] = L" ";
 		wcout << endl << endl;
 
 		for (int i = 0; i < bbox.getNumRows(); ++i)
 		{
-			if (bbox.getRowHeader(i).substr(0, menuModels[numMenuModels].length()) != menuModels[numMenuModels]
+			if (bbox.getRowHeader(i).substr(0, menuModels[numBaseModels].length()) != menuModels[numBaseModels]
 				&& bbox.getRowHeader(i).substr(0, 2) == modelPrefix) //List only CT or T models
 			{
 				if (bbox.getRowHeader(i).find_first_of(L'_') != bbox.getRowHeader(i).find_last_of(L'_')) //Models with no base
-					menuModels[++numMenuModels] = bbox.getRowHeader(i).substr(0, bbox.getRowHeader(i).find_last_of(L'_'));
+					menuModels[++numBaseModels] = bbox.getRowHeader(i).substr(0, bbox.getRowHeader(i).find_last_of(L'_'));
 				else
-					menuModels[++numMenuModels] = bbox.getRowHeader(i); //Base models
+					menuModels[++numBaseModels] = bbox.getRowHeader(i); //Base models
 
-				wcout << numMenuModels << L" - " << menuModels[numMenuModels] << endl; //Build model menu
-				validChars += intDigitToWchar(numMenuModels);
+				wcout << numBaseModels << L" - " << menuModels[numBaseModels] << endl; //Build model menu
+				validChars += intDigitToWchar(numBaseModels);
 			}
 		}
 
-		wcout << ++numMenuModels << L" - go back to team selection\n";
+		wcout << ++numBaseModels << L" - go back to team selection\n";
 		wcout << L"Now select a base model: ";
-		validChars += intDigitToWchar(numMenuModels);
-		menuOption = takeOnlyOneInt(validChars.c_str(), numMenuModels);
+		validChars += intDigitToWchar(numBaseModels);
+		menuOption = takeOnlyOneInt(numBaseModels, validChars.c_str());
 
 		if (menuOption == 0)
 			wcout << endl << endl << L"That is not a valid menu option.";
-		else if (menuOption == numMenuModels)
+		else if (menuOption == numBaseModels)
 			modelIndex = -1; //Will restart team selection in pickModelSide
 		else
 		{
-			int i;
-			int n;
-			int subMenuOption;
+			modelIndex = pickModelVariant(bbox, menuModels[menuOption]);
 
-			do
-			{
-				validChars.clear();
-				numMenuModels = 0;
-				wcout << endl << endl;
-
-				for (i = 0; i < bbox.getNumRows(); ++i)
-				{
-					if (bbox.getRowHeader(i).substr(0, menuModels[menuOption].length()) == menuModels[menuOption])
-					{
-						for (n = 0; n < bbox.getNumRows() - i; /*intentionally blank*/)
-						{
-							if (bbox.getRowHeader(i + n).substr(0, menuModels[menuOption].length()) == menuModels[menuOption])
-							{
-								wcout << ++n << L" - " << bbox.getRowHeader(i + n - 1) << endl; //Build variant model menu
-								validChars += intDigitToWchar(n);
-							}
-							else
-								break; //Exit loop when base model changes
-						}
-
-						break;
-					}
-				}
-
-				wcout << ++n << L" - go back to base model selection\n";
-				wcout << L"Now select a model variant: ";
-				validChars += intDigitToWchar(n);
-				subMenuOption = takeOnlyOneInt(validChars.c_str(), n);
-
-				if (subMenuOption == 0)
-					wcout << endl << endl << L"That is not a valid menu option.";
-			} while (subMenuOption == 0); //Loop until a valid menu option is input
-
-			if (subMenuOption == n)
-				menuOption = 0; //Restart base model selection
-			else
-				modelIndex = i + subMenuOption - 1;
+			if (modelIndex == -1)
+				menuOption = 0;
 		}
 	} while (menuOption == 0); //Loop until a valid menu option is input
+
+	return modelIndex;
+}
+
+int pickModelVariant(const BboxData &bbox, const wstring baseModel)
+{
+	int modelIndex;
+	int i;
+	int menuOption;
+	int numVariants;
+
+	do
+	{
+		wstring validChars;
+
+		wcout << endl << endl;
+
+		for (i = 0; i < bbox.getNumRows(); ++i)
+		{
+			if (bbox.getRowHeader(i).substr(0, baseModel.length()) == baseModel)
+			{
+				for (numVariants = 0; numVariants < bbox.getNumRows() - i; /*intentionally blank*/)
+				{
+					if (bbox.getRowHeader(i + numVariants).substr(0, baseModel.length()) == baseModel)
+					{
+						wcout << ++numVariants << L" - " << bbox.getRowHeader(i + numVariants - 1) << endl; //Build variant menu
+						validChars += intDigitToWchar(numVariants);
+					}
+					else
+						break; //Exit loop when base model changes
+				}
+
+				break;
+			}
+		}
+
+		wcout << ++numVariants << L" - go back to base model selection\n";
+		wcout << L"Now select a model variant: ";
+		validChars += intDigitToWchar(numVariants);
+		menuOption = takeOnlyOneInt(numVariants, validChars.c_str());
+
+		if (menuOption == 0)
+			wcout << endl << endl << L"That is not a valid menu option.";
+	} while (menuOption == 0); //Loop until a valid menu option is input
+
+	if (menuOption == numVariants)
+		modelIndex = -1; //Restart base model selection
+	else
+		modelIndex = i + menuOption - 1;
 
 	return modelIndex;
 }
@@ -480,7 +519,7 @@ bool bUserMenu(int &menuOption)
 		wcout << L"4 - exit the program\n";
 		wcout << L"Please enter a choice from the preceding menu options: ";
 
-		switch (menuOption = takeOnlyOneInt(L"1234", 4))
+		switch (menuOption = takeOnlyOneInt(4, L"1234"))
 		{
 		case 1:
 			wcout << endl << endl;
