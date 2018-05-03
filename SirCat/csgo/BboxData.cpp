@@ -201,7 +201,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 }
 
 bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
-	PROCESS_INFORMATION *pPi, bool bWaitForExit) const
+	PROCESS_INFORMATION *const pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
 	PROCESS_INFORMATION pi;
