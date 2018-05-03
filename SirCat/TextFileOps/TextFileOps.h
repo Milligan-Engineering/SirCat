@@ -31,7 +31,8 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	bool bSkipToColumnNum(wifstream &delimitedFile, wchar_t &character, const wchar_t delimiter, const int numColumn) const;
+	bool bSkipToColumnNum(wifstream &delimitedFile, wchar_t &character, const wchar_t delimiter,
+		const int numColumn) const;
 	//Precondition: 
 	//Postcondition: 
 
@@ -48,4 +49,10 @@ public:
 		//searchRes is filled, up to maxRes number of null-terminated wstrings *searchRes[MAX_PATH].
 		//If retChar is passed, the function will return if and when that character is found.
 		//Returns the number of null-terminated wstrings *searchRes[MAX_PATH] filled in the array of wstrings searchRes.
+private:
+	bool bPrepForSlicing(wifstream &delimitedFile, const wstring filename, const int maxElements,
+		const bool bSliceIsRow, const int skipToElement, const wchar_t delimiter, const int numSlice,
+		int &targetNumElements, int &numElements) const;
+	//Precondition: 
+	//Postcondition: 
 };

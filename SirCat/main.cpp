@@ -4,7 +4,7 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Final Project Presentation
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: May 1, 2018
+//Last Changed: May 3, 2018
 
 #include "csgo\BboxData.h"
 #include "csgo\SirData.h"
@@ -116,7 +116,7 @@ int main()
 			hitEnterToExit();
 		}
 
-		if (menuOption == 1)
+		if (menuOption == 1) //Controlled by switch in bUserMenu for re-running the program
 		{
 			Data newData(csvData);
 
@@ -127,7 +127,7 @@ int main()
 			pickWeapon();
 		}
 
-		if (menuOption < 3)
+		if (menuOption < 3) //Controlled by switch in bUserMenu for re-running the program
 			bUserModifyData();
 
 		//******Ask user to enter a distance******
@@ -243,16 +243,18 @@ bool bReadGameFiles(const wstring csgoDir, Data &newData)
 void compAndUpdate(Data &csvData, Data &newData)
 {
 	wcout << L"... done.";
-	csvData.bbox.compareArchives(*static_cast<Archive *>(&newData.bbox));
-	csvData.sir.compareArchives(*static_cast<Archive *>(&newData.sir));
+	//Dereferences and references below allow use of dynamic_cast, which can only be used with pointers and references to classes
+	//dynamic_cast ensures the result of the type conversion points to a valid, complete object of the destination pointer type
+	csvData.bbox.compareArchives(*dynamic_cast<Archive *>(&newData.bbox));
+	csvData.sir.compareArchives(*dynamic_cast<Archive *>(&newData.sir));
 
 	if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
 		wcout << L" No discrepancies detected.\n";
 	else
 	{
 		wcout << endl;
-		listNonMatches(*static_cast<Archive *>(&csvData.bbox));
-		listNonMatches(*static_cast<Archive *>(&csvData.sir));
+		listNonMatches(*dynamic_cast<Archive *>(&csvData.bbox));
+		listNonMatches(*dynamic_cast<Archive *>(&csvData.sir));
 
 		updatePrompt(csvData, newData);
 	}
@@ -291,7 +293,7 @@ void updatePrompt(Data &csvData, const Data &newData)
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			csvData.bbox = newData.bbox;
+			csvData.bbox = newData.bbox; //Copy assignment operator in Archive will safely copy over data in dynamic arrays
 			csvData.sir = newData.sir;
 
 			if (csvData.bbox.bWriteArchiveFile() && csvData.sir.bWriteArchiveFile())

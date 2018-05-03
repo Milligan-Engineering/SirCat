@@ -63,7 +63,7 @@
     <CustomBuildStep>
       <Command>echo off</Command>
       <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
-      <Message>Performing Custom Build Step 2</Message>
+      <Message>...</Message>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
@@ -133,7 +133,7 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     </CustomBuildStep>
     <CustomBuildStep>
       <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
-      <Message>Performing Custom Build Step 2</Message>
+      <Message>...</Message>
     </CustomBuildStep>
     <PreBuildEvent>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
@@ -193,7 +193,6 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClInclude Include="csgo\FindCsgo.h" />
     <ClInclude Include="csgo\SirData.h" />
     <ClInclude Include="TextFileOps\TextFileOps.h" />
-    <ClInclude Include="TextFileOps\vdf_parser.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml" />

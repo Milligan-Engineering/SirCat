@@ -26,15 +26,11 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
-	int getNumRows() const;
-	//Precondition: 
-	//Postcondition: 
-
 	int getNumColumns() const;
 	//Precondition: 
 	//Postcondition: 
 
-	wstring getRowHeader(const int i) const;
+	int getNumRows() const;
 	//Precondition: 
 	//Postcondition: 
 
@@ -42,23 +38,27 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
+	wstring getRowHeader(const int i) const;
+	//Precondition: 
+	//Postcondition: 
+
 	wstring getDatum(const int i, const int j) const;
 	//Precondition: 
 	//Postcondition: 
 
-	wstring getCsvName() const;
+	bool getBSuccessUseCsv() const;
 	//Precondition: 
-	//Postcondition: 
-
-	NonMatch *getNonMatches() const;
-	//Precondition: 
-	//Postcondition: 
+	//Postcondition:
 
 	int getNumNonMatches() const;
 	//Precondition: 
-	//Postcondition: 
+	//Postcondition:
 
-	bool getBSuccessUseCsv() const;
+	const NonMatch *const getNonMatches() const;
+	//Precondition: 
+	//Postcondition:
+
+	wstring getCsvName() const;
 	//Precondition: 
 	//Postcondition: 
 protected:
@@ -70,7 +70,7 @@ protected:
 	//Precondition: 
 	//Postcondition: 
 
-	Archive(const Archive &otherArchive, void *voidParam);
+	Archive(const Archive &otherArchive, const void *const voidParam);
 	//Precondition: 
 	//Postcondition: 
 
@@ -92,13 +92,12 @@ protected:
 	//Precondition: 
 	//Postcondition: 
 
-	int numRows;
 	int numColumns;
-	wstring *rowHeaders;
-	wstring *columnHeaders;
-	wstring **data;
-	wstring csvName;
+	int numRows;
 	TextFileOps *textFileOps;
+	wstring *columnHeaders;
+	wstring *rowHeaders;
+	wstring **data;
 	wifstream *inArchive;
 	wofstream *outArchive;
 private:
@@ -110,11 +109,12 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
-	void writeArchiveFileRow(const wstring newRow[]);
+	void writeArchiveFileRow(const wstring newRow[]) const;
 	//Precondition: 
 	//Postcondition: 
 
 	bool bSuccessUseCsv;
 	int numNonMatches;
 	NonMatch *nonMatches;
+	wstring csvName;
 };

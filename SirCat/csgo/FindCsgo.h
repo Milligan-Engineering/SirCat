@@ -29,7 +29,7 @@ public:
 	//Precondition: 
 	//Postcondition: 
 private:
-	wchar_t *newDynamicArray() const;
+	wchar_t *const newDynamicArray() const;
 	//Precondition: 
 	//Postcondition: 
 

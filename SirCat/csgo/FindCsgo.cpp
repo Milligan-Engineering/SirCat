@@ -17,9 +17,9 @@ using namespace std;
 
 bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
+	DWORD cbData = sizeof(WCHAR) * 32767;
 	HKEY hKey = NULL;
 	WCHAR *data = nullptr;
-	DWORD cbData = sizeof(WCHAR) * 32767;
 	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
 
 	if (ret == ERROR_SUCCESS) //Check registry for 64-bit Windows installation
@@ -119,8 +119,8 @@ bool FindCsgo::bSearchSteamLibs()
 	{
 		for (int i = 1; i < 10; i++)
 		{
-			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
 			WCHAR searchResult[1][MAX_PATH];
+			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
 
 			if (textFileOps.parseTextFile(wstring(searchTerm), libFile, searchResult, 1, L"\t\"\0", 2) != 0)
 			{
@@ -147,9 +147,9 @@ wstring FindCsgo::getTestDir() const
 	return testDir;
 }
 
-wchar_t *FindCsgo::newDynamicArray() const
+wchar_t *const FindCsgo::newDynamicArray() const
 {
-	wchar_t *data = new WCHAR[32767];
+	wchar_t *data = new wchar_t[32767];
 
 	return data;
 }

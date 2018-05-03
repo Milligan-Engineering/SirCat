@@ -9,67 +9,40 @@ int TextFileOps::fetchDelimitedSlice(wifstream &delimitedFile, const wstring fil
 	const int numSlice) const
 {
 	int numElements = 0;
-	int maxNumSlice;
 	int targetNumElements;
 
-	if (bSliceIsRow)
+	if (bPrepForSlicing(delimitedFile, filename, maxElements, bSliceIsRow, skipToElement, delimiter, numSlice,
+		targetNumElements, numElements))
 	{
-		maxNumSlice = fetchNumRows(delimitedFile, filename, delimiter, skipToElement);
-		targetNumElements = fetchNumColumns(delimitedFile, filename, delimiter, numSlice) - skipToElement + 1;
-	}
-	else
-	{
-		maxNumSlice = fetchNumColumns(delimitedFile, filename, delimiter, skipToElement);
-		targetNumElements = fetchNumRows(delimitedFile, filename, delimiter, numSlice) - skipToElement + 1;
-	}
-
-	if (maxElements == 0) //Send max number of elements needed for parsedSlice when maxElements == 0
-		numElements = targetNumElements;
-	else if (numSlice <= maxNumSlice) //Check that the slice exists
-	{
-		delimitedFile.open(filename);
-
-		if (!delimitedFile.fail())
+		//Begin parsing characters for the slice elements to fill the slice in parsedSlice
+		for (int i = 0; i < targetNumElements && i < maxElements; i++) //&& gives consistent behavior for blank end lines
 		{
+			int j;
 			wchar_t character;
+			wchar_t parsedElement[_MAX_PATH];
 
-			if (bSliceIsRow) //Skip to first element to parse when parsing a row
+			if (!bSliceIsRow) //Skip to desired column only when parsing a column
+				bSkipToColumnNum(delimitedFile, character, delimiter, numSlice);
+
+			for (j = 0; j < _MAX_PATH && !delimitedFile.eof(); ++j)
 			{
-				skipToRowNum(delimitedFile, character, numSlice);
-				bSkipToColumnNum(delimitedFile, character, delimiter, skipToElement);
-			}
-			else //Skip to the desire row only when parsing a column
-				skipToRowNum(delimitedFile, character, skipToElement);
+				delimitedFile.get(character);
 
-			//Begin parsing characters for the slice elements to fill the slice in parsedSlice
-			for (int i = 0; i < targetNumElements && i < maxElements; i++) //&& gives consistent behavior for blank end lines
-			{
-				int j;
-				wchar_t parsedElement[_MAX_PATH];
-
-				if (!bSliceIsRow) //Skip to desired column only when parsing a column
-					bSkipToColumnNum(delimitedFile, character, delimiter, numSlice);
-
-				for (j = 0; j < _MAX_PATH && !delimitedFile.eof(); ++j)
-				{
-					delimitedFile.get(character);
-
-					if (character == delimiter || character == L'\n') //Store element characters until delimiter
-						break;
-					else
-						parsedElement[j] = character;
-				}
-
-				parsedElement[j] = L'\0'; //Add terminal null character to character array
-				parsedSlice[i] = parsedElement;
-				++numElements;
-
-				while (!bSliceIsRow && !delimitedFile.eof() && character != L'\n') //Skip to next row for parsing a column
-					delimitedFile.get(character);
+				if (character == delimiter || character == L'\n') //Store element characters until delimiter
+					break;
+				else
+					parsedElement[j] = character;
 			}
 
-			delimitedFile.close();
+			parsedElement[j] = L'\0'; //Add terminal null character to character array
+			parsedSlice[i] = parsedElement;
+			++numElements;
+
+			while (!bSliceIsRow && !delimitedFile.eof() && character != L'\n') //Skip to next row for parsing a column
+				delimitedFile.get(character);
 		}
+
+		delimitedFile.close();
 	}
 
 	return numElements;
@@ -153,7 +126,8 @@ void TextFileOps::skipToRowNum(wifstream &delimitedFile, wchar_t &character, con
 	}
 }
 
-bool TextFileOps::bSkipToColumnNum(wifstream &delimitedFile, wchar_t &character, const wchar_t delimiter, const int numColumn) const
+bool TextFileOps::bSkipToColumnNum(wifstream &delimitedFile, wchar_t &character, const wchar_t delimiter,
+	const int numColumn) const
 {
 	bool bTooFewColumns = false;
 
@@ -186,9 +160,9 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, 
 	{
 		if (testString == searchTerm)
 		{
-			wchar_t characterLast = L'\0';
-			wchar_t character;
 			int i = 0;
+			wchar_t character;
+			wchar_t characterLast = L'\0';
 
 			searchFile.get(character);
 
@@ -227,4 +201,47 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, 
 	}
 
 	return instancesFound;
+}
+
+bool TextFileOps::bPrepForSlicing(wifstream &delimitedFile, const wstring filename, const int maxElements,
+	const bool bSliceIsRow,	const int skipToElement, const wchar_t delimiter, const int numSlice,
+	int &targetNumElements, int &numElements) const
+{
+	bool bSuccess = false;
+	int maxNumSlice;
+
+	if (bSliceIsRow)
+	{
+		maxNumSlice = fetchNumRows(delimitedFile, filename, delimiter, skipToElement);
+		targetNumElements = fetchNumColumns(delimitedFile, filename, delimiter, numSlice) - skipToElement + 1;
+	}
+	else
+	{
+		maxNumSlice = fetchNumColumns(delimitedFile, filename, delimiter, skipToElement);
+		targetNumElements = fetchNumRows(delimitedFile, filename, delimiter, numSlice) - skipToElement + 1;
+	}
+
+	if (maxElements == 0) //Return max number of elements needed for parsedSlice when maxElements == 0
+		numElements = targetNumElements;
+	else if (numSlice <= maxNumSlice) //Check that the slice exists
+	{
+		delimitedFile.open(filename);
+
+		if (!delimitedFile.fail())
+		{
+			wchar_t character;
+
+			if (bSliceIsRow) //Skip to first element to parse when parsing a row
+			{
+				skipToRowNum(delimitedFile, character, numSlice);
+				bSkipToColumnNum(delimitedFile, character, delimiter, skipToElement);
+			}
+			else //Skip to the desired row only when parsing a column
+				skipToRowNum(delimitedFile, character, skipToElement);
+
+			bSuccess = true;
+		}
+	}
+
+	return bSuccess;
 }

@@ -12,13 +12,13 @@ int Archive::compareArchives(const Archive &otherArchive, const bool bGetNonMatc
 	if (!bGetNonMatchSize)
 		allocNonMatches(otherArchive, ret);
 
-	for (int otherI = 0; otherI < otherArchive.numRows; ++otherI)
+	for (int otherI = 0; otherI < otherArchive.numRows; ++otherI) //Index for first dimension of otherArchive data array
 	{
-		for (int i = 0; i < numRows; ++i)
+		for (int i = 0; i < numRows; ++i) //Index for first dimension of this* Archive data array
 		{
 			if (otherArchive.rowHeaders[otherI] == rowHeaders[i])
 			{
-				for (int j = 0; j < numColumns; ++j)
+				for (int j = 0; j < numColumns; ++j) //Index for second dimension of both data arrays
 				{
 					if (otherArchive.data[otherI][j] != data[i][j])
 					{
@@ -37,7 +37,7 @@ int Archive::compareArchives(const Archive &otherArchive, const bool bGetNonMatc
 
 				break; //otherArchive.rowHeaders[otherI] has been matched and compared
 			}
-			else if (i == numRows - 1)
+			else if (i == numRows - 1) //New row in otherArchive data array not present in this* Archive data array
 			{
 				for (int j = 0; j < numColumns; ++j)
 				{
@@ -87,19 +87,14 @@ bool Archive::bWriteArchiveFile(const wstring csvName)
 	return bSuccess;
 }
 
-int Archive::getNumRows() const
-{
-	return numRows;
-}
-
 int Archive::getNumColumns() const
 {
 	return numColumns;
 }
 
-wstring Archive::getRowHeader(const int i) const
+int Archive::getNumRows() const
 {
-	return rowHeaders[i];
+	return numRows;
 }
 
 wstring Archive::getColumnHeader(const int j) const
@@ -107,24 +102,14 @@ wstring Archive::getColumnHeader(const int j) const
 	return columnHeaders[j];
 }
 
+wstring Archive::getRowHeader(const int i) const
+{
+	return rowHeaders[i];
+}
+
 wstring Archive::getDatum(const int i, const int j) const
 {
 	return data[i][j];
-}
-
-wstring Archive::getCsvName() const
-{
-	return csvName;
-}
-
-Archive::NonMatch *Archive::getNonMatches() const
-{
-	return nonMatches;
-}
-
-int Archive::getNumNonMatches() const
-{
-	return numNonMatches;
 }
 
 bool Archive::getBSuccessUseCsv() const
@@ -132,21 +117,36 @@ bool Archive::getBSuccessUseCsv() const
 	return bSuccessUseCsv;
 }
 
+int Archive::getNumNonMatches() const
+{
+	return numNonMatches;
+}
+
+const Archive::NonMatch *const Archive::getNonMatches() const
+{
+	return nonMatches;
+}
+
+wstring Archive::getCsvName() const
+{
+	return csvName;
+}
+
 Archive::Archive()
 {
 	//Default values for when the default constructor is not called by the other delegating constructor
 	numColumns = 0;
 	numRows = 0;
+	textFileOps = new TextFileOps;
 	columnHeaders = nullptr;
 	rowHeaders = nullptr;
 	data = nullptr;
-	csvName = wstring();
-	textFileOps = new TextFileOps;
 	inArchive = new wifstream;
 	outArchive = new wofstream;
-	nonMatches = nullptr;
-	numNonMatches = 0;
 	bSuccessUseCsv = false;
+	numNonMatches = 0;
+	nonMatches = nullptr;
+	csvName = wstring();
 }
 
 Archive::Archive(const wstring csvName) : Archive()
@@ -160,20 +160,20 @@ Archive::Archive(const wstring csvName) : Archive()
 	for (int i = 0; i < numRows; ++i)
 		data[i] = new wstring[numColumns];
 
-	Archive::csvName = csvName;
 	bSuccessUseCsv = true; //Default to true because useCsv sets bSuccessUseCsv to false if there is an error
+	Archive::csvName = csvName;
 	useCsv();
 }
 
-Archive::Archive(const Archive &otherArchive, void *voidParam) : Archive()
+Archive::Archive(const Archive &otherArchive, const void *const voidParam) : Archive()
 {
 	numColumns = otherArchive.numColumns;
+	numRows = otherArchive.numRows;
 	columnHeaders = new wstring[numColumns];
 
 	for (int j = 0; j < numColumns; ++j)
 		columnHeaders[j] = otherArchive.columnHeaders[j];
 
-	numRows = otherArchive.numRows;
 	rowHeaders = new wstring[numRows];
 	data = new wstring*[numRows];
 
@@ -186,17 +186,13 @@ Archive::Archive(const Archive &otherArchive, void *voidParam) : Archive()
 
 Archive::~Archive()
 {
+	delete textFileOps;
+
 	if (columnHeaders != nullptr)
-	{
 		delete[] columnHeaders;
-		columnHeaders = nullptr;
-	}
 
 	if (rowHeaders != nullptr)
-	{
 		delete[] rowHeaders;
-		rowHeaders = nullptr;
-	}
 
 	if (data != nullptr)
 	{
@@ -204,31 +200,25 @@ Archive::~Archive()
 			delete[] data[i];
 
 		delete[] data;
-		data = nullptr;
 	}
 
-	delete textFileOps;
-	textFileOps = nullptr;
 	delete inArchive;
-	inArchive = nullptr;
 	delete outArchive;
-	outArchive = nullptr;
 
 	if (nonMatches != nullptr)
-	{
 		delete[] nonMatches;
-		nonMatches = nullptr;
-	}
 }
 
 Archive &Archive::operator= (const Archive &otherArchive)
 {
 	if (this != &otherArchive) //Protect against invalid self-assignment
 	{
+		numColumns = otherArchive.numColumns;
+		numRows = otherArchive.numRows;
+
 		if (columnHeaders != nullptr)
 			delete[] columnHeaders;
 
-		numColumns = otherArchive.numColumns;
 		columnHeaders = new wstring[numColumns];
 
 		for (int j = 0; j < numColumns; ++j)
@@ -236,6 +226,8 @@ Archive &Archive::operator= (const Archive &otherArchive)
 
 		if (rowHeaders != nullptr)
 			delete[] rowHeaders;
+
+		rowHeaders = new wstring[numRows];
 
 		if (data != nullptr)
 		{
@@ -245,8 +237,6 @@ Archive &Archive::operator= (const Archive &otherArchive)
 			delete[] data;
 		}
 
-		numRows = otherArchive.numRows;
-		rowHeaders = new wstring[numRows];
 		data = new wstring*[numRows];
 
 		for (int i = 0; i < numRows; ++i)
@@ -274,7 +264,9 @@ wofstream &Archive::getOutArchive() const
 
 void Archive::allocNonMatches(const Archive &otherArchive, int &ret)
 {
-	if ((ret = compareArchives(otherArchive, true)) > 0) //Single = is intentional
+	ret = compareArchives(otherArchive, true);
+
+	if (ret > 0)
 	{
 		if (nonMatches != nullptr)
 		{
@@ -289,26 +281,27 @@ void Archive::allocNonMatches(const Archive &otherArchive, int &ret)
 
 void Archive::useCsv()
 {
-	wstring *headers[2] = { rowHeaders, columnHeaders };
-	const int sliceSize[2] = { numRows, numColumns };
+
 	const bool sliceIsRow[2] = { false, true };
 	const int numSlice[2] = { 1, 1 };
+	const int sliceSize[2] = { numRows, numColumns };
+	wstring *headers[2] = { rowHeaders, columnHeaders };
 
 	for (int i = 0; i < 2; ++i)
 	{
 		if (textFileOps->fetchDelimitedSlice(getInArchive(), csvName, headers[i], sliceSize[i], sliceIsRow[i], 2, L',',
-			numSlice[i]) != sliceSize[i])
+			numSlice[i]) != sliceSize[i]) //Fill rowHeaders and columnHeaders based on slices from the CSV file
 		{
 			bSuccessUseCsv = false;
 			break;
 		}
 	}
 
-	for (int i = 0; i < numRows; ++i)
+	for (int i = 0; i < numRows; ++i) //Fill data array row-by-row from the CSV file
 		textFileOps->fetchDelimitedSlice(getInArchive(), csvName, data[i], numColumns, true, 2, L',', i + 2);
 }
 
-void Archive::writeArchiveFileRow(const wstring newRow[])
+void Archive::writeArchiveFileRow(const wstring newRow[]) const
 {
 	for (int j = 0; j < numColumns; ++j)
 		getOutArchive() << L',' << newRow[j];
