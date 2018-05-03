@@ -172,8 +172,11 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 
 			DeleteFileW(absolutePath.c_str());
 
-			if (success == -1)
+			if (success == -1 || GetLastError() == ERROR_NO_MORE_FILES)
+			{
+				success = 0; //Return as unsuccessful if data array is not fully filled after parsing all model files
 				break;
+			}
 
 			FindNextFileW(hFind, &FindFileData); //Fetch next model file name
 		}

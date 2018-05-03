@@ -98,6 +98,13 @@ bool bUserMenu(int &menuOption);
 int main()
 {
 	int menuOption = 1;
+	wchar_t startWchar;
+
+	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
+	wcout << L"Hit enter to begin... ";
+	bTakeOnlyOneWchar(startWchar);
+	wcout << endl << endl << L"If CS:GO is found, a helper program called Crowbar will run automatically.\n";
+	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
 	
 	do
 	{
@@ -240,7 +247,7 @@ void compAndUpdate(Data &csvData, Data &newData)
 	csvData.sir.compareArchives(*static_cast<Archive *>(&newData.sir));
 
 	if (csvData.bbox.getNumNonMatches() == 0 && csvData.sir.getNumNonMatches() == 0)
-		wcout << L" No discrepancies detected.\n\n";
+		wcout << L" No discrepancies detected.\n";
 	else
 	{
 		wcout << endl;
@@ -259,15 +266,15 @@ void listNonMatches(const Archive &archive)
 
 		for (int i = 0; i < archive.getNumNonMatches(); ++i)
 		{
-			wcout << L"Nonmatching data for " << archive.getNonMatches()[i].otherRowHeader << L" "
-				<< archive.getNonMatches()[i].commonColumnHeader << endl;
+			wcout << endl << L"Nonmatching data for " << archive.getNonMatches()[i].otherRowHeader << L" ";
+			wcout << archive.getNonMatches()[i].commonColumnHeader << endl;
 
 			if (archive.getNonMatches()[i].datum.empty())
 				wcout << L"** New data--not matched in archive file **\n";
 			else
 				wcout << L"Value from archive file: " << archive.getNonMatches()[i].datum << endl;
 
-			wcout << L"Value from CS:GO's game files: " << archive.getNonMatches()[i].otherDatum << endl << endl;
+			wcout << L"Value from CS:GO's game files: " << archive.getNonMatches()[i].otherDatum << endl;
 		}
 	}
 }
@@ -278,7 +285,7 @@ void updatePrompt(Data &csvData, const Data &newData)
 
 	do
 	{
-		wcout << L"Would you like to update the archive file with the new game data?\n";
+		wcout << endl << L"Would you like to update the archive file with the new game data?\n";
 		wcout << L"Please enter 1 for yes, or 2 for no: ";
 
 		switch (menuOption = takeOnlyOneInt(2, L"12"))

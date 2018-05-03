@@ -40,5 +40,9 @@ private:
 	//Precondition: 
 	//Postcondition: 
 
+	void fetchWeaponSirData(const int i, wifstream &weapFile);
+	//Precondition: 
+	//Postcondition: 
+
 	AltMode altModes[6];
 };

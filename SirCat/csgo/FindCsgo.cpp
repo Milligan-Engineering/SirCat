@@ -24,7 +24,7 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 
 	if (ret == ERROR_SUCCESS) //Check registry for 64-bit Windows installation
 	{
-		data = static_cast<WCHAR *>(newDynamicArray());
+		data = newDynamicArray();
 		ret = RegQueryValueExW(hKey, L"InstallPath", NULL, NULL, reinterpret_cast<LPBYTE>(data), &cbData);
 		RegCloseKey(hKey);
 	}
