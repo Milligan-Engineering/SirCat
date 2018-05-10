@@ -4,17 +4,30 @@
 //Email Address: cjwilliams@my.milligan.edu
 //Assignment: Final Project Presentation
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: May 3, 2018
+//Last Changed: May 10, 2018
 
 #include "csgo\BboxData.h"
 #include "csgo\SirData.h"
 #include "csgo\Archive.h"
 #include "csgo\FindCsgo.h"
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <string>
 
 using namespace std;
+
+enum class Params { ALL, MODEL_INDEX, WEAPON_INDEX, STANCE, TAP_TYPE, DISTANCE }; //Constants to make pickCalcParams clearer
+
+struct CalcParams
+{
+	int modelIndex;
+	int weaponIndex;
+	int stance;
+	int moveSpeed;
+	int tapType;
+	double distance;
+};
 
 struct Data
 {
@@ -24,6 +37,7 @@ struct Data
 	Data() = default; //Call default constructors for Data's member objects when an instance of a Data struct is created
 	Data(wstring bboxCsvName, wstring sirCsvName) : bbox(bboxCsvName), sir(sirCsvName) {} //Call constructors that use CSV data
 	Data(Data &otherData) : bbox(otherData.bbox), sir(otherData.sir) {} //Call psuedo-copy constructors
+	~Data() = default;
 };
 
 void hitEnterToExit();
@@ -56,6 +70,7 @@ void listNonMatches(const Archive &archive);
 
 void updatePrompt(Data &csvData, const Data &newData);
 //Precondition: csvData and newData are modifiable and populated with game data.
+	//The console is ready to display a message then receive user input.
 //Postcondition: Option given to update the CSV file with fresh game data; newData's data is copied into csvData if input is 1.
 
 int takeOnlyOneInt(const int numValidChars, const wchar_t validChars[]);
@@ -65,6 +80,10 @@ int takeOnlyOneInt(const int numValidChars, const wchar_t validChars[]);
 int wcharDigitToInt(const wchar_t wcharDigit);
 //Precondition: wcharDigit is a digit (0-9).
 //Postcondition: Converts wcharDigit to an integer and returns it.
+
+void pickCalcParams(CalcParams &calcParams, const Data &csvData, const Params whichParams = Params::ALL);
+//Precondition: 
+//Postcondition: 
 
 int pickModelSide(const BboxData &bbox);
 //Precondition: bbox is populated with game data and the console is ready to display a message then receive user input.
@@ -86,20 +105,23 @@ int pickWeapon(const SirData &sir);
 //Precondition: sir is populated with game data and the console is ready to display a message then receive user input.
 //Postcondition: To continue, user must pick a weapon, whose index in sir's data array will be returned.
 
-void calcIdealFreq();
+void calcIdealFreq(const CalcParams calcParams, const Data &csvData);
 //Precondition: 
 //Postcondition: 
 
-bool bUserMenu(int &menuOption);
-//Precondition: menuOption is modifiable.
+bool bUserMenu(int &menuOption, CalcParams &calcParams, const Data &csvData);
+//Precondition: menuOption and calcParams are modifiable and csvData is populated with game data.
+	//The console is ready to display a message then receive user input.
 //Postcondition: menuOption is updated according to user input in response to a program menu.
+	//calcParams is updated according to user inputs if the option is chosen by the user.
 	//Returns true if the program should continue or false if the program should exit.
 
 int main()
 {
+	CalcParams calcParams;
+	Data *csvData = nullptr;
 	int menuOption = 1;
 	wchar_t startWchar;
-	wchar_t distance = L'\0';
 
 	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
 	wcout << L"Hit enter to begin... ";
@@ -109,32 +131,35 @@ int main()
 	
 	do
 	{
-		Data csvData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
-
-		if (!csvData.bbox.getBSuccessUseCsv() || !csvData.sir.getBSuccessUseCsv())
-		{
-			wcout << L"Failed to correctly retrieve archived data.\n\n\n";
-			hitEnterToExit();
-		}
-
 		if (menuOption == 1) //Controlled by switch in bUserMenu for re-running the program
 		{
-			Data newData(csvData);
+			Data *newData = nullptr;
 
-			if (!bAttemptFindCsgo(csvData, newData))
+			if (csvData != nullptr)
+				delete csvData;
+
+			csvData = new Data(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
+
+			if (!csvData->bbox.getBSuccessUseCsv() || !csvData->sir.getBSuccessUseCsv())
+			{
+				delete csvData;
+				wcout << L"Failed to correctly retrieve archived data.\n\n\n";
+				hitEnterToExit();
+			}
+
+			newData = new Data(*csvData);
+
+			if (!bAttemptFindCsgo(*csvData, *newData))
 				wcout << L"Using hitbox and weapon data from archive file.\n\n";
 
-			pickModelSide(csvData.bbox);
-			pickWeapon(csvData.sir);
+			delete newData;
+			pickCalcParams(calcParams, *csvData);
 		}
 
-		wcout << endl << endl << L"Input distance from target in feet: ";
+		calcIdealFreq(calcParams, *csvData);
+	} while (bUserMenu(menuOption, calcParams, *csvData));
 
-		while (distance != L'\n')
-			wcin.get(distance);
-
-		calcIdealFreq();
-	} while (bUserMenu(menuOption));
+	delete csvData;
 
 	return 0;
 }
@@ -338,6 +363,24 @@ int wcharDigitToInt(const wchar_t wcharDigit)
 	return (static_cast<int>(wcharDigit) - static_cast<int>(L'0'));
 }
 
+void pickCalcParams(CalcParams &calcParams, const Data &csvData, const Params whichParams)
+{
+	if (whichParams == Params::ALL || whichParams == Params::MODEL_INDEX)
+		calcParams.modelIndex = pickModelSide(csvData.bbox);
+
+	if (whichParams == Params::ALL || whichParams == Params::WEAPON_INDEX)
+		calcParams.weaponIndex = pickWeapon(csvData.sir);
+
+	if (whichParams == Params::ALL || whichParams == Params::STANCE)
+		;
+
+	if (whichParams == Params::ALL || whichParams == Params::TAP_TYPE)
+		;
+
+	if (whichParams == Params::ALL || whichParams == Params::DISTANCE)
+		;
+}
+
 int pickModelSide(const BboxData &bbox)
 {
 	int modelIndex = -1;
@@ -525,21 +568,20 @@ int pickWeapon(const SirData &sir)
 	return weaponIndex;
 }
 
-void calcIdealFreq()
+void calcIdealFreq(const CalcParams calcParams, const Data &csvData)
 {
-	//******Amazing maths go here****** (I didn't have time to get to this, but I have the equations so it shouldn't take long)
-	wcout << endl << endl << L"Ideal tap-fire interval: 0.227108 seconds\n\n\n";
+	
 }
 
-bool bUserMenu(int &menuOption)
+bool bUserMenu(int &menuOption, CalcParams &calcParams, const Data &csvData)
 {
 	bool bContinue = true;
 
 	do
 	{
 		wcout << endl << endl;
-		wcout << L"1 - start over for a fresh calculation, starting from actual game data\n";
-		wcout << L"2 - pick distance for another calculation with the same hitbox and weapon data\n";
+		wcout << L"1 - start over for a fresh calculation from actual game data\n";
+		wcout << L"2 - modify existing selections and calculate again\n";
 		wcout << L"3 - exit the program\n";
 		wcout << L"Please enter a choice from the preceding menu options: ";
 
@@ -549,6 +591,31 @@ bool bUserMenu(int &menuOption)
 			wcout << endl << endl;
 			break;
 		case 2:
+			do
+			{
+				int subMenuOption = 0;
+
+				wcout << endl << endl;
+				wcout << L"1 - modify model selection\n";
+				wcout << L"2 - modify weapon selection\n";
+				wcout << L"3 - modify stance\n";
+				wcout << L"4 - modify tapping type\n";
+				wcout << L"5 - modify distance\n";
+				wcout << L"6 - no more modifications; perform the calculation\n";
+				wcout << L"Please enter a choice from the preceding menu options: ";
+				subMenuOption = takeOnlyOneInt(6, L"123456");
+
+				if (subMenuOption != 6)
+				{
+					if (subMenuOption != 0)
+						pickCalcParams(calcParams, csvData, static_cast<Params>(subMenuOption));
+					else
+						wcout << endl << endl << L"That is not a valid menu option.";
+				}
+				else
+					break;
+			} while (true);
+
 			break;
 		case 3:
 			wcout << endl;
