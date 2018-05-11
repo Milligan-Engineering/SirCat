@@ -1,5 +1,6 @@
 #include "SirData.h"
 #include "..\TextFileOps\TextFileOps.h"
+#include <cwctype>
 #include <fstream>
 #include <string>
 
@@ -25,7 +26,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	bool bSuccess = false;
 	wifstream weapFile;
 
-	weapFile.open(csgoDir + wstring(L"\\csgo\\scripts\\items\\items_game.txt"));
+	weapFile.open(csgoDir + L"\\csgo\\scripts\\items\\items_game.txt");
 
 	if (!weapFile.fail())
 	{
@@ -33,7 +34,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 			fetchWeaponSirData(i, weapFile);
 
 		weapFile.close(); //Close and reopen to start searching from the beginning
-		weapFile.open(csgoDir + wstring(L"\\csgo\\scripts\\items\\items_game.txt"));
+		weapFile.open(csgoDir + L"\\csgo\\scripts\\items\\items_game.txt");
 
 		if (!weapFile.fail())
 		{
@@ -77,30 +78,29 @@ void SirData::fetchWeaponSirData(const int i, wifstream &weapFile)
 	const int k_data_len = 10;
 	const int k_num_unparsed_attr = 70;
 
-	int unparsedAttr;
+	int unparsedAttrs;
 	wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
 	wchar_t searchResult[1][_MAX_PATH];
 	wchar_t unparsedData[k_num_unparsed_attr][_MAX_PATH];
-	wstring searchTerm = wstring(L"\"") + rowHeaders[i] + wstring(L"_prefab\"");
+	wstring searchTerm = wstring(L"\"") + rowHeaders[i] + L"_prefab\"";
 
 	textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1);
 	searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
-	unparsedAttr = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, _MAX_PATH, L"\t\"\0", 2, L'}');
+	unparsedAttrs = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, _MAX_PATH, L"\t\"\0", 2, L'}');
 
-	for (int j = 0; j < unparsedAttr; ++j) //Enumerate all returned unparsed attributes for each weapon
+	for (int j = 0; j < unparsedAttrs; ++j) //Enumerate all returned unparsed attributes for each weapon
 	{
-		bool bNumberInUnparsedData = false;
-
 		for (int k = 0; k < k_attr_len; ++k) //Enumerate characters for each returned unparsed attribute
 		{
-			if (iswdigit(static_cast<wint_t>(unparsedData[j][k])))
+			if (iswdigit(static_cast<wint_t>(unparsedData[j][k])) != 0) //Check for number digit in unparsed attribute characters
 			{
 				int l;
 
-				bNumberInUnparsedData = true;
-
-				for (l = 0; l < k_data_len && unparsedData[j][k + l] != L'\0'; ++l)
+				for (l = 0; l < k_data_len; ++l) //Add relevant remaining data from unpared attribute to parsed weapon data
 				{
+					if (unparsedData[j][k + l] == L'\0')
+						break;
+
 					parsedWeapData[j][l] = unparsedData[j][k + l];
 					unparsedData[j][k + l] = L'\0';
 				}
@@ -112,10 +112,9 @@ void SirData::fetchWeaponSirData(const int i, wifstream &weapFile)
 					unparsedData[j][k + l] = L'\0'; //Change trailing chars to null chars, leaving parsed attribute names
 					++l;
 				}
-			}
 
-			if (bNumberInUnparsedData)
-				break; //Stop enumerating characters for unparsed attribute if number digit was found
+				break; //Stop enumerating characters for unparsed attribute since number digit was found
+			}
 		}
 
 		for (int m = 0; m < numColumns; ++m) //unparsedData now is parsed attribute names, so compare to stored ones

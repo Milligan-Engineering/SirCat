@@ -17,21 +17,20 @@ int TextFileOps::fetchDelimitedSlice(wifstream &delimitedFile, const wstring fil
 		//Begin parsing characters for the slice elements to fill the slice in parsedSlice
 		for (int i = 0; i < targetNumElements && i < maxElements; i++) //&& gives consistent behavior for blank end lines
 		{
-			int j;
+			int j = 0;
 			wchar_t character;
 			wchar_t parsedElement[_MAX_PATH];
 
 			if (!bSliceIsRow) //Skip to desired column only when parsing a column
 				bSkipToColumnNum(delimitedFile, character, delimiter, numSlice);
 
-			for (j = 0; j < _MAX_PATH && !delimitedFile.eof(); ++j)
-			{
-				delimitedFile.get(character);
+			delimitedFile.get(character);
 
-				if (character == delimiter || character == L'\n') //Store element characters until delimiter
-					break;
-				else
-					parsedElement[j] = character;
+			while (j < _MAX_PATH && !delimitedFile.eof() && character != delimiter && character != L'\n')
+			{
+				parsedElement[j] = character; //Store element characters until delimiter
+				delimitedFile.get(character);
+				++j;
 			}
 
 			parsedElement[j] = L'\0'; //Add terminal null character to character array
@@ -61,9 +60,9 @@ int TextFileOps::fetchNumColumns(wifstream &delimitedFile, const wstring filenam
 
 		skipToRowNum(delimitedFile, character, numRow);
 
-		if (!delimitedFile.eof()) //Function returns 0 if end of file is reached before the row requested to enumerate columns
+		if (!delimitedFile.eof()) //Increment number of columns each time a delimiter is read until new line or end of file
 		{
-			++numColumns; //Increment number of columns each time a delimiter is read until new line or end of file
+			++numColumns;
 			delimitedFile.get(character);
 
 			while (!delimitedFile.eof() && character != L'\n')
@@ -90,23 +89,17 @@ int TextFileOps::fetchNumRows(wifstream &delimitedFile, const wstring filename,
 
 	if (!delimitedFile.fail())
 	{
-		while (!delimitedFile.eof())
+		wchar_t character;
+
+		while (!bSkipToColumnNum(delimitedFile, character, delimiter, numColumn) && !delimitedFile.eof())
 		{
-			wchar_t character;
+			delimitedFile.get(character);
 
-			if (bSkipToColumnNum(delimitedFile, character, delimiter, numColumn))
-				break; //Column requested to enumerate rows for does not exist
+			if (character != L'\n') //Skip blank rows
+				++numRows; //Increment number of rows
 
-			if (!delimitedFile.eof()) //Increment number of rows and skip to next row
-			{
-				delimitedFile.get(character);
-
-				if (character != L'\n') //Skip blank rows
-					++numRows;
-
-				while (!delimitedFile.eof() && character != L'\n')
-					delimitedFile.get(character);
-			}
+			while (!delimitedFile.eof() && character != L'\n')
+				delimitedFile.get(character); //Skip to next row
 		}
 
 		delimitedFile.close();
@@ -117,7 +110,7 @@ int TextFileOps::fetchNumRows(wifstream &delimitedFile, const wstring filename,
 
 void TextFileOps::skipToRowNum(wifstream &delimitedFile, wchar_t &character, const int numRow) const
 {
-	for (int i = 1; i < numRow; ++i)
+	for (int currentRow = 1; currentRow < numRow; ++currentRow)
 	{
 		do
 		{
@@ -130,19 +123,19 @@ bool TextFileOps::bSkipToColumnNum(wifstream &delimitedFile, wchar_t &character,
 	const int numColumn) const
 {
 	bool bTooFewColumns = false;
+	int currentColumn = 1;
 
-	for (int i = 1; i < numColumn; ++i)
+	while (currentColumn < numColumn && bTooFewColumns == false)
 	{
-		do
+		do //Skip to next delimiter
 		{
 			delimitedFile.get(character);
 
 			if (character == L'\n')
-			{
 				bTooFewColumns = true;
-				break;
-			}
-		} while (!delimitedFile.eof() && character != delimiter);
+		} while (!delimitedFile.eof() && character != delimiter && bTooFewColumns == false);
+
+		++currentColumn;
 	}
 
 	return bTooFewColumns;
@@ -152,22 +145,21 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, 
 	const wchar_t ignoreChars[], const int numIgnoreChars, const wchar_t retChar) const
 {
 	int instancesFound = 0;
+	wchar_t character = L'\b'; //Backspace character is arbitrarily used to allow the comparison in the first while statement
 	wstring testString;
 
 	searchFile >> testString;
 
-	while (!searchFile.eof() && instancesFound < maxRes)
+	while (!searchFile.eof() && instancesFound < maxRes && character != retChar)
 	{
 		if (testString == searchTerm)
 		{
 			int i = 0;
-			wchar_t character;
 			wchar_t characterLast = L'\0';
 
 			searchFile.get(character);
 
-			//Fill search result entry until new-line, end of file, or return character
-			while (!searchFile.eof() && character != L'\n' && character != retChar)
+			while (!searchFile.eof() && character != L'\n' && character != retChar) //Fill search result entry
 			{
 				bool bIgnoreChar = false;
 
@@ -192,9 +184,6 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &searchFile, 
 
 			searchRes[instancesFound][i] = L'\0'; //Add terminal null character to character array
 			++instancesFound;
-
-			if (character == retChar)
-				break;
 		}
 		else
 			searchFile >> testString;

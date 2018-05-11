@@ -87,6 +87,22 @@ bool Archive::bWriteArchiveFile(const wstring csvName)
 	return bSuccess;
 }
 
+int Archive::fetchColumnIndex(const wstring columnHeader) const
+{
+	int columnIndex = -1;
+	int j = 0;
+
+	do
+	{
+		if (columnHeaders[j] == columnHeader)
+			columnIndex = j;
+		else
+			++j;
+	} while (columnIndex != j && j < numColumns);
+
+	return columnIndex;
+}
+
 int Archive::getNumColumns() const
 {
 	return numColumns;

@@ -48,7 +48,7 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 			data[cbData] = '\0';
 
 		steamDir = data;
-		testDir = steamDir + wstring(L"\\steamapps");
+		testDir = steamDir + L"\\steamapps";
 	}
 
 	if (data != nullptr)
@@ -59,10 +59,10 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 
 bool FindCsgo::bCheckCsgoInstall()
 {
-	bool bFoundCsgoInstall = false;
+	bool bFoundCsgo = false;
 	wifstream manifest;
 
-	manifest.open(testDir + wstring(L"\\appmanifest_730.acf"));
+	manifest.open(testDir + L"\\appmanifest_730.acf");
 
 	if (!manifest.fail())
 	{
@@ -73,8 +73,8 @@ bool FindCsgo::bCheckCsgoInstall()
 		{
 			DWORD nBufferLength;
 
-			testDir += wstring(L"\\common\\") + wstring(searchResult[0]);
-			nBufferLength = GetFullPathNameW((testDir + wstring(L"\\csgo.exe")).c_str(), 0, nullptr, NULL);
+			testDir += wstring(L"\\common\\") + searchResult[0];
+			nBufferLength = GetFullPathNameW((testDir + L"\\csgo.exe").c_str(), 0, nullptr, NULL);
 
 			if (nBufferLength != 0)
 			{
@@ -82,15 +82,15 @@ bool FindCsgo::bCheckCsgoInstall()
 
 				wmemcpy_s(lpBuffer, nBufferLength + 4, L"\\\\?\\", 4); //Prefix to permit extended-length path
 
-				if (GetFullPathNameW((testDir + wstring(L"\\csgo.exe")).c_str(), nBufferLength, lpBuffer + 4, NULL)
+				if (GetFullPathNameW((testDir + L"\\csgo.exe").c_str(), nBufferLength, lpBuffer + 4, NULL)
 					== nBufferLength - 1)
 				{
-					HANDLE csgo = CreateFileW((testDir + wstring(L"\\csgo.exe")).c_str(), GENERIC_READ,
+					HANDLE csgo = CreateFileW((testDir + L"\\csgo.exe").c_str(), GENERIC_READ,
 						FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); //Check for existence of CS:GO's exe
 
 					if (csgo != INVALID_HANDLE_VALUE && csgo != NULL || GetLastError() == ERROR_SHARING_VIOLATION)
 					{
-						bFoundCsgoInstall = true;
+						bFoundCsgo = true;
 						CloseHandle(csgo);
 					}
 				}
@@ -105,41 +105,41 @@ bool FindCsgo::bCheckCsgoInstall()
 		manifest.close();
 	}
 
-	return bFoundCsgoInstall;
+	return bFoundCsgo;
 }
 
 bool FindCsgo::bSearchSteamLibs()
 {
-	bool bFoundCsgoInstall = false;
+	bool bFoundCsgo = false;
 	wifstream libFile;
 
-	libFile.open(testDir + wstring(L"\\libraryfolders.vdf")); //File contains other user defined Steam libraries if they exist
+	libFile.open(testDir + L"\\libraryfolders.vdf"); //File contains other user defined Steam libraries if they exist
 
 	if (!libFile.fail())
 	{
-		for (int i = 1; i < 10; i++)
-		{
-			WCHAR searchResult[1][MAX_PATH];
-			WCHAR searchTerm[] = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
+		int i = 1;
 
-			if (textFileOps.parseTextFile(wstring(searchTerm), libFile, searchResult, 1, L"\t\"\0", 2) != 0)
+		while (i < 10 && !bFoundCsgo)
+		{
+			const wstring searchTerm = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
+			WCHAR searchResult[1][MAX_PATH];
+
+			if (textFileOps.parseTextFile(searchTerm, libFile, searchResult, 1, L"\t\"\0", 2) == 0)
+				break; //No other user-defined Steam libraries found to check for CS:GO
+			else
 			{
-				testDir = wstring(searchResult[0]) + wstring(L"\\steamapps");
+				testDir += wstring(searchResult[0]) + L"\\steamapps"; //Found user-defined Steam library to check for CS:GO
+				++i;
 
 				if (bCheckCsgoInstall())
-				{
-					bFoundCsgoInstall = true;
-					break;
-				}
+					bFoundCsgo = true;
 			}
-			else //No other user defined Steam libraries found
-				break;
 		}
 
 		libFile.close();
 	}
 
-	return bFoundCsgoInstall;
+	return bFoundCsgo;
 }
 
 wstring FindCsgo::getTestDir() const

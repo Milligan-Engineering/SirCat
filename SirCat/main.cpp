@@ -12,6 +12,7 @@
 #include "csgo\FindCsgo.h"
 #include <cmath>
 #include <cstdlib>
+#include <cwctype>
 #include <iostream>
 #include <string>
 
@@ -143,7 +144,6 @@ int main()
 			if (!csvData->bbox.getBSuccessUseCsv() || !csvData->sir.getBSuccessUseCsv())
 			{
 				delete csvData;
-				wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 				hitEnterToExit();
 			}
 
@@ -168,6 +168,7 @@ void hitEnterToExit()
 {
 	wchar_t exitWchar;
 
+	wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 	wcout << endl << L"Hit enter to exit: ";
 	bTakeOnlyOneWchar(exitWchar);
 	wcout << endl;
@@ -371,14 +372,48 @@ void pickCalcParams(CalcParams &calcParams, const Data &csvData, const Params wh
 	if (whichParams == Params::ALL || whichParams == Params::WEAPON_INDEX)
 		calcParams.weaponIndex = pickWeapon(csvData.sir);
 
-	if (whichParams == Params::ALL || whichParams == Params::STANCE)
-		;
+	//if (whichParams == Params::ALL || whichParams == Params::STANCE)
 
-	if (whichParams == Params::ALL || whichParams == Params::TAP_TYPE)
-		;
+	//if (whichParams == Params::ALL || whichParams == Params::TAP_TYPE)
 
 	if (whichParams == Params::ALL || whichParams == Params::DISTANCE)
-		;
+	{
+		wstring distance = L"not empty";
+
+		do
+		{
+			size_t decimalPos;
+
+			if (distance.empty())
+			{
+				wcout << endl << endl << L"That distance is not valid.";
+				wcout << endl << L"Requires 0.01 <= distance <= 300.00 and 2 or fewer decimal places.";
+			}
+
+			wcout << endl << endl << L"Input distance from target in feet (0.01-300.00): ";
+			getline(wcin, distance);
+
+			for (size_t i = 0; i < distance.length(); ++i)
+			{
+				if (iswdigit(static_cast<wint_t>(distance[i])) == 0 && distance[i] != L'.')
+				{
+					distance.clear(); //Non-number characters in input distance
+					break;
+				}
+			}
+
+			decimalPos = distance.find_first_of(L'.');
+
+			if (distance.length() == decimalPos + 1)
+				distance += L'0';
+
+			if ((distance.find_last_of(L'.') != decimalPos || distance.substr(decimalPos + 1).length() > 2)
+				&& decimalPos != distance.npos || stod(distance) < 0.01 || stod(distance) > 300.00)
+				distance.clear(); //Invalid number format for input distance
+		} while (distance.empty());
+
+		calcParams.distance = stod(distance) * 0.3048; //Convert to meters
+	}
 }
 
 int pickModelSide(const BboxData &bbox)
@@ -476,22 +511,22 @@ int pickModelVariant(const BboxData &bbox, const wstring baseModel)
 
 		wcout << endl << endl;
 
-		for (i = 0; i < bbox.getNumRows(); ++i)
+		for (i = 0; i < bbox.getNumRows(); ++i) //Find first baseModel variants
 		{
 			if (bbox.getRowHeader(i).substr(0, baseModel.length()) == baseModel)
 			{
-				for (numVariants = 0; numVariants < bbox.getNumRows() - i; /*intentionally blank*/)
+				numVariants = 0;
+
+				while(numVariants < bbox.getNumRows() - i)
 				{
-					if (bbox.getRowHeader(i + numVariants).substr(0, baseModel.length()) == baseModel)
-					{
-						wcout << ++numVariants << L" - " << bbox.getRowHeader(i + numVariants - 1) << endl; //Build variant menu
-						validChars += intDigitToWchar(numVariants);
-					}
-					else
-						break; //Exit loop when base model changes
+					if (bbox.getRowHeader(i + numVariants).substr(0, baseModel.length()) != baseModel)
+						break; //Exit loop if base model changes
+					
+					wcout << ++numVariants << L" - " << bbox.getRowHeader(i + numVariants - 1) << endl; //Build variant menu
+					validChars += intDigitToWchar(numVariants);
 				}
 
-				break;
+				break; //All baseModel variants found
 			}
 		}
 
@@ -570,7 +605,60 @@ int pickWeapon(const SirData &sir)
 
 void calcIdealFreq(const CalcParams calcParams, const Data &csvData)
 {
-	
+	enum Sir { CYCLE_TIME, INACCURACY, INACCURACY_FIRE, RECOVERY_TIME, SPREAD, NUM_STATS };
+
+	const double targetInaccuracy = stod(csvData.bbox.getDatum(calcParams.modelIndex, csvData.bbox.getNumColumns() - 1))
+		* 0.0254 / 0.001 / calcParams.distance; //Convert from Hammer units to meters then use effective range formula
+	const wchar_t *statStrings[Sir::NUM_STATS] = { L"cycletime", L"inaccuracy stand", L"inaccuracy fire",
+		L"recovery time stand", L"spread" };
+	double inaccuracy;
+	double newInaccuracy;
+	double sirStats[Sir::NUM_STATS];
+	double tapInterval;
+	int j[Sir::NUM_STATS];
+	////////////////////////////////////////////////////////
+	wcout << targetInaccuracy << endl; /////////////////////////////////////////////////
+
+	for (int stat = 0; stat < static_cast<int>(Sir::NUM_STATS); ++stat)
+	{
+		j[stat] = csvData.sir.fetchColumnIndex(wstring(statStrings[stat]));
+
+		if (j[stat] == -1)
+			hitEnterToExit();
+
+		sirStats[stat] = stod(csvData.sir.getDatum(calcParams.weaponIndex, j[stat]));
+	}
+
+	tapInterval = sirStats[Sir::CYCLE_TIME];
+
+	do
+	{
+		inaccuracy = sirStats[Sir::SPREAD] + sirStats[Sir::INACCURACY];
+		wcout << inaccuracy << endl; //////////////////////////////////////////////////////////
+		newInaccuracy = inaccuracy * pow(0.1, tapInterval / sirStats[Sir::RECOVERY_TIME]) + sirStats[Sir::INACCURACY_FIRE];
+		wcout << newInaccuracy << endl; //////////////////////////////////////////////////////////
+
+		if (newInaccuracy > targetInaccuracy && round(newInaccuracy * 10000) - round(inaccuracy * 10000) < 5)
+		{
+			wcout << endl << endl << L"Weapon is not accurate enough to have 100% tapping accuracy with current criteria.";
+			break;
+		}
+
+		do
+		{
+			inaccuracy = newInaccuracy;
+			newInaccuracy = inaccuracy * pow(0.1, tapInterval / sirStats[Sir::RECOVERY_TIME]) + sirStats[Sir::INACCURACY_FIRE];
+			wcout << newInaccuracy << endl; //////////////////////////////////////////////////////////
+		} while (newInaccuracy > inaccuracy); //newInaccuracy will eventually dip below old inaccuracy due to increasing decay
+
+		if (newInaccuracy <= targetInaccuracy)
+		{
+			wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds\n\n\n";
+			break;
+		}
+
+		tapInterval += 1.0 / 128.0; //Increment by one tick
+	} while (true);
 }
 
 bool bUserMenu(int &menuOption, CalcParams &calcParams, const Data &csvData)
@@ -605,15 +693,13 @@ bool bUserMenu(int &menuOption, CalcParams &calcParams, const Data &csvData)
 				wcout << L"Please enter a choice from the preceding menu options: ";
 				subMenuOption = takeOnlyOneInt(6, L"123456");
 
-				if (subMenuOption != 6)
-				{
-					if (subMenuOption != 0)
-						pickCalcParams(calcParams, csvData, static_cast<Params>(subMenuOption));
-					else
-						wcout << endl << endl << L"That is not a valid menu option.";
-				}
-				else
+				if (subMenuOption == 6)
 					break;
+				
+				if (subMenuOption != 0)
+					pickCalcParams(calcParams, csvData, static_cast<Params>(subMenuOption));
+				else
+					wcout << endl << endl << L"That is not a valid menu option.";
 			} while (true);
 
 			break;

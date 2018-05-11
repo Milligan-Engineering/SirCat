@@ -26,6 +26,10 @@ public:
 	//Precondition: 
 	//Postcondition: 
 
+	int fetchColumnIndex(const wstring columnHeader) const;
+	//Precondition: 
+	//Postcondition: 
+
 	int getNumColumns() const;
 	//Precondition: 
 	//Postcondition: 

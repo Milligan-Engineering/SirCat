@@ -162,23 +162,20 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 		while (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 			FindNextFileW(hFind, &FindFileData); //Skip the parent directory result
 
-		while (i < numRows)
+		while (i < numRows && success >= 0)
 		{
-			WCHAR *dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
-			wstring absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
+			const WCHAR *const dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
+			const wstring absolutePath = wstring(lpFileName) + FindFileData.cFileName;
 
 			if (wmemcmp(dotFileExt, L".qc", 3) == 0 && !bCleanLegacyDir) //Only parse model files with .qc extension
-				success = fetchModelBboxData(i, FindFileData);
+				success = fetchModelBboxData(i, FindFileData); //i is incremented in this function call
 
 			DeleteFileW(absolutePath.c_str());
 
-			if (success == -1 || GetLastError() == ERROR_NO_MORE_FILES)
-			{
-				success = 0; //Return as unsuccessful if data array is not fully filled after parsing all model files
-				break;
-			}
-
-			FindNextFileW(hFind, &FindFileData); //Fetch next model file name
+			if (GetLastError() == ERROR_NO_MORE_FILES)
+				success = -1; //Return as unsuccessful if data array is not fully filled after parsing all model files
+			else if (success != -1)
+				FindNextFileW(hFind, &FindFileData); //Fetch next model file name
 		}
 
 		while (GetLastError() != ERROR_NO_MORE_FILES) //Delete remaining files after last model file
@@ -186,7 +183,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 			wstring absolutePath;
 
 			FindNextFileW(hFind, &FindFileData);
-			absolutePath = wstring(lpFileName) + wstring(FindFileData.cFileName);
+			absolutePath = wstring(lpFileName) + FindFileData.cFileName;
 			DeleteFileW(absolutePath.c_str());
 		}
 
@@ -314,7 +311,7 @@ int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 	wstring searchTerm = L"$hbox"; //Search term to find the line that contains bbox data
 	wifstream modelFile;
 
-	modelFile.open(wstring(L".\\legacy\\") + wstring(FindFileData.cFileName));
+	modelFile.open(wstring(L".\\legacy\\") + FindFileData.cFileName);
 
 	if (modelFile.fail() || textFileOps->parseTextFile(searchTerm, modelFile, searchResult, 1) != 1)
 		success = -1; //Failed opening model file or it didn't contain the expected bbox data
@@ -322,8 +319,8 @@ int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 	{
 		for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
 		{
+			const int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 }; //Only collect bbox size data and not angles
 			int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
-			int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 }; //Only collect bbox size data and not angles
 			int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 			wstring bboxDatumBuilder;
 
@@ -336,10 +333,7 @@ int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 					bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum
 
 				++charPos;
-
-				if (spaceDelimitedElement > elementsToCopy[j] || searchResult[0][charPos] == L'\0')
-					break;
-			} while (true);
+			} while (spaceDelimitedElement <= elementsToCopy[j] && searchResult[0][charPos] != L'\0');
 
 			data[i][j] = bboxDatumBuilder; //Bbox datum is built, add it to bbox data array
 		}

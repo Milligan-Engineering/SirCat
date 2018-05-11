@@ -20,7 +20,7 @@ public:
 	int fetchNumColumns(wifstream &delimitedFile, const wstring filename,
 		const wchar_t delimiter = L',', const int numRow = 1) const;
 	//Precondition: 
-	//Postcondition: 
+	//Postcondition: Function returns 0 if end of file is reached before the row requested to enumerate columns.
 
 	int fetchNumRows(wifstream &delimitedFile, const wstring filename,
 		const wchar_t delimiter = L',', const int numColumn = 1) const;
