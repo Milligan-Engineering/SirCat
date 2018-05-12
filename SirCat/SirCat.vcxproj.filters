@@ -22,25 +22,52 @@
     <Filter Include="custom build step files\Crowbar">
       <UniqueIdentifier>{dad95088-ecb9-4ea3-bcda-48bca6bcb855}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{e433b3bb-c6f0-4723-ae9a-001ba9e76329}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo">
+      <UniqueIdentifier>{48aed1fa-f243-4cfd-b160-7c8265198cd5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo\sir">
+      <UniqueIdentifier>{7050a376-2288-4967-9357-682243862a7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo\bbox">
+      <UniqueIdentifier>{6ab3579c-57c2-485e-8de9-7132b3ddcfcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo">
+      <UniqueIdentifier>{67b5c13a-70fa-407a-8c3d-cc377d7b8f92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{1dec4df9-54cf-4e99-bff2-2e797456e5da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\sir">
+      <UniqueIdentifier>{17b59cc2-836e-4d08-b982-68bfa0323f74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\bbox">
+      <UniqueIdentifier>{3e254057-8cf4-4b48-be05-ac9b09afd19d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextFileOps\TextFileOps.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="csgo\Archive.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\csgo</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\BboxData.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="csgo\bbox\BboxData.cpp">
+      <Filter>Source Files\csgo\bbox</Filter>
     </ClCompile>
     <ClCompile Include="csgo\FindCsgo.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\csgo</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\SirData.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="csgo\sir\SirData.cpp">
+      <Filter>Source Files\csgo\sir</Filter>
+    </ClCompile>
+    <ClCompile Include="util\TextFileOps.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\Calc.cpp">
+      <Filter>Source Files\csgo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,20 +88,23 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="csgo\Archive.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="util\TextFileOps.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\BboxData.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="csgo\Archive.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\bbox\BboxData.h">
+      <Filter>Header Files\csgo\bbox</Filter>
     </ClInclude>
     <ClInclude Include="csgo\FindCsgo.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\csgo</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\SirData.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="csgo\sir\SirData.h">
+      <Filter>Header Files\csgo\sir</Filter>
     </ClInclude>
-    <ClInclude Include="TextFileOps\TextFileOps.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="csgo\Calc.h">
+      <Filter>Header Files\csgo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

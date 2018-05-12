@@ -11,13 +11,20 @@
 #endif //WIN32_LEAN_AND_MEAN
 
 #include "BboxData.h"
-#include "..\TextFileOps\TextFileOps.h"
+#include "..\..\util\TextFileOps.h"
+#include <cwchar>
 #include <fstream>
 #include <string>
-#include <wchar.h>
 #include <Windows.h>
+#include <PathCch.h>
 
-using namespace std;
+namespace sircat {
+namespace csgo {
+namespace bbox {
+
+using sircat::util::TextFileOps;
+using std::wifstream;
+using std::wstring;
 
 struct BboxData::WinInfo
 {
@@ -35,18 +42,19 @@ struct BboxData::ChildInfo
 bool BboxData::bUnpackModels(const wstring csgoDir) const
 {
 	bool bSuccess = false;
-	const WCHAR applicationName[] = L".\\HLExtract\\HLExtract.exe";
-	WCHAR *commandLine = new WCHAR[32910]; //Sufficiently large to accomodate max extended-length path and command line
+	constexpr int pathAndCmdLine = PATHCCH_MAX_CCH + 142; //Accomodate max extended-length path plus command line arguments
+	constexpr WCHAR applicationName[26] = L".\\HLExtract\\HLExtract.exe";
+	WCHAR *cmdLine = new WCHAR[pathAndCmdLine];
 
-	wmemcpy_s(commandLine, 32910, L"HLExtract.exe -p \"", 19);
-	wcscat_s(commandLine, 32910, csgoDir.c_str());
-	wcscat_s(commandLine, 32910, L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
+	wmemcpy_s(cmdLine, pathAndCmdLine, L"HLExtract.exe -p \"", 19);
+	wcscat_s(cmdLine, pathAndCmdLine, csgoDir.c_str());
+	wcscat_s(cmdLine, pathAndCmdLine, L"\\csgo\\pak01_dir.vpk\" -d \".\" -e \"root\\models\\player\\custom_player\\legacy\" -s");
 
-	if (bCreateProcess(applicationName, commandLine))
+	if (bCreateProcess(applicationName, cmdLine))
 		bSuccess = true;
 
-	delete[] commandLine;
-	commandLine = nullptr;
+	delete[] cmdLine;
+	cmdLine = nullptr;
 
 	return bSuccess;
 }
@@ -54,9 +62,9 @@ bool BboxData::bUnpackModels(const wstring csgoDir) const
 bool BboxData::bDecompileModels() const
 {
 	bool bSuccess = false;
-	const WCHAR applicationName[] = L".\\Crowbar\\Crowbar.exe";
+	const WCHAR applicationName[22] = L".\\Crowbar\\Crowbar.exe";
 	PROCESS_INFORMATION pi;
-	WCHAR commandLine[] = L"Crowbar.exe";
+	WCHAR commandLine[12] = L"Crowbar.exe";
 
 	if (bCreateProcess(applicationName, commandLine, &pi, false))
 		bSuccess = bWaitForCrowbarWindow(pi);
@@ -117,7 +125,7 @@ bool BboxData::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocu
 			GetWindowRect(GetConsoleWindow(), &conRect);
 			GetWindowRect(winInfoHwnd, &croRect);
 			MoveWindow(winInfoHwnd, static_cast<int>(conRect.right), static_cast<int>(conRect.top), //Crowbar blocks the console
-				static_cast<int>(croRect.right - croRect.left),	static_cast<int>(croRect.bottom - croRect.top), TRUE);
+					   static_cast<int>(croRect.right - croRect.left), static_cast<int>(croRect.bottom - croRect.top), TRUE);
 			wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\"); //Subdirectoy of current working directory w/ HLExtract output
 			SetFocus(guiHwndFocus);
 			SendMessageW(guiHwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)); //Set 'MDL input:' to subdirectory
@@ -198,7 +206,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 }
 
 bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
-	PROCESS_INFORMATION *const pPi, bool bWaitForExit) const
+							  PROCESS_INFORMATION *const pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
 	PROCESS_INFORMATION pi;
@@ -242,7 +250,7 @@ BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 
 BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 {
-	BOOL bContinueEnum = TRUE;	
+	BOOL bContinueEnum = TRUE;
 	ChildInfo &childInfo = *reinterpret_cast<ChildInfo *>(lParam); //lParam cast to childInfo serves as input & output parameter
 	WCHAR buffer[MAX_PATH];
 
@@ -269,7 +277,7 @@ BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 				childInfo.childHwnd = hwnd; //Find the 'Decompile' button child window
 			}
 		}
-		
+
 		break;
 	default:
 		break;
@@ -279,7 +287,7 @@ BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 }
 
 void BboxData::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
-	WIN32_FIND_DATAW &FindFileData) const
+								 WIN32_FIND_DATAW &FindFileData) const
 {
 	if (nBufferLength != 0)
 	{
@@ -319,7 +327,7 @@ int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 	{
 		for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
 		{
-			const int elementsToCopy[] = { 2, 3, 4, 5, 6, 7, 11 }; //Only collect bbox size data and not angles
+			const int elementsToCopy[7] = { 2, 3, 4, 5, 6, 7, 11 }; //Only collect bbox size data and not angles
 			int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
 			int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 			wstring bboxDatumBuilder;
@@ -346,3 +354,7 @@ int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 
 	return success;
 }
+
+} //namespace bbox
+} //namespace csgo
+} //namespace sircat

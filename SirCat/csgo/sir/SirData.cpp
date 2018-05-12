@@ -1,25 +1,18 @@
 #include "SirData.h"
-#include "..\TextFileOps\TextFileOps.h"
+#include "..\..\util\TextFileOps.h"
 #include <cwctype>
 #include <fstream>
 #include <string>
+#include <stdlib.h>
 
-using namespace std;
+namespace sircat {
+namespace csgo {
+namespace sir {
 
-SirData::SirData()
-{
-	setAltModes();
-}
-
-SirData::SirData(const wstring csvName) : Archive(csvName)
-{
-	setAltModes();
-}
-
-SirData::SirData(const SirData &otherSirData) : Archive(otherSirData, nullptr)
-{
-	setAltModes();
-}
+using sircat::util::TextFileOps;
+using std::iswdigit;
+using std::wifstream;
+using std::wstring;
 
 bool SirData::bReadWeapFile(const wstring csgoDir)
 {
@@ -62,21 +55,11 @@ const SirData::AltMode *SirData::getAltModes() const
 	return altModes;
 }
 
-void SirData::setAltModes()
-{
-	altModes[0] = { L"weapon_aug", L"scoped" };
-	altModes[1] = { L"weapon_ssg556", L"scoped" };
-	altModes[2] = { L"weapon_g3sg1", L"scoped" };
-	altModes[3] = { L"weapon_scar20", L"scoped" };
-	altModes[4] = { L"weapon_m4a1_silencer", L"silencer-off" };
-	altModes[5] = { L"weapon_usp_silencer", L"silencer-off" };
-}
-
 void SirData::fetchWeaponSirData(const int i, wifstream &weapFile)
 {
-	const int k_attr_len = 30; //Constants relating to CS:GO game data in items_game.txt
-	const int k_data_len = 10;
-	const int k_num_unparsed_attr = 70;
+	constexpr int k_attr_len = 30; //Constants relating to CS:GO game data in items_game.txt
+	constexpr int k_data_len = 10;
+	constexpr int k_num_unparsed_attr = 70;
 
 	int unparsedAttrs;
 	wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
@@ -124,3 +107,7 @@ void SirData::fetchWeaponSirData(const int i, wifstream &weapFile)
 		}
 	}
 }
+
+} //namespace sir
+} //namespace csgo
+} //namespace sircat

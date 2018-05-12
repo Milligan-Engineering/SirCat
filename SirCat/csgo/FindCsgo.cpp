@@ -7,17 +7,23 @@
 #endif //WIN32_LEAN_AND_MEAN
 
 #include "FindCsgo.h"
-#include "..\TextFileOps\TextFileOps.h"
+#include "..\util\TextFileOps.h"
+#include <cwchar>
 #include <fstream>
 #include <string>
-#include <wchar.h>
 #include <Windows.h>
+#include <PathCch.h>
 
-using namespace std;
+namespace sircat {
+namespace csgo {
+
+using sircat::util::TextFileOps;
+using std::wifstream;
+using std::wstring;
 
 bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 {
-	DWORD cbData = sizeof(WCHAR) * 32767;
+	DWORD cbData = sizeof(WCHAR) * PATHCCH_MAX_CCH;
 	HKEY hKey = NULL;
 	WCHAR *data = nullptr;
 	LONG ret = RegOpenKeyExW(HKEY_LOCAL_MACHINE, L"SOFTWARE\\Wow6432Node\\Valve\\Steam", 0, KEY_QUERY_VALUE, &hKey);
@@ -82,11 +88,10 @@ bool FindCsgo::bCheckCsgoInstall()
 
 				wmemcpy_s(lpBuffer, nBufferLength + 4, L"\\\\?\\", 4); //Prefix to permit extended-length path
 
-				if (GetFullPathNameW((testDir + L"\\csgo.exe").c_str(), nBufferLength, lpBuffer + 4, NULL)
-					== nBufferLength - 1)
+				if (GetFullPathNameW((testDir + L"\\csgo.exe").c_str(), nBufferLength, lpBuffer + 4, NULL) == nBufferLength - 1)
 				{
-					HANDLE csgo = CreateFileW((testDir + L"\\csgo.exe").c_str(), GENERIC_READ,
-						FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); //Check for existence of CS:GO's exe
+					HANDLE csgo = CreateFileW((testDir + L"\\csgo.exe").c_str(), GENERIC_READ, FILE_SHARE_READ, NULL,
+											  OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL); //Check for existence of CS:GO's exe
 
 					if (csgo != INVALID_HANDLE_VALUE && csgo != NULL || GetLastError() == ERROR_SHARING_VIOLATION)
 					{
@@ -149,7 +154,7 @@ wstring FindCsgo::getTestDir() const
 
 wchar_t *const FindCsgo::newDynamicArray() const
 {
-	wchar_t *data = new wchar_t[32767];
+	wchar_t *data = new wchar_t[PATHCCH_MAX_CCH];
 
 	return data;
 }
@@ -159,3 +164,6 @@ void FindCsgo::deleteDynamicArray(wchar_t *&data) const
 	delete[] data;
 	data = nullptr;
 }
+
+} //namespace csgo
+} //namespace sircat

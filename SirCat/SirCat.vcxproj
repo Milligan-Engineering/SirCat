@@ -165,11 +165,12 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="csgo\Archive.cpp" />
-    <ClCompile Include="csgo\BboxData.cpp" />
+    <ClCompile Include="csgo\bbox\BboxData.cpp" />
+    <ClCompile Include="csgo\Calc.cpp" />
     <ClCompile Include="csgo\FindCsgo.cpp" />
-    <ClCompile Include="csgo\SirData.cpp" />
+    <ClCompile Include="csgo\sir\SirData.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="TextFileOps\TextFileOps.cpp" />
+    <ClCompile Include="util\TextFileOps.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\custom build step files\archiveBboxData.csv">
@@ -189,10 +190,11 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csgo\Archive.h" />
-    <ClInclude Include="csgo\BboxData.h" />
+    <ClInclude Include="csgo\bbox\BboxData.h" />
+    <ClInclude Include="csgo\Calc.h" />
     <ClInclude Include="csgo\FindCsgo.h" />
-    <ClInclude Include="csgo\SirData.h" />
-    <ClInclude Include="TextFileOps\TextFileOps.h" />
+    <ClInclude Include="csgo\sir\SirData.h" />
+    <ClInclude Include="util\TextFileOps.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml" />

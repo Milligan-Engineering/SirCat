@@ -1,9 +1,17 @@
 #include "Archive.h"
-#include "..\TextFileOps\TextFileOps.h"
+#include "..\util\TextFileOps.h"
 #include <fstream>
+#include <ostream>
 #include <string>
 
-using namespace std;
+namespace sircat {
+namespace csgo {
+
+using sircat::util::TextFileOps;
+using std::wifstream;
+using std::wofstream;
+using std::endl;
+using std::wstring;
 
 int Archive::compareArchives(const Archive &otherArchive, const bool bGetNonMatchSize)
 {
@@ -148,27 +156,19 @@ wstring Archive::getCsvName() const
 	return csvName;
 }
 
-Archive::Archive()
-{
-	//Default values for when the default constructor is not called by the other delegating constructor
-	numColumns = 0;
-	numRows = 0;
-	textFileOps = new TextFileOps;
-	columnHeaders = nullptr;
-	rowHeaders = nullptr;
-	data = nullptr;
-	inArchive = new wifstream;
-	outArchive = new wofstream;
-	bSuccessUseCsv = false;
-	numNonMatches = 0;
-	nonMatches = nullptr;
-	csvName = wstring();
-}
+Archive::Archive() : numColumns(0), numRows(0), textFileOps(new TextFileOps), columnHeaders(nullptr), rowHeaders(nullptr),
+					 data(nullptr), inArchive(new wifstream), outArchive(new wofstream), bSuccessUseCsv(false), numNonMatches(0),
+					 nonMatches(nullptr), csvName(std::wstring()) {}
 
 Archive::Archive(const wstring csvName) : Archive()
 {
-	numColumns = textFileOps->fetchNumColumns(getInArchive(), csvName) - 1;
-	numRows = textFileOps->fetchNumRows(getInArchive(), csvName) - 1;
+	TextFileOps::Params params;
+
+	params.delimitedFile = &getInArchive();
+	params.filename = csvName;
+	numColumns = textFileOps->fetchNumColumns(params) - 1;
+	numRows = textFileOps->fetchNumRows(params) - 1;
+
 	columnHeaders = new wstring[numColumns];
 	rowHeaders = new wstring[numRows];
 	data = new wstring*[numRows];
@@ -176,7 +176,7 @@ Archive::Archive(const wstring csvName) : Archive()
 	for (int i = 0; i < numRows; ++i)
 		data[i] = new wstring[numColumns];
 
-	bSuccessUseCsv = true; //Default to true because useCsv sets bSuccessUseCsv to false if there is an error
+	bSuccessUseCsv = true; //Defaults to true because useCsv sets bSuccessUseCsv to false if there is an error
 	Archive::csvName = csvName;
 	useCsv();
 }
@@ -227,7 +227,7 @@ Archive::~Archive()
 
 Archive &Archive::operator= (const Archive &otherArchive)
 {
-	if (this != &otherArchive) //Protect against invalid self-assignment
+	if (this != &otherArchive) //No self-assignment
 	{
 		numColumns = otherArchive.numColumns;
 		numRows = otherArchive.numRows;
@@ -297,24 +297,41 @@ void Archive::allocNonMatches(const Archive &otherArchive, int &ret)
 
 void Archive::useCsv()
 {
-
 	const bool sliceIsRow[2] = { false, true };
 	const int numSlice[2] = { 1, 1 };
 	const int sliceSize[2] = { numRows, numColumns };
 	wstring *headers[2] = { rowHeaders, columnHeaders };
+	TextFileOps::Params params;
+
+	params.delimitedFile = &getInArchive();
+	params.filename = csvName;
+	params.skipToElement = 2;
 
 	for (int i = 0; i < 2; ++i)
 	{
-		if (textFileOps->fetchDelimitedSlice(getInArchive(), csvName, headers[i], sliceSize[i], sliceIsRow[i], 2, L',',
-			numSlice[i]) != sliceSize[i]) //Fill rowHeaders and columnHeaders based on slices from the CSV file
+		params.parsedSlice = headers[i];
+		params.maxElements = sliceSize[i];
+		params.bSliceIsRow = sliceIsRow[i];
+		params.numSlice = numSlice[i];
+
+		if (textFileOps->fetchDelimitedSlice(params) != sliceSize[i]) //Fills rowHeaders and columnHeaders from CSV file slices
 		{
 			bSuccessUseCsv = false;
 			break;
 		}
 	}
 
-	for (int i = 0; i < numRows; ++i) //Fill data array row-by-row from the CSV file
-		textFileOps->fetchDelimitedSlice(getInArchive(), csvName, data[i], numColumns, true, 2, L',', i + 2);
+	if (bSuccessUseCsv)
+	{
+		for (int i = 0; i < numRows; ++i) //Fills data array row-by-row from the CSV file
+		{
+			params.parsedSlice = data[i];
+			params.maxElements = numColumns;
+			params.numSlice = i + 2;
+
+			textFileOps->fetchDelimitedSlice(params);
+		}
+	}
 }
 
 void Archive::writeArchiveFileRow(const wstring newRow[]) const
@@ -322,3 +339,6 @@ void Archive::writeArchiveFileRow(const wstring newRow[]) const
 	for (int j = 0; j < numColumns; ++j)
 		getOutArchive() << L',' << newRow[j];
 }
+
+} //namespace csgo
+} //namespace sircat
