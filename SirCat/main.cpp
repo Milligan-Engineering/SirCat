@@ -57,6 +57,8 @@ struct CsgoFresh
 	~CsgoFresh() = default;
 };
 
+void introDialogue();
+
 void hitEnterToExit();
 //Precondition: The console is ready to display a message then receive user input
 //Postcondition: After the user hits enter, the program will exit
@@ -129,6 +131,17 @@ bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoArchive &arc
 //Postcondition: menuOption is updated according to user input in response to a program menu
 	//calcParams is updated according to user inputs if the option is chosen by the user
 	//Returns true if the program should continue or false if the program should exit
+
+void introDialogue()
+{
+	wchar_t startWchar;
+
+	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
+	wcout << L"Hit enter to begin... ";
+	bTakeOnlyOneWchar(startWchar);
+	wcout << endl << endl << L"If CS:GO is found, a helper program called Crowbar will run automatically.\n";
+	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
+}
 
 void hitEnterToExit()
 {
@@ -573,7 +586,7 @@ void calcIdealFreq(const Calc::Params &calcParams, const CsgoArchive &archive)
 	double tapInterval = calculation.tapInterval(targetInaccuracy);
 
 	if (tapInterval == 0.0)
-		wcout << endl << endl << L"Weapon is not accurate enough to have 100% tapping accuracy with current criteria.";
+		wcout << endl << endl << L"Weapon is not accurate enough for 100% tapping accuracy with current criteria.";
 	else
 	{
 		double cycleTime = stod(archive.sirArchive.getDatum(calcParams.weaponIndex,
@@ -646,13 +659,7 @@ int main()
 {
 	using namespace sircat;
 
-	wchar_t startWchar;
-
-	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
-	wcout << L"Hit enter to begin... ";
-	bTakeOnlyOneWchar(startWchar);
-	wcout << endl << endl << L"If CS:GO is found, a helper program called Crowbar will run automatically.\n";
-	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
+	introDialogue();
 
 	Calc::Params calcParams;
 	CsgoArchive *archive = nullptr;

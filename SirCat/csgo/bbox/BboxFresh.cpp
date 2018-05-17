@@ -2,15 +2,8 @@
 	#define __STDC_WANT_LIB_EXT1__ 1
 #endif //__STDC_WANT_LIB_EXT1__
 
-#ifndef STRICT
-	#define STRICT 1
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN 1
-#endif //WIN32_LEAN_AND_MEAN
-
 #include "BboxFresh.h"
+#include "..\..\targetver.h"
 #include "..\..\util\TextFileOps.h"
 #include <cwchar>
 #include <fstream>

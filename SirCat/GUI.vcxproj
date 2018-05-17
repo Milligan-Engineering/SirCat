@@ -12,10 +12,10 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{169F0FF1-FF8E-4A92-8215-3D86E6C359C4}</ProjectGuid>
-    <RootNamespace>console</RootNamespace>
+    <ProjectGuid>{21057A78-4177-442C-BC19-8AA0F96A8ED9}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>GUI</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
-    <ProjectName>console</ProjectName>
   </PropertyGroup>
   <PropertyGroup>
     <IntDirSharingDetected>None</IntDirSharingDetected>
@@ -50,13 +50,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
-    <TargetExt>.com</TargetExt>
     <TargetName>$(SolutionName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <TargetExt>.com</TargetExt>
+    <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
     <TargetName>$(SolutionName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -64,19 +62,20 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <ObjectFileName>$(IntDir)$(ProjectName)\</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)$(ProjectName)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
     </ClCompile>
-    <CustomBuildStep>
-      <Command>echo off</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(IntDir)$(ProjectName)\$(TargetName).ilk</Outputs>
-      <Message>...</Message>
-    </CustomBuildStep>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName)$(TargetExt).pdb</ProgramDatabaseFile>
+      <LargeAddressAware>false</LargeAddressAware>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName)$(TargetExt).pdb</ProfileGuidedDatabase>
+    </Link>
     <PreBuildEvent>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
@@ -100,38 +99,31 @@ md %crowbar%
 md %crowbar%\Data
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
       <Message>Performing custom build step</Message>
     </PreBuildEvent>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <LargeAddressAware>false</LargeAddressAware>
-      <StackCommitSize>
-      </StackCommitSize>
-      <StackReserveSize>
-      </StackReserveSize>
-      <ProgramDatabaseFile>$(IntDir)$(TargetName)$(TargetExt).pdb</ProgramDatabaseFile>
-      <ProfileGuidedDatabase>$(IntDir)$(TargetName)$(TargetExt).pdb</ProfileGuidedDatabase>
-    </Link>
     <PreLinkEvent>
       <Command>set dstilk="$(SolutionDir)$(Configuration)\$(TargetName).ilk"
 set srcilk="$(IntDir)$(ProjectName)\$(TargetName).ilk"
 if exist %dstilk% del /f /q %dstilk%
 if exist %srcilk% copy /y /b %srcilk% %dstilk%
 if exist %srcilk% del /f /q %srcilk%</Command>
-    </PreLinkEvent>
-    <PreLinkEvent>
       <Message>Moving incremental status file to solution directory</Message>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Message>Moving incremental status file to intermediate directory</Message>
       <Command>set dstilk="$(IntDir)$(ProjectName)\$(TargetName).ilk"
 set srcilk="$(SolutionDir)$(Configuration)\$(TargetName).ilk"
 if exist %dstilk% del /f /q %dstilk%
 copy /y /b %srcilk% %dstilk%
 if exist %srcilk% del /f /q %srcilk%</Command>
+      <Message>Moving incremental status file to intermediate directory</Message>
     </PostBuildEvent>
+    <CustomBuildStep>
+      <Message>...</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(IntDir)$(ProjectName)\$(TargetName).ilk;%(Outputs)</Outputs>
+      <Command>echo off</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -140,37 +132,23 @@ if exist %srcilk% del /f /q %srcilk%</Command>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <CompileAsManaged>
-      </CompileAsManaged>
-      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
       <ObjectFileName>$(IntDir)$(ProjectName)\</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)$(ProjectName)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
+      <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
     </ClCompile>
     <Link>
-      <OptimizeReferences>true</OptimizeReferences>
-      <SubSystem>Console</SubSystem>
-      <LargeAddressAware>false</LargeAddressAware>
+      <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
-      <StackCommitSize>
-      </StackCommitSize>
-      <StackReserveSize>
-      </StackReserveSize>
+      <OptimizeReferences>true</OptimizeReferences>
       <ProgramDatabaseFile>$(IntDir)$(TargetName)$(TargetExt).pdb</ProgramDatabaseFile>
+      <LargeAddressAware>false</LargeAddressAware>
       <ProfileGuidedDatabase>$(IntDir)$(TargetName)$(TargetExt).pdb</ProfileGuidedDatabase>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
-    <CustomBuildStep>
-      <Command>echo off</Command>
-    </CustomBuildStep>
-    <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
-      <Message>...</Message>
-    </CustomBuildStep>
     <PreBuildEvent>
       <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
@@ -194,38 +172,18 @@ md %crowbar%
 md %crowbar%\Data
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%\Crowbar.exe
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
       <Message>Performing custom build step</Message>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Command>echo off</Command>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Message>...</Message>
+    </CustomBuildStep>
+    <CustomBuildStep>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="csgo\Archive.cpp" />
-    <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
-    <ClCompile Include="csgo\Calc.cpp" />
-    <ClCompile Include="csgo\FindCsgo.cpp" />
-    <ClCompile Include="csgo\GameData.cpp" />
-    <ClCompile Include="csgo\sir\SirArchive.cpp" />
-    <ClCompile Include="csgo\sir\SirFresh.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="util\TextFileOps.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\custom build step files\archiveBboxData.csv">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-      </DeploymentContent>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </ExcludedFromBuild>
-      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-      </DeploymentContent>
-    </None>
-    <None Include="..\custom build step files\archiveSirData.csv" />
-    <None Include="..\custom build step files\Crowbar\Crowbar.exe" />
-    <None Include="..\custom build step files\HLExtract\HLExtract.exe" />
-    <None Include="..\custom build step files\HLExtract\HLLib.dll" />
-  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csgo\Archive.h" />
     <ClInclude Include="csgo\bbox\BboxArchive.h" />
@@ -235,10 +193,26 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClInclude Include="csgo\GameData.h" />
     <ClInclude Include="csgo\sir\SirArchive.h" />
     <ClInclude Include="csgo\sir\SirFresh.h" />
+    <ClInclude Include="ui\gui\resource.h" />
+    <ClInclude Include="targetver.h" />
     <ClInclude Include="util\TextFileOps.h" />
   </ItemGroup>
   <ItemGroup>
-    <Xml Include="..\custom build step files\Crowbar\Data\Crowbar Settings.xml" />
+    <ClCompile Include="csgo\Archive.cpp" />
+    <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
+    <ClCompile Include="csgo\Calc.cpp" />
+    <ClCompile Include="csgo\FindCsgo.cpp" />
+    <ClCompile Include="csgo\GameData.cpp" />
+    <ClCompile Include="csgo\sir\SirArchive.cpp" />
+    <ClCompile Include="csgo\sir\SirFresh.cpp" />
+    <ClCompile Include="util\TextFileOps.cpp" />
+    <ClCompile Include="wWinMain.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ui\gui\gui.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="ui\gui\icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

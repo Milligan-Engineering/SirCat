@@ -97,18 +97,6 @@
     <ClInclude Include="util\TextFileOps.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\Archive.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
-    <ClInclude Include="csgo\FindCsgo.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
-    <ClInclude Include="csgo\Calc.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
-    <ClInclude Include="csgo\GameData.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
     <ClInclude Include="csgo\bbox\BboxFresh.h">
       <Filter>Header Files\csgo\bbox</Filter>
     </ClInclude>
@@ -120,6 +108,18 @@
     </ClInclude>
     <ClInclude Include="csgo\bbox\BboxArchive.h">
       <Filter>Header Files\csgo\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\Archive.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\Calc.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FindCsgo.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\GameData.h">
+      <Filter>Header Files\csgo</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
