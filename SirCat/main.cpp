@@ -44,6 +44,7 @@ struct CsgoArchive
 	CsgoArchive() = delete;
 	CsgoArchive(wstring bboxCsvName, wstring sirCsvName) : bboxArchive(bboxCsvName), sirArchive(sirCsvName) {}
 	~CsgoArchive() = default;
+	CsgoArchive &operator= (const CsgoArchive &otherCsgoArchive) = delete;
 };
 
 struct CsgoFresh
@@ -65,7 +66,7 @@ bool bTakeOnlyOneWchar(wchar_t &character);
 //Postcondition: Sets character to first character input from the user
 	//Returns true if the user input only one character before hitting enter, and false otherwise
 
-bool bAttemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh);
+void attemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh);
 //Postcondition: Attempts to locate an installation of CS:GO and if found, fresh is populated with game data
 	//archive and fresh are compared and option is given to update the CSV file
 	//Returns true if CS:GO is found and the game data is successfully parsed into fresh, and false otherwise
@@ -164,7 +165,7 @@ bool bTakeOnlyOneWchar(wchar_t &character)
 	return bValidInput;
 }
 
-bool bAttemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh)
+void attemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh)
 {
 	bool bFoundCsgo = false;
 	FindCsgo findCsgo;
@@ -192,7 +193,8 @@ bool bAttemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh)
 	else
 		wcout << L"Steam installation not found.\n";
 
-	return bFoundCsgo;
+	if (!bFoundCsgo)
+		wcout << L"Using hitbox and weapon data from archive file.\n\n";
 }
 
 bool bReadGameFiles(const wstring csgoDir, CsgoFresh &fresh)
@@ -674,10 +676,7 @@ int main()
 			}
 
 			fresh = new CsgoFresh(*archive);
-
-			if (!bAttemptFindCsgo(*archive, *fresh))
-				wcout << L"Using hitbox and weapon data from archive file.\n\n";
-
+			attemptFindCsgo(*archive, *fresh);
 			delete fresh;
 			pickCalcParams(calcParams, *archive);
 		}

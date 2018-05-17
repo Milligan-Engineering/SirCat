@@ -40,7 +40,10 @@ private:
 
 	double roundTimeToTick(const double time) const;
 
+	bool bHitPercentInDistribution() const;
+
 	const double tickrate;
+	const Params params;
 	double stats[Stats::NUM_STATS];
 };
 
