@@ -5,9 +5,12 @@
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
 //Last Changed: May 16, 2018
 
-#include "csgo\bbox\BboxData.h"
-#include "csgo\sir\SirData.h"
+#include "csgo\bbox\BboxArchive.h"
+#include "csgo\bbox\BboxFresh.h"
+#include "csgo\sir\SirArchive.h"
+#include "csgo\sir\SirFresh.h"
 #include "csgo\Archive.h"
+#include "csgo\GameData.h"
 #include "csgo\Calc.h"
 #include "csgo\FindCsgo.h"
 #include <cstdlib>
@@ -17,9 +20,12 @@
 
 namespace sircat {
 
-using csgo::bbox::BboxData;
-using csgo::sir::SirData;
+using csgo::bbox::BboxArchive;
+using csgo::bbox::BboxFresh;
+using csgo::sir::SirArchive;
+using csgo::sir::SirFresh;
 using csgo::Archive;
+using csgo::GameData;
 using csgo::Calc;
 using csgo::FindCsgo;
 using std::exit;
@@ -30,15 +36,24 @@ using std::wcout;
 using std::stod;
 using std::wstring;
 
-struct CsgoData
+struct CsgoArchive
 {
-	BboxData bboxData;
-	SirData sirData;
+	BboxArchive bboxArchive;
+	SirArchive sirArchive;
 
-	CsgoData() = default;
-	CsgoData(wstring bboxCsvName, wstring sirCsvName) : bboxData(bboxCsvName), sirData(sirCsvName) {}
-	CsgoData(CsgoData &otherData) : bboxData(otherData.bboxData), sirData(otherData.sirData) {} //Call psuedo-copy constructors
-	~CsgoData() = default;
+	CsgoArchive() = delete;
+	CsgoArchive(wstring bboxCsvName, wstring sirCsvName) : bboxArchive(bboxCsvName), sirArchive(sirCsvName) {}
+	~CsgoArchive() = default;
+};
+
+struct CsgoFresh
+{
+	BboxFresh bboxFresh;
+	SirFresh sirFresh;
+
+	CsgoFresh() = delete;
+	CsgoFresh(CsgoArchive &archive) : bboxFresh(archive.bboxArchive), sirFresh(archive.sirArchive) {}
+	~CsgoFresh() = default;
 };
 
 void hitEnterToExit();
@@ -50,29 +65,27 @@ bool bTakeOnlyOneWchar(wchar_t &character);
 //Postcondition: Sets character to first character input from the user
 	//Returns true if the user input only one character before hitting enter, and false otherwise
 
-bool bAttemptFindCsgo(CsgoData &csvData, CsgoData &newData);
-//Precondition: csvData and newData are modifiable, csvData is populated with game data, and newData can receive fresh data
-//Postcondition: Attempts to locate an installation of CS:GO on the users computer
-	//If found, newData is populated with game data, csvData and newData are compared and option is given to update the CSV file
-	//Returns true if CS:GO is found and the game data is successfully parsed into newData, and false otherwise
+bool bAttemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh);
+//Postcondition: Attempts to locate an installation of CS:GO and if found, fresh is populated with game data
+	//archive and fresh are compared and option is given to update the CSV file
+	//Returns true if CS:GO is found and the game data is successfully parsed into fresh, and false otherwise
 
-bool bReadGameFiles(const wstring csgoDir, CsgoData &newData);
-//Precondition: csgoDir is a directory containing a valid install of CS:GO; newData is modifiable and can receive fresh data
-//Postcondition: Invokes programs to unpack, decompile, and read game data into newData, giving feedback for success/failure
-	//Returns true if the game data is successfully parsed into newData, and false otherwise with accompanying error message
+bool bReadGameFiles(const wstring csgoDir, CsgoFresh &fresh);
+//Precondition: csgoDir is a directory containing a valid install of CS:GO; fresh is modifiable and can receive fresh data
+//Postcondition: Invokes programs to unpack, decompile, and read game data into fresh, giving feedback for success/failure
+	//Returns true if the game data is successfully parsed into fresh, and false otherwise with accompanying error message
 
-void compAndUpdate(CsgoData &csvData, CsgoData &newData);
-//Precondition: csvData and newData are modifiable and populated with game data
-//Postcondition: csvData and newData are compared, the results are displayed, and option is given to update the CSV file
+void compAndUpdate(CsgoArchive &archive, const CsgoFresh &fresh);
+//Precondition: archive and fresh are modifiable and populated with game data
+//Postcondition: archive and fresh are compared, the results are displayed, and option is given to update the CSV file
 
 void listNonMatches(const Archive &archive);
-//Precondition: archive is a properly casted polymorphic parent reference of a SirData or BboxData object
 //Postcondition: The non-matching data array from archive is parsed and non-matches are displayed
 
-void updatePrompt(CsgoData &csvData, const CsgoData &newData);
-//Precondition: csvData and newData are modifiable and populated with game data
+void updatePrompt(CsgoArchive &archive, const CsgoFresh &fresh);
+//Precondition: archive and fresh are modifiable and populated with game data
 	//The console is ready to display a message then receive user input
-//Postcondition: Option given to update the CSV file with fresh game data; newData's data is copied into csvData if input is 1
+//Postcondition: Option given to update the CSV file with fresh game data
 
 int takeOnlyOneInt(const int numValidChars, const wchar_t validChars[]);
 //Precondition: numValidChars is the size of validChars and the console is ready to receive user input
@@ -82,34 +95,35 @@ int wcharDigitToInt(const wchar_t wcharDigit);
 //Precondition: wcharDigit is a digit (0-9)
 //Postcondition: Converts wcharDigit to an integer and returns it
 
-void pickCalcParams(Calc::Params &calcParams, const CsgoData &csvData, const Calc::WhichParam whichParams = Calc::WhichParam::ALL);
+void pickCalcParams(Calc::Params &calcParams, const CsgoArchive &archive,
+					const Calc::WhichParam whichParams = Calc::WhichParam::ALL);
 
-int pickModelSide(const BboxData &bboxData);
-//Precondition: bboxData is populated with game data and the console is ready to display a message then receive user input
-//Postcondition: Loops until model side, base, and variant are selected and returns index of that model in bboxData's data array
+int pickModelSide(const BboxArchive &bboxArchive);
+//Precondition: bboxArchive is populated with game data and the console is ready to display a message then receive user input
+//Postcondition: Loops until model side, base, and variant are selected and returns index of that model
 
-int pickModelBase(const BboxData &bboxData, const wstring modelPrefix);
-//Precondition: bboxData is populated with game data and the console is ready to display a message then receive user input
-//Postcondition: Loops until model base and variant are selected and returns the index of that model in bboxData's data array
+int pickModelBase(const BboxArchive &bboxArchive, const wstring modelPrefix);
+//Precondition: bboxArchive is populated with game data and the console is ready to display a message then receive user input
+//Postcondition: Loops until model base and variant are selected and returns the index of that model
 
-int pickModelVariant(const BboxData &bboxData, const wstring baseModel);
-//Precondition: bboxData is populated with game data and the console is ready to display a message then receive user input
-//Postcondition: Loops until model variant is selected and returns the index of that model in bboxData's data array
+int pickModelVariant(const BboxArchive &bboxArchive, const wstring baseModel);
+//Precondition: bboxArchive is populated with game data and the console is ready to display a message then receive user input
+//Postcondition: Loops until model variant is selected and returns the index of that model
 
 wchar_t intDigitToWchar(const int intDigit);
 //Precondition: intDigit is a digit (0-9)
 //Postcondition: Converts intDigit to a character and returns it
 
-int pickWeapon(const SirData &sirData);
-//Precondition: sirData is populated with game data and the console is ready to display a message then receive user input
-//Postcondition: To continue, user must pick a weapon, whose index in sirData's data array will be returned
+int pickWeapon(const SirArchive &sirArchive);
+//Precondition: sirArchive is populated with game data and the console is ready to display a message then receive user input
+//Postcondition: To continue, user must pick a weapon, whose index will be returned
 
 double pickDistance();
 
-void calcIdealFreq(const Calc::Params &calcParams, const CsgoData &csvData);
+void calcIdealFreq(const Calc::Params &calcParams, const CsgoArchive &archive);
 
-bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvData);
-//Precondition: menuOption and calcParams are modifiable and csvData is populated with game data
+bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoArchive &archive);
+//Precondition: menuOption and calcParams are modifiable and archive is populated with game data
 	//The console is ready to display a message then receive user input
 //Postcondition: menuOption is updated according to user input in response to a program menu
 	//calcParams is updated according to user inputs if the option is chosen by the user
@@ -150,7 +164,7 @@ bool bTakeOnlyOneWchar(wchar_t &character)
 	return bValidInput;
 }
 
-bool bAttemptFindCsgo(CsgoData &csvData, CsgoData &newData)
+bool bAttemptFindCsgo(CsgoArchive &archive, CsgoFresh &fresh)
 {
 	bool bFoundCsgo = false;
 	FindCsgo findCsgo;
@@ -166,10 +180,10 @@ bool bAttemptFindCsgo(CsgoData &csvData, CsgoData &newData)
 			wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
 			wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
 
-			if (bReadGameFiles(findCsgo.getTestDir(), newData))
+			if (bReadGameFiles(findCsgo.getTestDir(), fresh))
 			{
 				bFoundCsgo = true;
-				compAndUpdate(csvData, newData);
+				compAndUpdate(archive, fresh);
 			}
 		}
 		else
@@ -181,25 +195,25 @@ bool bAttemptFindCsgo(CsgoData &csvData, CsgoData &newData)
 	return bFoundCsgo;
 }
 
-bool bReadGameFiles(const wstring csgoDir, CsgoData &newData)
+bool bReadGameFiles(const wstring csgoDir, CsgoFresh &fresh)
 {
 	bool bSuccess = false;
 
 	wcout << L"... Unpacking hitbox binaries from CS:GO VPK with HLExtract ...\n";
 
-	if (newData.bboxData.bUnpackModels(csgoDir))
+	if (fresh.bboxFresh.bUnpackModels(csgoDir))
 	{
 		wcout << L"... Decompiling hitbox binaries with Crowbar ...\n";
 
-		if (newData.bboxData.bDecompileModels())
+		if (fresh.bboxFresh.bDecompileModels())
 		{
 			wcout << L"... Reading decompiled hitbox files ...\n";
 
-			if (newData.bboxData.bReadModelFiles())
+			if (fresh.bboxFresh.bReadModelFiles())
 			{
 				wcout << L"... Reading weapon data from CS:GO items_game.txt ...\n";
 
-				if (newData.sirData.bReadWeapFile(csgoDir))
+				if (fresh.sirFresh.bReadWeapFile(csgoDir))
 					bSuccess = true;
 				else
 					wcout << endl << L"Reading weapon data from CS:GO items_game.txt failed ...\n";
@@ -209,7 +223,7 @@ bool bReadGameFiles(const wstring csgoDir, CsgoData &newData)
 		}
 		else
 		{
-			newData.bboxData.bReadModelFiles(true);
+			fresh.bboxFresh.bReadModelFiles(true);
 			wcout << endl << L"Decompiling hitbox binaries failed.\n";
 		}
 	}
@@ -219,23 +233,21 @@ bool bReadGameFiles(const wstring csgoDir, CsgoData &newData)
 	return bSuccess;
 }
 
-void compAndUpdate(CsgoData &csvData, CsgoData &newData)
+void compAndUpdate(CsgoArchive &archive, const CsgoFresh &fresh)
 {
 	wcout << L"... done.";
-	//Dereferences and references below allow use of dynamic_cast, which can only be used with pointers and references to classes
-	//dynamic_cast ensures the result of the type conversion points to a valid, complete object of the destination pointer type
-	csvData.bboxData.compareArchives(newData.bboxData);
-	csvData.sirData.compareArchives(newData.sirData);
+	archive.bboxArchive.compareGameData(fresh.bboxFresh);
+	archive.sirArchive.compareGameData(fresh.sirFresh);
 
-	if (csvData.bboxData.getNumNonMatches() == 0 && csvData.sirData.getNumNonMatches() == 0)
+	if (archive.bboxArchive.getNumNonMatches() == 0 && archive.sirArchive.getNumNonMatches() == 0)
 		wcout << L" No discrepancies detected.\n";
 	else
 	{
 		wcout << endl;
-		listNonMatches(csvData.bboxData);
-		listNonMatches(csvData.sirData);
+		listNonMatches(archive.bboxArchive);
+		listNonMatches(archive.sirArchive);
 
-		updatePrompt(csvData, newData);
+		updatePrompt(archive, fresh);
 	}
 }
 
@@ -260,7 +272,7 @@ void listNonMatches(const Archive &archive)
 	}
 }
 
-void updatePrompt(CsgoData &csvData, const CsgoData &newData)
+void updatePrompt(CsgoArchive &archive, const CsgoFresh &fresh)
 {
 	int menuOption = 0;
 
@@ -272,10 +284,10 @@ void updatePrompt(CsgoData &csvData, const CsgoData &newData)
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			csvData.bboxData = newData.bboxData; //Copy assignment operator in Archive safely copies over data in dynamic arrays
-			csvData.sirData = newData.sirData;
+			*dynamic_cast<GameData *>(&archive.bboxArchive) = fresh.bboxFresh;
+			*dynamic_cast<GameData *>(&archive.sirArchive) = fresh.sirFresh;
 
-			if (csvData.bboxData.bWriteArchiveFile() && csvData.sirData.bWriteArchiveFile())
+			if (archive.bboxArchive.bWriteArchiveFile() && archive.sirArchive.bWriteArchiveFile())
 				wcout << endl << endl << L"Archive files updated.";
 			else
 				wcout << endl << endl << L"Failed to update archive files.";
@@ -315,19 +327,20 @@ int wcharDigitToInt(const wchar_t wcharDigit)
 	return (static_cast<int>(wcharDigit) - static_cast<int>(L'0'));
 }
 
-void pickCalcParams(Calc::Params &calcParams, const CsgoData &csvData, const Calc::WhichParam whichParams)
+void pickCalcParams(Calc::Params &calcParams, const CsgoArchive &archive,
+					const Calc::WhichParam whichParams)
 {
 	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::MODEL_INDEX)
-		calcParams.modelIndex = pickModelSide(csvData.bboxData);
+		calcParams.modelIndex = pickModelSide(archive.bboxArchive);
 
 	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::WEAPON_INDEX)
-		calcParams.weaponIndex = pickWeapon(csvData.sirData);
+		calcParams.weaponIndex = pickWeapon(archive.sirArchive);
 
 	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::DISTANCE)
 		calcParams.distance = pickDistance();
 }
 
-int pickModelSide(const BboxData &bboxData)
+int pickModelSide(const BboxArchive &bboxArchive)
 {
 	int modelIndex = -1;
 	int menuOption = 0;
@@ -342,10 +355,10 @@ int pickModelSide(const BboxData &bboxData)
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			modelIndex = pickModelBase(bboxData, wstring(L"ct"));
+			modelIndex = pickModelBase(bboxArchive, wstring(L"ct"));
 			break;
 		case 2:
-			modelIndex = pickModelBase(bboxData, wstring(L"tm"));
+			modelIndex = pickModelBase(bboxArchive, wstring(L"tm"));
 			break;
 		default:
 			wcout << endl << endl << L"That is not a valid menu option.";
@@ -358,7 +371,7 @@ int pickModelSide(const BboxData &bboxData)
 	return modelIndex;
 }
 
-int pickModelBase(const BboxData &bboxData, const wstring modelPrefix)
+int pickModelBase(const BboxArchive &bboxArchive, const wstring modelPrefix)
 {
 	int modelIndex;
 	int menuOption;
@@ -373,17 +386,17 @@ int pickModelBase(const BboxData &bboxData, const wstring modelPrefix)
 		menuModels[0] = L" ";
 		wcout << endl << endl;
 
-		for (int i = 0; i < bboxData.getNumRows(); ++i)
+		for (int i = 0; i < bboxArchive.getNumRows(); ++i)
 		{
-			if (bboxData.getRowHeader(i).substr(0, menuModels[numBaseModels].length()) != menuModels[numBaseModels]
-				&& bboxData.getRowHeader(i).substr(0, 2) == modelPrefix) //List only CT or T models
+			if (bboxArchive.getRowHeader(i).substr(0, menuModels[numBaseModels].length()) != menuModels[numBaseModels]
+				&& bboxArchive.getRowHeader(i).substr(0, 2) == modelPrefix) //List only CT or T models
 			{
-				size_t lastUnderscore = bboxData.getRowHeader(i).find_last_of(L'_');
+				size_t lastUnderscore = bboxArchive.getRowHeader(i).find_last_of(L'_');
 
-				if (bboxData.getRowHeader(i).find_first_of(L'_') != lastUnderscore)
-					menuModels[++numBaseModels] = bboxData.getRowHeader(i).substr(0, lastUnderscore);
+				if (bboxArchive.getRowHeader(i).find_first_of(L'_') != lastUnderscore)
+					menuModels[++numBaseModels] = bboxArchive.getRowHeader(i).substr(0, lastUnderscore);
 				else
-					menuModels[++numBaseModels] = bboxData.getRowHeader(i);
+					menuModels[++numBaseModels] = bboxArchive.getRowHeader(i);
 
 				wcout << numBaseModels << L" - " << menuModels[numBaseModels] << endl; //Build model menu
 				validChars += intDigitToWchar(numBaseModels);
@@ -401,7 +414,7 @@ int pickModelBase(const BboxData &bboxData, const wstring modelPrefix)
 			modelIndex = -1; //Will restart team selection in pickModelSide
 		else
 		{
-			modelIndex = pickModelVariant(bboxData, menuModels[menuOption]);
+			modelIndex = pickModelVariant(bboxArchive, menuModels[menuOption]);
 
 			if (modelIndex == -1)
 				menuOption = 0;
@@ -411,7 +424,7 @@ int pickModelBase(const BboxData &bboxData, const wstring modelPrefix)
 	return modelIndex;
 }
 
-int pickModelVariant(const BboxData &bboxData, const wstring baseModel)
+int pickModelVariant(const BboxArchive &bboxArchive, const wstring baseModel)
 {
 	int modelIndex;
 	int i;
@@ -424,18 +437,18 @@ int pickModelVariant(const BboxData &bboxData, const wstring baseModel)
 
 		wcout << endl << endl;
 
-		for (i = 0; i < bboxData.getNumRows(); ++i) //Find first baseModel variants
+		for (i = 0; i < bboxArchive.getNumRows(); ++i) //Find first baseModel variants
 		{
-			if (bboxData.getRowHeader(i).substr(0, baseModel.length()) == baseModel)
+			if (bboxArchive.getRowHeader(i).substr(0, baseModel.length()) == baseModel)
 			{
 				numVariants = 0;
 
-				while (numVariants < bboxData.getNumRows() - i)
+				while (numVariants < bboxArchive.getNumRows() - i)
 				{
-					if (bboxData.getRowHeader(i + numVariants).substr(0, baseModel.length()) != baseModel)
+					if (bboxArchive.getRowHeader(i + numVariants).substr(0, baseModel.length()) != baseModel)
 						break; //Exit loop if base model changes
 
-					wcout << ++numVariants << L" - " << bboxData.getRowHeader(i + numVariants - 1) << endl; //Build variant menu
+					wcout << ++numVariants << L" - " << bboxArchive.getRowHeader(i + numVariants - 1) << endl; //Variant menu
 					validChars += intDigitToWchar(numVariants);
 				}
 
@@ -462,7 +475,7 @@ wchar_t intDigitToWchar(const int intDigit)
 	return static_cast<wchar_t>(intDigit + static_cast<int>(L'0'));
 }
 
-int pickWeapon(const SirData &sirData)
+int pickWeapon(const SirArchive &sirArchive)
 {
 	int weaponIndex = -1;
 	int i = 0;
@@ -478,14 +491,14 @@ int pickWeapon(const SirData &sirData)
 
 			wcout << endl << endl;
 
-			for (menuNumber = 1; menuNumber <= 8 && i < sirData.getNumRows(); ++menuNumber) //Lists weapons 8 at a time until
+			for (menuNumber = 1; menuNumber <= 8 && i < sirArchive.getNumRows(); ++menuNumber) //Lists weapons 8 at a time until
 			{
-				wcout << menuNumber << L" - " << sirData.getRowHeader(i) << endl; //Builds weapon menu
+				wcout << menuNumber << L" - " << sirArchive.getRowHeader(i) << endl; //Builds weapon menu
 				validChars += intDigitToWchar(menuNumber);
 				++i;
 			}
 
-			if (i != sirData.getNumRows()) //Option to display next set of weapons if unlisted ones remain
+			if (i != sirArchive.getNumRows()) //Option to display next set of weapons if unlisted ones remain
 			{
 				displayMoreNum = menuNumber;
 				validChars += intDigitToWchar(menuNumber);
@@ -550,24 +563,26 @@ double pickDistance()
 	return stod(distance) * 12.0; //Convert to inches
 }
 
-void calcIdealFreq(const Calc::Params &calcParams, const CsgoData &csvData)
+void calcIdealFreq(const Calc::Params &calcParams, const CsgoArchive &archive)
 {
-	Calc calculation(calcParams, csvData.sirData);
-	const double targetRadius = stod(csvData.bboxData.getDatum(calcParams.modelIndex, csvData.bboxData.getNumColumns() - 1));
-	double targetInaccuracy = targetRadius / (0.001 * calcParams.distance);
+	Calc calculation(calcParams, archive.sirArchive);
+	const double radius = stod(archive.bboxArchive.getDatum(calcParams.modelIndex, archive.bboxArchive.getNumColumns() - 1));
+	double targetInaccuracy = radius / (0.001 * calcParams.distance);
 	double tapInterval = calculation.tapInterval(targetInaccuracy);
 
 	if (tapInterval == 0.0)
 		wcout << endl << endl << L"Weapon is not accurate enough to have 100% tapping accuracy with current criteria.";
 	else
 	{
+		double cycleTime = stod(archive.sirArchive.getDatum(calcParams.weaponIndex,
+															archive.sirArchive.fetchColumnIndex(L"cycletime")));
+
 		wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds";
-		double cycleTime = stod(csvData.sirData.getDatum(calcParams.weaponIndex, csvData.sirData.fetchColumnIndex(L"cycletime")));
 		wcout << (tapInterval == cycleTime ? " (max firing speed)" : "") << endl << endl << endl;
 	}
 }
 
-bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvData)
+bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoArchive &archive)
 {
 	bool bContinue = true;
 
@@ -605,7 +620,7 @@ bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvDat
 					break;
 
 				if (subMenuOption != 0)
-					pickCalcParams(calcParams, csvData, static_cast<Calc::WhichParam>(subMenuOption));
+					pickCalcParams(calcParams, archive, static_cast<Calc::WhichParam>(subMenuOption));
 				else
 					wcout << endl << endl << L"That is not a valid menu option.";
 			} while (true);
@@ -638,39 +653,39 @@ int main()
 	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
 
 	Calc::Params calcParams;
-	CsgoData *csvData = nullptr;
+	CsgoArchive *archive = nullptr;
 	int menuOption = 1;
 
 	do
 	{
 		if (menuOption == 1) //Controlled by switch in bUserMenu for re-running the program
 		{
-			CsgoData *newData = nullptr;
+			CsgoFresh *fresh = nullptr;
 
-			if (csvData != nullptr)
-				delete csvData;
+			if (archive != nullptr)
+				delete archive;
 
-			csvData = new CsgoData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
+			archive = new CsgoArchive(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
 
-			if (!csvData->bboxData.getBSuccessUseCsv() || !csvData->sirData.getBSuccessUseCsv())
+			if (!archive->bboxArchive.getBSuccessUseCsv() || !archive->sirArchive.getBSuccessUseCsv())
 			{
-				delete csvData;
+				delete archive;
 				hitEnterToExit();
 			}
 
-			newData = new CsgoData(*csvData);
+			fresh = new CsgoFresh(*archive);
 
-			if (!bAttemptFindCsgo(*csvData, *newData))
+			if (!bAttemptFindCsgo(*archive, *fresh))
 				wcout << L"Using hitbox and weapon data from archive file.\n\n";
 
-			delete newData;
-			pickCalcParams(calcParams, *csvData);
+			delete fresh;
+			pickCalcParams(calcParams, *archive);
 		}
 
-		calcIdealFreq(calcParams, *csvData);
-	} while (bUserMenu(menuOption, calcParams, *csvData));
+		calcIdealFreq(calcParams, *archive);
+	} while (bUserMenu(menuOption, calcParams, *archive));
 
-	delete csvData;
+	delete archive;
 
 	return 0;
 }

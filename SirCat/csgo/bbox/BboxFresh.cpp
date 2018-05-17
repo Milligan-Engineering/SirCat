@@ -10,7 +10,7 @@
 	#define WIN32_LEAN_AND_MEAN 1
 #endif //WIN32_LEAN_AND_MEAN
 
-#include "BboxData.h"
+#include "BboxFresh.h"
 #include "..\..\util\TextFileOps.h"
 #include <cwchar>
 #include <fstream>
@@ -26,20 +26,20 @@ using sircat::util::TextFileOps;
 using std::wifstream;
 using std::wstring;
 
-struct BboxData::WinInfo
+struct BboxFresh::WinInfo
 {
 	DWORD dwProcessId;
 	DWORD dwThreadId;
 	HWND hwnd;
 };
 
-struct BboxData::ChildInfo
+struct BboxFresh::ChildInfo
 {
 	HWND childHwnd;
 	int swExpression;
 };
 
-bool BboxData::bUnpackModels(const wstring csgoDir) const
+bool BboxFresh::bUnpackModels(const wstring csgoDir) const
 {
 	bool bSuccess = false;
 	constexpr int pathAndCmdLine = PATHCCH_MAX_CCH + 142; //Accomodate max extended-length path plus command line arguments
@@ -59,7 +59,7 @@ bool BboxData::bUnpackModels(const wstring csgoDir) const
 	return bSuccess;
 }
 
-bool BboxData::bDecompileModels() const
+bool BboxFresh::bDecompileModels() const
 {
 	bool bSuccess = false;
 	const WCHAR applicationName[22] = L".\\Crowbar\\Crowbar.exe";
@@ -75,7 +75,7 @@ bool BboxData::bDecompileModels() const
 	return bSuccess;
 }
 
-bool BboxData::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
+bool BboxFresh::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
 {
 	bool bSuccess = false;
 	GUITHREADINFO gui;
@@ -107,7 +107,7 @@ bool BboxData::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
 	return bSuccess;
 }
 
-bool BboxData::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocus) const
+bool BboxFresh::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocus) const
 {
 	bool bSuccess = false;
 	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
@@ -152,7 +152,7 @@ bool BboxData::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocu
 	return bSuccess;
 }
 
-bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
+bool BboxFresh::bReadModelFiles(const bool bCleanLegacyDir)
 {
 	int success = 0;
 	HANDLE hFind;
@@ -205,7 +205,7 @@ bool BboxData::bReadModelFiles(const bool bCleanLegacyDir)
 	return (success > 0); //Return true only if successful (success > 0)
 }
 
-bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
+bool BboxFresh::bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
 							  PROCESS_INFORMATION *const pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
@@ -231,7 +231,7 @@ bool BboxData::bCreateProcess(const WCHAR *const applicationName, WCHAR *const c
 	return bSuccess;
 }
 
-BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
+BOOL BboxFresh::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
 	DWORD dwProcessId = 0;
@@ -248,7 +248,7 @@ BOOL BboxData::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 	return bContinueEnum;
 }
 
-BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
+BOOL BboxFresh::EnumChildProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
 	ChildInfo &childInfo = *reinterpret_cast<ChildInfo *>(lParam); //lParam cast to childInfo serves as input & output parameter
@@ -286,7 +286,7 @@ BOOL BboxData::EnumChildProc(HWND hwnd, LPARAM lParam)
 	return bContinueEnum;
 }
 
-void BboxData::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
+void BboxFresh::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
 								 WIN32_FIND_DATAW &FindFileData) const
 {
 	if (nBufferLength != 0)
@@ -312,7 +312,7 @@ void BboxData::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *
 		lpFileName[9] = L'\0'; //For non-extended-length path
 }
 
-int BboxData::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
+int BboxFresh::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 {
 	int success = 0;
 	WCHAR searchResult[1][MAX_PATH];

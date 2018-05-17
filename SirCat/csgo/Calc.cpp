@@ -1,19 +1,19 @@
 #include "Calc.h"
-#include "sir\SirData.h"
+#include "sir\SirArchive.h"
 #include <cmath>
 #include <string>
 
 namespace sircat {
 namespace csgo {
 
-using sir::SirData;
+using sir::SirArchive;
 using std::log10;
 using std::pow;
 using std::round;
 using std::stod;
 using std::wstring;
 
-Calc::Calc(const Params &params, const SirData &sirData) : tickrate(params.b64Tick ? 64.0 : 128.0)
+Calc::Calc(const Params &params, const SirArchive &sirArchive) : tickrate(params.b64Tick ? 64.0 : 128.0)
 {
 	wstring stance = wstring();
 	wstring statNames[Stats::NUM_STATS] = { L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",
@@ -37,7 +37,7 @@ Calc::Calc(const Params &params, const SirData &sirData) : tickrate(params.b64Ti
 	}
 
 	for (Stats::I i = Stats::CYCLETIME; i < Stats::NUM_STATS; i = static_cast<Stats::I>(i + 1))
-		stats[i] = stod(sirData.getDatum(params.weaponIndex, sirData.fetchColumnIndex(statNames[i])));
+		stats[i] = stod(sirArchive.getDatum(params.weaponIndex, sirArchive.fetchColumnIndex(statNames[i])));
 }
 
 double Calc::tapInterval(const double targetInaccuracy) const
@@ -74,7 +74,9 @@ double Calc::tapInterval(const double targetInaccuracy) const
 double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const
 {
 	double oldTotalDecayTime = totalDecayTime;
+
 	totalDecayTime += tapInterval;
+
 	double tickTapInterval = round((totalDecayTime) * tickrate) / tickrate - oldTotalDecayTime;
 
 	return inaccuracy * pow(0.1, tickTapInterval / stats[Stats::RECOVERY_TIME]) + stats[Stats::INACCURACY_FIRE];

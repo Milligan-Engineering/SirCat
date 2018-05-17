@@ -54,20 +54,26 @@
     <ClCompile Include="csgo\Archive.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\bbox\BboxData.cpp">
-      <Filter>Source Files\csgo\bbox</Filter>
-    </ClCompile>
     <ClCompile Include="csgo\FindCsgo.cpp">
       <Filter>Source Files\csgo</Filter>
-    </ClCompile>
-    <ClCompile Include="csgo\sir\SirData.cpp">
-      <Filter>Source Files\csgo\sir</Filter>
     </ClCompile>
     <ClCompile Include="util\TextFileOps.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="csgo\Calc.cpp">
       <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\GameData.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\bbox\BboxFresh.cpp">
+      <Filter>Source Files\csgo\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\sir\SirFresh.cpp">
+      <Filter>Source Files\csgo\sir</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\sir\SirArchive.cpp">
+      <Filter>Source Files\csgo\sir</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -94,17 +100,26 @@
     <ClInclude Include="csgo\Archive.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\bbox\BboxData.h">
-      <Filter>Header Files\csgo\bbox</Filter>
-    </ClInclude>
     <ClInclude Include="csgo\FindCsgo.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\sir\SirData.h">
-      <Filter>Header Files\csgo\sir</Filter>
-    </ClInclude>
     <ClInclude Include="csgo\Calc.h">
       <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\GameData.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\bbox\BboxFresh.h">
+      <Filter>Header Files\csgo\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\sir\SirFresh.h">
+      <Filter>Header Files\csgo\sir</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\sir\SirArchive.h">
+      <Filter>Header Files\csgo\sir</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\bbox\BboxArchive.h">
+      <Filter>Header Files\csgo\bbox</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

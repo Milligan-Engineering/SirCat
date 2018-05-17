@@ -1,4 +1,4 @@
-#include "SirData.h"
+#include "SirFresh.h"
 #include "..\..\util\TextFileOps.h"
 #include <cwctype>
 #include <fstream>
@@ -14,7 +14,7 @@ using std::iswdigit;
 using std::wifstream;
 using std::wstring;
 
-bool SirData::bReadWeapFile(const wstring csgoDir)
+bool SirFresh::bReadWeapFile(const wstring csgoDir)
 {
 	bool bSuccess = false;
 	wifstream weapFile;
@@ -50,12 +50,7 @@ bool SirData::bReadWeapFile(const wstring csgoDir)
 	return bSuccess;
 }
 
-const SirData::AltMode *SirData::getAltModes() const
-{
-	return altModes;
-}
-
-void SirData::fetchWeaponSirData(const int i, wifstream &weapFile)
+void SirFresh::fetchWeaponSirData(const int i, wifstream &weapFile)
 {
 	constexpr int k_attr_len = 30; //Constants relating to CS:GO game data in items_game.txt
 	constexpr int k_data_len = 10;
