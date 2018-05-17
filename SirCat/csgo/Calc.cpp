@@ -1,7 +1,6 @@
 #include "Calc.h"
 #include "sir\SirData.h"
 #include <cmath>
-#include <iostream> ///////////////////////////////////////////////////////////////////
 #include <string>
 
 namespace sircat {
@@ -50,15 +49,13 @@ double Calc::tapInterval(const double targetInaccuracy) const
 	do
 	{
 		double inaccuracy = stats[Stats::SPREAD] + stats[Stats::INACCURACY_STANCE];
-		std::wcout << inaccuracy << std::endl; //////////////////////////////////////////////////////////
 		double totalDecayTime = 0;
 		
-		for (int taps = 1; taps < Stats::PRIMARY_CLIP_SIZE; ++taps);
+		for (int taps = 1; taps < static_cast<int>(stats[Stats::PRIMARY_CLIP_SIZE]); ++taps)
 		{
 			newInaccuracy = calcNewInaccuracy(inaccuracy, tapInterval, totalDecayTime);
-			std::wcout << newInaccuracy << std::endl; //////////////////////////////////////////////////////////
 
-			if (newInaccuracy > inaccuracy) //newInaccuracy will usually dip below inaccuracy due to rounding to the nearest tick
+			if (newInaccuracy < inaccuracy) //newInaccuracy will usually dip below inaccuracy due to rounding to the nearest tick
 				break; //Inaccuracy has converged
 
 			inaccuracy = newInaccuracy;
@@ -76,8 +73,11 @@ double Calc::tapInterval(const double targetInaccuracy) const
 
 double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const
 {
-	totalDecayTime = round((tapInterval + totalDecayTime) * tickrate) / tickrate; //Calculates inaccuracy during the nearest tick
-	return inaccuracy * pow(0.1, tapInterval / stats[Stats::RECOVERY_TIME]) + stats[Stats::INACCURACY_FIRE];
+	double oldTotalDecayTime = totalDecayTime;
+	totalDecayTime += tapInterval;
+	double tickTapInterval = round((totalDecayTime) * tickrate) / tickrate - oldTotalDecayTime;
+
+	return inaccuracy * pow(0.1, tickTapInterval / stats[Stats::RECOVERY_TIME]) + stats[Stats::INACCURACY_FIRE];
 }
 
 } //namespace csgo

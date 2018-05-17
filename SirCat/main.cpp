@@ -3,7 +3,7 @@
 //Author: Casey Williams
 //Email Address: cjwilliams@my.milligan.edu
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: May 12, 2018
+//Last Changed: May 16, 2018
 
 #include "csgo\bbox\BboxData.h"
 #include "csgo\sir\SirData.h"
@@ -29,7 +29,6 @@ using std::wcin;
 using std::wcout;
 using std::stod;
 using std::wstring;
-Calc::Params params;
 
 struct CsgoData
 {
@@ -115,60 +114,6 @@ bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvDat
 //Postcondition: menuOption is updated according to user input in response to a program menu
 	//calcParams is updated according to user inputs if the option is chosen by the user
 	//Returns true if the program should continue or false if the program should exit
-
-} //namespace sircat
-
-int main()
-{
-	using namespace sircat;
-
-	wchar_t startWchar;
-
-	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
-	wcout << L"Hit enter to begin... ";
-	bTakeOnlyOneWchar(startWchar);
-	wcout << endl << endl << L"If CS:GO is found, a helper program called Crowbar will run automatically.\n";
-	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
-
-	Calc::Params calcParams;
-	CsgoData *csvData = nullptr;
-	int menuOption = 1;
-
-	do
-	{
-		if (menuOption == 1) //Controlled by switch in bUserMenu for re-running the program
-		{
-			CsgoData *newData = nullptr;
-
-			if (csvData != nullptr)
-				delete csvData;
-
-			csvData = new CsgoData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
-
-			if (!csvData->bboxData.getBSuccessUseCsv() || !csvData->sirData.getBSuccessUseCsv())
-			{
-				delete csvData;
-				hitEnterToExit();
-			}
-
-			newData = new CsgoData(*csvData);
-
-			if (!bAttemptFindCsgo(*csvData, *newData))
-				wcout << L"Using hitbox and weapon data from archive file.\n\n";
-
-			delete newData;
-			pickCalcParams(calcParams, *csvData);
-		}
-
-		calcIdealFreq(calcParams, *csvData);
-	} while (bUserMenu(menuOption, calcParams, *csvData));
-
-	delete csvData;
-
-	return 0;
-}
-
-namespace sircat {
 
 void hitEnterToExit()
 {
@@ -485,11 +430,11 @@ int pickModelVariant(const BboxData &bboxData, const wstring baseModel)
 			{
 				numVariants = 0;
 
-				while(numVariants < bboxData.getNumRows() - i)
+				while (numVariants < bboxData.getNumRows() - i)
 				{
 					if (bboxData.getRowHeader(i + numVariants).substr(0, baseModel.length()) != baseModel)
 						break; //Exit loop if base model changes
-					
+
 					wcout << ++numVariants << L" - " << bboxData.getRowHeader(i + numVariants - 1) << endl; //Build variant menu
 					validChars += intDigitToWchar(numVariants);
 				}
@@ -602,21 +547,24 @@ double pickDistance()
 		}
 	} while (distance.empty());
 
-	return stod(distance) * 0.3048; //Convert to meters
+	return stod(distance);
 }
 
 void calcIdealFreq(const Calc::Params &calcParams, const CsgoData &csvData)
 {
 	Calc calculation(calcParams, csvData.sirData);
 	const double targetRadius = stod(csvData.bboxData.getDatum(calcParams.modelIndex, csvData.bboxData.getNumColumns() - 1));
-	double targetInaccuracy = targetRadius / (0.001 * calcParams.distance);
-	wcout << targetInaccuracy << endl; /////////////////////////////////////////////////
+	double targetInaccuracy = targetRadius / (0.012 * calcParams.distance);
 	double tapInterval = calculation.tapInterval(targetInaccuracy);
 
 	if (tapInterval == 0.0)
 		wcout << endl << endl << L"Weapon is not accurate enough to have 100% tapping accuracy with current criteria.";
 	else
-		wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds\n\n\n";
+	{
+		wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds";
+		double cycleTime = stod(csvData.sirData.getDatum(calcParams.weaponIndex, csvData.sirData.fetchColumnIndex(L"cycletime")));
+		wcout << (tapInterval == cycleTime ? " (max firing speed)" : "") << endl << endl << endl;
+	}
 }
 
 bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvData)
@@ -645,15 +593,17 @@ bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvDat
 				wcout << L"1 - modify model selection\n";
 				wcout << L"2 - modify weapon selection\n";
 				wcout << L"3 - modify stance\n";
-				wcout << L"4 - modify tapping type\n";
-				wcout << L"5 - modify distance\n";
-				wcout << L"6 - no more modifications; perform the calculation\n";
+				wcout << L"4 - modify move speed\n";
+				wcout << L"5 - modify tapping accuracy\n";
+				wcout << L"6 - modify distance\n";
+				wcout << L"7 - modify tickrate\n";
+				wcout << L"8 - no more modifications; perform the calculation\n";
 				wcout << L"Please enter a choice from the preceding menu options: ";
-				subMenuOption = takeOnlyOneInt(6, L"123456");
+				subMenuOption = takeOnlyOneInt(8, L"12345678");
 
-				if (subMenuOption == 6)
+				if (subMenuOption == 8)
 					break;
-				
+
 				if (subMenuOption != 0)
 					pickCalcParams(calcParams, csvData, static_cast<Calc::WhichParam>(subMenuOption));
 				else
@@ -674,3 +624,53 @@ bool bUserMenu(int &menuOption, Calc::Params &calcParams, const CsgoData &csvDat
 }
 
 } //namespace sircat
+
+int main()
+{
+	using namespace sircat;
+
+	wchar_t startWchar;
+
+	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
+	wcout << L"Hit enter to begin... ";
+	bTakeOnlyOneWchar(startWchar);
+	wcout << endl << endl << L"If CS:GO is found, a helper program called Crowbar will run automatically.\n";
+	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
+
+	Calc::Params calcParams;
+	CsgoData *csvData = nullptr;
+	int menuOption = 1;
+
+	do
+	{
+		if (menuOption == 1) //Controlled by switch in bUserMenu for re-running the program
+		{
+			CsgoData *newData = nullptr;
+
+			if (csvData != nullptr)
+				delete csvData;
+
+			csvData = new CsgoData(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
+
+			if (!csvData->bboxData.getBSuccessUseCsv() || !csvData->sirData.getBSuccessUseCsv())
+			{
+				delete csvData;
+				hitEnterToExit();
+			}
+
+			newData = new CsgoData(*csvData);
+
+			if (!bAttemptFindCsgo(*csvData, *newData))
+				wcout << L"Using hitbox and weapon data from archive file.\n\n";
+
+			delete newData;
+			pickCalcParams(calcParams, *csvData);
+		}
+
+		calcIdealFreq(calcParams, *csvData);
+	} while (bUserMenu(menuOption, calcParams, *csvData));
+
+	delete csvData;
+
+	return 0;
+}

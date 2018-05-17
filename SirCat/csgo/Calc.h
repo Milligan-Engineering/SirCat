@@ -8,20 +8,20 @@ namespace sir { class SirData; }
 class Calc
 {
 public:
-	enum class WhichParam { ALL, MODEL_INDEX, WEAPON_INDEX, B_USE_ALT, B_CROUCH, MOVE_SPEED, HIT_PERCENT, DISTANCE, B_64_TICK };
+	enum class WhichParam { ALL, MODEL_INDEX, WEAPON_INDEX, B_CROUCH, MOVE_SPEED, HIT_PERCENT, DISTANCE, B_64_TICK, B_USE_ALT };
 
 	struct Params
 	{
 		int modelIndex;
 		int weaponIndex;
-		bool bUseAlt;
 		bool bCrouch;
 		int moveSpeed;
 		double hitPercent;
 		double distance;
 		bool b64Tick;
+		bool bUseAlt;
 
-		Params() : bUseAlt(false), bCrouch(false), moveSpeed(0), hitPercent(100.0), b64Tick(false) {}; //temp ////////////////////////////////////////////////
+		Params() : bCrouch(false), moveSpeed(0), hitPercent(100.0), b64Tick(false), bUseAlt(false) {}; //temp ////////////////////////////////////////////////
 	};
 
 	Calc() = delete;
