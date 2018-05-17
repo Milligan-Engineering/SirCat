@@ -43,7 +43,8 @@ Calc::Calc(const Params &params, const SirArchive &sirArchive) : tickrate(params
 double Calc::tapInterval(const double targetInaccuracy) const
 {
 	double tapInterval = stats[Stats::CYCLETIME];
-	double maxInterval = log10(1.090000 / 122.330001) * 0.811200 / log10(0.1); //deagle for now, make it change for according to each weapon///////////////////////////////////////////////////
+	//deagle for now, make it change for according to each weapon////////////////////////////////////////////////////////////////
+	double maxInterval = log10(1.090000 / 122.330001) * 0.811200 / log10(0.1); //////////////////////////////////////////////////
 	double newInaccuracy;
 
 	do

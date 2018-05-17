@@ -60,7 +60,7 @@ int TextFileOps::fetchNumColumns(Params &params, const int numRow) const
 	{
 		skipToRowNum(numRow, params);
 
-		if (!params.delimitedFile->eof()) //Increments number of columns each time delimiter is read until new line or end of file
+		if (!params.delimitedFile->eof()) //Increments number of columns each time delimiter read until new line or end of file
 		{
 			++numColumns;
 			params.delimitedFile->get(params.wchar);

@@ -21,7 +21,7 @@ public:
 		bool b64Tick;
 		bool bUseAlt;
 
-		Params() : bCrouch(false), moveSpeed(0), hitPercent(100.0), b64Tick(false), bUseAlt(false) {}; //temp ////////////////////////////////////////////////
+		Params() : bCrouch(false), moveSpeed(0), hitPercent(100.0), b64Tick(false), bUseAlt(false) {}; //temp////////////////////
 	};
 
 	Calc() = delete;
