@@ -50,6 +50,8 @@ GameData &GameData::operator= (const GameData &otherGameData)
 			for (int j = 0; j < numColumns; ++j)
 				data[i][j] = otherGameData.data[i][j];
 		}
+
+		deleteNonMatches();
 	}
 
 	return *this;
@@ -107,6 +109,17 @@ int GameData::compareGameData(const GameData &otherGameData, const bool bGetNonM
 	}
 
 	return ret;
+}
+
+void GameData::deleteNonMatches()
+{
+	if (nonMatches != nullptr)
+	{
+		delete[] nonMatches;
+		nonMatches = nullptr;
+	}
+
+	numNonMatches = 0;
 }
 
 bool GameData::bWriteCsvFile(const wstring csvName)
@@ -226,9 +239,7 @@ GameData::~GameData()
 	}
 
 	delete outCsv;
-
-	if (nonMatches != nullptr)
-		delete[] nonMatches;
+	deleteNonMatches();
 }
 
 void GameData::allocNonMatches(const GameData &otherGameData, int &ret)
@@ -237,12 +248,7 @@ void GameData::allocNonMatches(const GameData &otherGameData, int &ret)
 
 	if (ret > 0)
 	{
-		if (nonMatches != nullptr)
-		{
-			delete[] nonMatches;
-			nonMatches = nullptr;
-		}
-
+		deleteNonMatches();
 		nonMatches = new NonMatch[ret];
 		numNonMatches = ret;
 	}

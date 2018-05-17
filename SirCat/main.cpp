@@ -75,14 +75,14 @@ bool bReadGameFiles(const wstring csgoDir, CsgoFresh &fresh);
 //Postcondition: Invokes programs to unpack, decompile, and read game data into fresh, giving feedback for success/failure
 	//Returns true if the game data is successfully parsed into fresh, and false otherwise with accompanying error message
 
-void compAndUpdate(CsgoArchive &archive, CsgoFresh &fresh);
+void compAndUpdate(CsgoArchive &archive, const CsgoFresh &fresh);
 //Precondition: archive and fresh are modifiable and populated with game data
 //Postcondition: archive and fresh are compared, the results are displayed, and option is given to update the CSV file
 
 void listNonMatches(const Archive &archive);
 //Postcondition: The non-matching data array from archive is parsed and non-matches are displayed
 
-void updatePrompt(CsgoArchive &archive, CsgoFresh &fresh);
+void updatePrompt(CsgoArchive &archive, const CsgoFresh &fresh);
 //Precondition: archive and fresh are modifiable and populated with game data
 	//The console is ready to display a message then receive user input
 //Postcondition: Option given to update the CSV file with fresh game data
@@ -233,11 +233,9 @@ bool bReadGameFiles(const wstring csgoDir, CsgoFresh &fresh)
 	return bSuccess;
 }
 
-void compAndUpdate(CsgoArchive &archive, CsgoFresh &fresh)
+void compAndUpdate(CsgoArchive &archive, const CsgoFresh &fresh)
 {
 	wcout << L"... done.";
-	//Dereferences and references below allow use of dynamic_cast, which can only be used with pointers and references to classes
-	//dynamic_cast ensures the result of the type conversion points to a valid, complete object of the destination pointer type
 	archive.bboxArchive.compareGameData(fresh.bboxFresh);
 	archive.sirArchive.compareGameData(fresh.sirFresh);
 
@@ -274,7 +272,7 @@ void listNonMatches(const Archive &archive)
 	}
 }
 
-void updatePrompt(CsgoArchive &archive, CsgoFresh &fresh)
+void updatePrompt(CsgoArchive &archive, const CsgoFresh &fresh)
 {
 	int menuOption = 0;
 
@@ -286,8 +284,8 @@ void updatePrompt(CsgoArchive &archive, CsgoFresh &fresh)
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			*dynamic_cast<GameData *>(&archive.bboxArchive) = *dynamic_cast<GameData *>(&fresh.bboxFresh);
-			*dynamic_cast<GameData *>(&archive.sirArchive) = *dynamic_cast<GameData *>(&fresh.sirFresh);
+			*dynamic_cast<GameData *>(&archive.bboxArchive) = fresh.bboxFresh;
+			*dynamic_cast<GameData *>(&archive.sirArchive) = fresh.sirFresh;
 
 			if (archive.bboxArchive.bWriteArchiveFile() && archive.sirArchive.bWriteArchiveFile())
 				wcout << endl << endl << L"Archive files updated.";

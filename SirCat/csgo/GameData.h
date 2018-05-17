@@ -22,6 +22,8 @@ public:
 
 	int compareGameData(const GameData &otherGameData, const bool bGetNonMatchSize = false);
 
+	void deleteNonMatches();
+
 	bool bWriteCsvFile(const std::wstring csvName);
 
 	int fetchColumnIndex(const std::wstring columnHeader) const;
@@ -51,11 +53,11 @@ private:
 
 	void writeCsvFileRow(const std::wstring newRow[]) const;
 
-	std::wofstream &getOutCsv() const; //////////////////////////////////////////////////////
+	std::wofstream &getOutCsv() const;
 
 	int numNonMatches;
 	NonMatch *nonMatches;
-	std::wofstream *outCsv; //////////////////////////////////////////////////
+	std::wofstream *outCsv;
 };
 
 } //namespace csgo
