@@ -547,14 +547,14 @@ double pickDistance()
 		}
 	} while (distance.empty());
 
-	return stod(distance);
+	return stod(distance) * 12.0; //Convert to inches
 }
 
 void calcIdealFreq(const Calc::Params &calcParams, const CsgoData &csvData)
 {
 	Calc calculation(calcParams, csvData.sirData);
 	const double targetRadius = stod(csvData.bboxData.getDatum(calcParams.modelIndex, csvData.bboxData.getNumColumns() - 1));
-	double targetInaccuracy = targetRadius / (0.012 * calcParams.distance);
+	double targetInaccuracy = targetRadius / (0.001 * calcParams.distance);
 	double tapInterval = calculation.tapInterval(targetInaccuracy);
 
 	if (tapInterval == 0.0)
