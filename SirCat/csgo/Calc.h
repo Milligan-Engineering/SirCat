@@ -3,7 +3,7 @@
 namespace sircat {
 namespace csgo {
 
-namespace sir { class SirData; }
+namespace sir { class SirArchive; }
 
 class Calc
 {
@@ -25,7 +25,7 @@ public:
 	};
 
 	Calc() = delete;
-	Calc(const Params &params, const sir::SirData &sirData);
+	Calc(const Params &params, const sir::SirArchive &sirArchive);
 	~Calc() = default;
 
 	double tapInterval(const double targetInaccuracy) const;

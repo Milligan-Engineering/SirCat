@@ -7,7 +7,7 @@ namespace sircat {
 namespace csgo {
 namespace sir {
 
-class SirData : public Archive
+class SirArchive : public Archive
 {
 public:
 	struct AltMode
@@ -16,17 +16,12 @@ public:
 		const wchar_t *altModeName;
 	};
 
-	SirData() = default;
-	SirData(const std::wstring csvName) : Archive(csvName) {};
-	SirData(const SirData &otherSirData) : Archive(otherSirData, nullptr) {};
-	~SirData() = default;
-
-	bool bReadWeapFile(const std::wstring csgoDir);
+	SirArchive() = delete;
+	SirArchive(const std::wstring csvName) : Archive(csvName) {};
+	~SirArchive() = default;
 
 	const AltMode *getAltModes() const;
 private:
-	void fetchWeaponSirData(const int i, std::wifstream &weapFile);
-
 	AltMode altModes[6] =
 	{
 		{ L"weapon_aug", L"scoped" },

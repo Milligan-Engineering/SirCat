@@ -8,7 +8,8 @@
 	#define WIN32_LEAN_AND_MEAN 1
 #endif //WIN32_LEAN_AND_MEAN
 
-#include "..\Archive.h"
+#include "..\GameData.h"
+#include "BboxArchive.h"
 #include <string>
 #include <Windows.h>
 
@@ -16,13 +17,12 @@ namespace sircat {
 namespace csgo {
 namespace bbox {
 
-class BboxData : public Archive
+class BboxFresh : public GameData
 {
 public:
-	BboxData() = default;
-	BboxData(const std::wstring csvName) : Archive(csvName) {};
-	BboxData(const BboxData &otherBboxData) : Archive(otherBboxData, nullptr) {};
-	~BboxData() = default;
+	BboxFresh() = default;
+	BboxFresh(const BboxArchive &bboxArchive) : GameData(bboxArchive, nullptr) {};
+	~BboxFresh() = default;
 
 	bool bUnpackModels(const std::wstring csgoDir) const;
 	//Precondition: csgoDir is a directory containing a valid install of CS:GO; HLExtract files are in ./HLExtract directory
