@@ -38,6 +38,8 @@ private:
 
 	double calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const;
 
+	double roundTimeToTick(const double time) const;
+
 	const double tickrate;
 	double stats[Stats::NUM_STATS];
 };

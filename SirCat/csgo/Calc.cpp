@@ -45,26 +45,28 @@ double Calc::tapInterval(const double targetInaccuracy) const
 	double tapInterval = stats[Stats::CYCLETIME];
 	//deagle for now, make it change for according to each weapon////////////////////////////////////////////////////////////////
 	double maxInterval = log10(1.090000 / 122.330001) * 0.811200 / log10(0.1); //////////////////////////////////////////////////
-	double newInaccuracy;
+	double maxInaccuracy;
 
 	do
 	{
+		maxInaccuracy = 0.0;
+
 		double inaccuracy = stats[Stats::SPREAD] + stats[Stats::INACCURACY_STANCE];
 		double totalDecayTime = 0;
 		
 		for (int taps = 1; taps < static_cast<int>(stats[Stats::PRIMARY_CLIP_SIZE]); ++taps)
 		{
-			newInaccuracy = calcNewInaccuracy(inaccuracy, tapInterval, totalDecayTime);
+			double newInaccuracy = calcNewInaccuracy(inaccuracy, tapInterval, totalDecayTime);
 
-			if (newInaccuracy < inaccuracy) //newInaccuracy will usually dip below inaccuracy due to rounding to the nearest tick
-				break; //Inaccuracy has converged
+			if (newInaccuracy > maxInaccuracy)
+				maxInaccuracy = newInaccuracy;
 
 			inaccuracy = newInaccuracy;
 		}
 
-		if (newInaccuracy > targetInaccuracy)
-			tapInterval += 1.0 / tickrate;
-	} while (newInaccuracy > targetInaccuracy && tapInterval < maxInterval);
+		if (maxInaccuracy > targetInaccuracy)
+			tapInterval += 0.000001;
+	} while (maxInaccuracy > targetInaccuracy && tapInterval < maxInterval);
 
 	if (tapInterval >= maxInterval)
 		tapInterval = 0.0; //Indicates to the caller that the weapon is not accurate enough to meet the current criteria
@@ -78,9 +80,14 @@ double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval
 
 	totalDecayTime += tapInterval;
 
-	double tickTapInterval = round((totalDecayTime) * tickrate) / tickrate - oldTotalDecayTime;
+	double tickTapInterval = roundTimeToTick(totalDecayTime) - roundTimeToTick(oldTotalDecayTime);
 
 	return inaccuracy * pow(0.1, tickTapInterval / stats[Stats::RECOVERY_TIME]) + stats[Stats::INACCURACY_FIRE];
+}
+
+double Calc::roundTimeToTick(const double time) const
+{
+	return round(time * tickrate) / tickrate;
 }
 
 } //namespace csgo

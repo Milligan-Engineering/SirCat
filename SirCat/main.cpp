@@ -480,43 +480,43 @@ int pickWeapon(const SirArchive &sirArchive)
 	int weaponIndex = -1;
 	int i = 0;
 	int menuOption = 0;
+	int menuNumber;
 
 	do
 	{
+		wstring validChars;
+
+		menuNumber = 1;
+		wcout << endl << endl;
+
 		do
 		{
-			int displayMoreNum = 0;
-			int menuNumber;
-			wstring validChars;
+			wcout << menuNumber << L" - " << sirArchive.getRowHeader(i) << endl; //Builds weapon menu
+			validChars += intDigitToWchar(menuNumber);
+			++i;
+			++menuNumber;
+		} while (menuNumber <= 8 && i < sirArchive.getNumRows()); //Lists weapons 8 at a time until
 
-			wcout << endl << endl;
+		validChars += intDigitToWchar(menuNumber);
 
-			for (menuNumber = 1; menuNumber <= 8 && i < sirArchive.getNumRows(); ++menuNumber) //Lists weapons 8 at a time until
-			{
-				wcout << menuNumber << L" - " << sirArchive.getRowHeader(i) << endl; //Builds weapon menu
-				validChars += intDigitToWchar(menuNumber);
-				++i;
-			}
+		if (i != sirArchive.getNumRows())
+			wcout << menuNumber << L" - display more weapons\n"; //Option to display next set of weapons if unlisted ones remain
+		else
+			wcout << menuNumber << L" - go back to start of weapon list\n";
 
-			if (i != sirArchive.getNumRows()) //Option to display next set of weapons if unlisted ones remain
-			{
-				displayMoreNum = menuNumber;
-				validChars += intDigitToWchar(menuNumber);
-				wcout << menuNumber++ << L" - display more weapons\n";
-			}
+		wcout << L"Select a weapon to use, or display more weapons to choose from: ";
+		menuOption = takeOnlyOneInt(menuNumber, validChars.c_str());
 
-			wcout << L"Select a weapon to use, or display more weapons to choose from: ";
-			menuOption = takeOnlyOneInt(--menuNumber, validChars.c_str());
-
-			if (menuOption == 0)
-			{
-				wcout << endl << endl << L"That is not a valid menu option.";
-				i -= menuNumber; //Resets i to its value before this loop iteration
-			}
-			else if (menuOption != displayMoreNum)
-				weaponIndex = i - menuNumber + menuOption - (displayMoreNum == 0 ? 1 : 0);
-		} while (menuOption == 0); //Loops until a valid menu option is input
-	} while (weaponIndex == -1);
+		if (menuOption == 0)
+		{
+			wcout << endl << endl << L"That is not a valid menu option.";
+			i -= menuNumber - 1; //Resets i to its value before this loop iteration
+		}
+		else if (menuOption != menuNumber)
+			weaponIndex = i - menuNumber + menuOption;
+		else if (i == sirArchive.getNumRows())
+			i = 0; //Goes back to start of weapon list
+	} while (menuOption == 0 || menuOption == menuNumber);
 
 	return weaponIndex;
 }
