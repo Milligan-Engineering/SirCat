@@ -46,6 +46,18 @@
     <Filter Include="Source Files\csgo\bbox">
       <UniqueIdentifier>{3e254057-8cf4-4b48-be05-ac9b09afd19d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{7a3096a7-a547-43bb-912c-d5e3141611fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\console">
+      <UniqueIdentifier>{2d213300-6ebd-4e9b-bd7b-7526f1b0bde5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{1b474061-2cdd-4444-8a1c-522fca800a33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\console">
+      <UniqueIdentifier>{3037ff3e-9a9c-437d-950c-780b5f73cc37}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -72,8 +84,14 @@
     <ClCompile Include="csgo\sir\SirFresh.cpp">
       <Filter>Source Files\csgo\sir</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\sir\SirArchive.cpp">
-      <Filter>Source Files\csgo\sir</Filter>
+    <ClCompile Include="ui\console\ConsoleApp.cpp">
+      <Filter>Source Files\ui\console</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\ArchivePair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\FreshPair.cpp">
+      <Filter>Source Files\csgo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -120,6 +138,21 @@
     </ClInclude>
     <ClInclude Include="csgo\GameData.h">
       <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\DataPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\console\ConsoleApp.h">
+      <Filter>Header Files\ui\console</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\ArchivePair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FreshPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

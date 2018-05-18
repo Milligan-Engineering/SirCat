@@ -1,7 +1,7 @@
 #include "TextFileOps.h"
+#include <cstdlib>
 #include <fstream>
 #include <string>
-#include <stdlib.h>
 
 namespace sircat {
 namespace util {

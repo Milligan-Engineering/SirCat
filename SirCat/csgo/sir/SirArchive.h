@@ -18,9 +18,11 @@ public:
 
 	SirArchive() = delete;
 	SirArchive(const std::wstring csvName) : Archive(csvName) {};
+	SirArchive(const SirArchive &otherSirArchive) = delete;
 	~SirArchive() = default;
+	SirArchive &operator= (const SirArchive &otherSirArchive) = delete;
 
-	const AltMode *getAltModes() const;
+	const AltMode *getAltModes() const { return altModes; };
 private:
 	AltMode altModes[6] =
 	{

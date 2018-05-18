@@ -84,6 +84,9 @@
     <ClInclude Include="csgo\GameData.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
+    <ClInclude Include="csgo\DataPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wWinMain.cpp">
@@ -106,9 +109,6 @@
     </ClCompile>
     <ClCompile Include="csgo\bbox\BboxFresh.cpp">
       <Filter>Source Files\csgo\bbox</Filter>
-    </ClCompile>
-    <ClCompile Include="csgo\sir\SirArchive.cpp">
-      <Filter>Source Files\csgo\csgo</Filter>
     </ClCompile>
     <ClCompile Include="csgo\sir\SirFresh.cpp">
       <Filter>Source Files\csgo\csgo</Filter>

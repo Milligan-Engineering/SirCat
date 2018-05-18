@@ -13,9 +13,11 @@ namespace bbox {
 class BboxFresh : public GameData
 {
 public:
-	BboxFresh() = default;
+	BboxFresh() = delete;
 	BboxFresh(const BboxArchive &bboxArchive) : GameData(bboxArchive, nullptr) {};
+	BboxFresh(const BboxFresh &otherBboxFresh) = delete;
 	~BboxFresh() = default;
+	BboxFresh &operator= (const BboxFresh &otherBboxFresh) = delete;
 
 	bool bUnpackModels(const std::wstring csgoDir) const;
 	//Precondition: csgoDir is a directory containing a valid install of CS:GO; HLExtract files are in ./HLExtract directory
