@@ -12,6 +12,28 @@ using std::wofstream;
 using std::endl;
 using std::wstring;
 
+GameData::~GameData()
+{
+	delete textFileOps;
+
+	if (columnHeaders != nullptr)
+		delete[] columnHeaders;
+
+	if (rowHeaders != nullptr)
+		delete[] rowHeaders;
+
+	if (data != nullptr)
+	{
+		for (int i = 0; i < numRows; ++i)
+			delete[] data[i];
+
+		delete[] data;
+	}
+
+	delete outCsv;
+	deleteNonMatches();
+}
+
 GameData &GameData::operator= (const GameData &otherGameData)
 {
 	if (this != &otherGameData) //No self-assignment
@@ -198,8 +220,9 @@ const GameData::NonMatch *const GameData::getNonMatches() const
 	return nonMatches;
 }
 
-GameData::GameData() : numColumns(0), numRows(0), textFileOps(new TextFileOps), columnHeaders(nullptr), rowHeaders(nullptr),
-					   data(nullptr), outCsv(new wofstream), numNonMatches(0), nonMatches(nullptr) {}
+GameData::GameData() noexcept : numColumns(0), numRows(0), textFileOps(new TextFileOps), columnHeaders(nullptr),
+								rowHeaders(nullptr), data(nullptr), outCsv(new wofstream), numNonMatches(0), nonMatches(nullptr)
+{}
 
 GameData::GameData(const GameData &otherGameData, const void *const voidParam) : GameData()
 {
@@ -218,28 +241,6 @@ GameData::GameData(const GameData &otherGameData, const void *const voidParam) :
 		rowHeaders[i] = otherGameData.rowHeaders[i];
 		data[i] = new wstring[numColumns];
 	}
-}
-
-GameData::~GameData()
-{
-	delete textFileOps;
-
-	if (columnHeaders != nullptr)
-		delete[] columnHeaders;
-
-	if (rowHeaders != nullptr)
-		delete[] rowHeaders;
-
-	if (data != nullptr)
-	{
-		for (int i = 0; i < numRows; ++i)
-			delete[] data[i];
-
-		delete[] data;
-	}
-
-	delete outCsv;
-	deleteNonMatches();
 }
 
 void GameData::allocNonMatches(const GameData &otherGameData, int &ret)

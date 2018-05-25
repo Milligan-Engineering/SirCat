@@ -1,7 +1,7 @@
 #include "TextFileOps.h"
+#include <cstdlib>
 #include <fstream>
 #include <string>
-#include <stdlib.h>
 
 namespace sircat {
 namespace util {
@@ -137,7 +137,7 @@ bool TextFileOps::bSkipToColumnNum(const int numColumn, Params &params) const
 	return bTooFewColumns;
 }
 
-int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wchar_t searchRes[][_MAX_PATH], const int maxRes,
+int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wstring searchRes[], const int maxRes,
 							   const wchar_t ignoreChars[], const int numIgnoreChars, const wchar_t retChar) const
 {
 	int instancesFound = 0;
@@ -150,12 +150,12 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wchar_
 	{
 		if (testString == searchTerm)
 		{
-			int i = 0;
 			wchar_t characterLast = L'\0';
 
 			file.get(character);
 
-			while (!file.eof() && character != L'\n' && character != retChar) //Fill search result entry
+			while (!file.eof() && character != L'\n' && character != retChar
+				   && searchRes[instancesFound].size() < searchRes[instancesFound].max_size()) //Fill search result entry
 			{
 				bool bIgnoreChar = false;
 
@@ -169,16 +169,12 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wchar_
 				}
 
 				if (!bIgnoreChar)
-				{
-					searchRes[instancesFound][i] = character;
-					++i;
-				}
+					searchRes[instancesFound] += character;
 
 				characterLast = character;
 				file.get(character);
 			}
 
-			searchRes[instancesFound][i] = L'\0'; //Add terminal null character to character array
 			++instancesFound;
 		}
 		else

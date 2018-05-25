@@ -13,7 +13,9 @@ class SirFresh : public GameData
 public:
 	SirFresh() = delete;
 	SirFresh(const SirArchive &sirArchive) : GameData(sirArchive, nullptr) {};
+	SirFresh(const SirFresh &otherSirFresh) = delete;
 	~SirFresh() = default;
+	SirFresh &operator= (const SirFresh &otherSirFresh) = delete;
 
 	bool bReadWeapFile(const std::wstring csgoDir);
 private:

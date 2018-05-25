@@ -18,6 +18,8 @@ public:
 		std::wstring datum;
 	};
 
+	virtual ~GameData();
+
 	GameData &operator= (const GameData &otherGameData);
 
 	int compareGameData(const GameData &otherGameData, const bool bGetNonMatchSize = false);
@@ -36,11 +38,10 @@ public:
 	int getNumNonMatches() const;
 	const NonMatch *const getNonMatches() const;
 protected:
-	GameData();
+	GameData() noexcept;
 	GameData(const GameData &otherGameData, const void *const voidParam);
 
 	GameData(const GameData &otherGameData) = delete;
-	~GameData();
 
 	int numColumns;
 	int numRows;

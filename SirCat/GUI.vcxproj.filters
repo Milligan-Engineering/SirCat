@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Resource Files\ui">
+      <UniqueIdentifier>{61166c83-e33b-46b9-8c87-5a310db703e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{f597c113-4bb5-43b5-847e-526be113de4b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\gui">
+      <UniqueIdentifier>{cb03f8af-9058-4a2a-b68e-578d873a1b31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files\ui\gui">
+      <UniqueIdentifier>{35434069-65d2-4284-832a-2fcfb1eaa448}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{af470c59-8c03-46d7-a985-ed459ca71b45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo">
+      <UniqueIdentifier>{53b4a1d8-bd54-4d28-9c0d-89a77c382e4d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo\bbox">
+      <UniqueIdentifier>{a4a5d292-8058-4820-802d-3a73c480fb84}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo\sir">
+      <UniqueIdentifier>{2e99d455-9d6d-4ae0-9e40-5bc8f4a7c02e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo">
+      <UniqueIdentifier>{7f7e2efe-c9bb-4a5c-8991-8d065eac58ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{a44078f6-06a9-46ee-8895-e33a685e360f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\bbox">
+      <UniqueIdentifier>{26d3ceaf-847d-42c6-8123-a9e186896053}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo\calc">
+      <UniqueIdentifier>{c2f3e419-1198-46c7-810b-eb581c7fbdb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\sir">
+      <UniqueIdentifier>{a26e52fd-dd08-4076-b641-fac2853686ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\calc">
+      <UniqueIdentifier>{d42fb710-0e0d-4239-8e21-46eb36ed2a22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{642db2ac-4c3d-4530-9782-07729eb955e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\gui">
+      <UniqueIdentifier>{798c88e6-83bc-4a96-a60c-af65c9a84ffa}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\gui\resource.h">
+      <Filter>Header Files\ui\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="util\TextFileOps.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\bbox\BboxArchive.h">
+      <Filter>Header Files\csgo\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\bbox\BboxFresh.h">
+      <Filter>Header Files\csgo\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\sir\SirArchive.h">
+      <Filter>Header Files\csgo\sir</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\sir\SirFresh.h">
+      <Filter>Header Files\csgo\sir</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\Archive.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FindCsgo.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\GameData.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\DataPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\ArchivePair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FreshPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\calc\Calc.h">
+      <Filter>Header Files\csgo\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\calc\Random.h">
+      <Filter>Header Files\csgo\calc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="wWinMain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="util\TextFileOps.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\Archive.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\FindCsgo.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\GameData.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\bbox\BboxFresh.cpp">
+      <Filter>Source Files\csgo\bbox</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\sir\SirFresh.cpp">
+      <Filter>Source Files\csgo\sir</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\ArchivePair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\DataPair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\FreshPair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\calc\Random.cpp">
+      <Filter>Source Files\csgo\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\calc\Calc.cpp">
+      <Filter>Source Files\csgo\calc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="ui\gui\gui.rc">
+      <Filter>Resource Files\ui\gui</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="ui\gui\icon.ico">
+      <Filter>Resource Files\ui\gui</Filter>
+    </Image>
+  </ItemGroup>
+</Project>

@@ -5,6 +5,8 @@ namespace csgo {
 
 namespace sir { class SirArchive; }
 
+namespace calc {
+
 class Calc
 {
 public:
@@ -21,11 +23,11 @@ public:
 		bool b64Tick;
 		bool bUseAlt;
 
-		Params() : bCrouch(false), moveSpeed(0), hitPercent(100.0), b64Tick(false), bUseAlt(false) {}; //temp////////////////////
+		Params() noexcept : modelIndex(0), weaponIndex(0), bCrouch(false), moveSpeed(0), hitPercent(100.0), distance(0.01), b64Tick(false), bUseAlt(false) {}; //temp////
 	};
 
 	Calc() = delete;
-	Calc(const Params &params, const sir::SirArchive &sirArchive);
+	Calc(const Params &k_params, const sir::SirArchive &sirArchive);
 	~Calc() = default;
 
 	double tapInterval(const double targetInaccuracy) const;
@@ -33,16 +35,20 @@ private:
 	struct Stats
 	{
 		enum I { CYCLETIME, PRIMARY_CLIP_SIZE, MAX_PLAYER_SPEED, RECOVERY_TIME, RECOVERY_TIME_FINAL, SPREAD, INACCURACY_STANCE,
-			   INACCURACY_FIRE, INACCURACY_MOVE, RECOIL_MAGNITUDE, RECOIL_MAGNITUDE_VARIANCE, RECOIL_ANGLE_VARIANCE, NUM_STATS };
+				 INACCURACY_FIRE, INACCURACY_MOVE, RECOIL_MAGNITUDE, RECOIL_MAGNITUDE_VARIANCE, RECOIL_ANGLE_VARIANCE, NUM_STATS };
 	};
 
 	double calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const;
 
 	double roundTimeToTick(const double time) const;
 
-	const double tickrate;
+	bool bHitPercentInDistribution() const;
+
+	const double k_tickrate;
+	const Params k_params;
 	double stats[Stats::NUM_STATS];
 };
 
+} //namespace calc
 } //namespace csgo
 } //namespace sircat

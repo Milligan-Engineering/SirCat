@@ -13,8 +13,12 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{169F0FF1-FF8E-4A92-8215-3D86E6C359C4}</ProjectGuid>
-    <RootNamespace>SirCat</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <RootNamespace>console</RootNamespace>
+    <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
+    <ProjectName>console</ProjectName>
+  </PropertyGroup>
+  <PropertyGroup>
+    <IntDirSharingDetected>None</IntDirSharingDetected>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -22,6 +26,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -29,6 +34,7 @@
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <SpectreMitigation>Spectre</SpectreMitigation>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -44,10 +50,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
+    <TargetExt>.com</TargetExt>
+    <TargetName>$(SolutionName)</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
+    <TargetExt>.com</TargetExt>
+    <TargetName>$(SolutionName)</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -56,13 +66,15 @@
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <ObjectFileName>$(IntDir)$(ProjectName)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)$(ProjectName)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <CustomBuildStep>
       <Command>echo off</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(IntDir)$(ProjectName)\$(TargetName).ilk</Outputs>
       <Message>...</Message>
     </CustomBuildStep>
     <PreBuildEvent>
@@ -90,7 +102,7 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Performing Custom Build Step</Message>
+      <Message>Performing custom build step</Message>
     </PreBuildEvent>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -99,7 +111,27 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
       </StackCommitSize>
       <StackReserveSize>
       </StackReserveSize>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName)$(TargetExt).pdb</ProgramDatabaseFile>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName)$(TargetExt).pdb</ProfileGuidedDatabase>
     </Link>
+    <PreLinkEvent>
+      <Command>set dstilk="$(SolutionDir)$(Configuration)\$(TargetName).ilk"
+set srcilk="$(IntDir)$(ProjectName)\$(TargetName).ilk"
+if exist %dstilk% del /f /q %dstilk%
+if exist %srcilk% copy /y /b %srcilk% %dstilk%
+if exist %srcilk% del /f /q %srcilk%</Command>
+    </PreLinkEvent>
+    <PreLinkEvent>
+      <Message>Moving incremental status file to solution directory</Message>
+    </PreLinkEvent>
+    <PostBuildEvent>
+      <Message>Moving incremental status file to intermediate directory</Message>
+      <Command>set dstilk="$(IntDir)$(ProjectName)\$(TargetName).ilk"
+set srcilk="$(SolutionDir)$(Configuration)\$(TargetName).ilk"
+if exist %dstilk% del /f /q %dstilk%
+copy /y /b %srcilk% %dstilk%
+if exist %srcilk% del /f /q %srcilk%</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -112,10 +144,12 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
       <CompileAsManaged>
       </CompileAsManaged>
       <EnforceTypeConversionRules>true</EnforceTypeConversionRules>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <ConformanceMode>true</ConformanceMode>
       <UseUnicodeForAssemblerListing>true</UseUnicodeForAssemblerListing>
+      <ObjectFileName>$(IntDir)$(ProjectName)\</ObjectFileName>
+      <ProgramDataBaseFileName>$(IntDir)$(ProjectName)\vc$(PlatformToolsetVersion).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <OptimizeReferences>true</OptimizeReferences>
@@ -127,6 +161,8 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
       </StackCommitSize>
       <StackReserveSize>
       </StackReserveSize>
+      <ProgramDatabaseFile>$(IntDir)$(TargetName)$(TargetExt).pdb</ProgramDatabaseFile>
+      <ProfileGuidedDatabase>$(IntDir)$(TargetName)$(TargetExt).pdb</ProfileGuidedDatabase>
     </Link>
     <CustomBuildStep>
       <Command>echo off</Command>
@@ -160,18 +196,22 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Crowbar.exe" %crowbar%
 copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.xml" %settings%</Command>
     </PreBuildEvent>
     <PreBuildEvent>
-      <Message>Performing Custom Build Step</Message>
+      <Message>Performing custom build step</Message>
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="csgo\Archive.cpp" />
+    <ClCompile Include="csgo\ArchivePair.cpp" />
     <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
-    <ClCompile Include="csgo\Calc.cpp" />
+    <ClCompile Include="csgo\calc\Calc.cpp" />
+    <ClCompile Include="csgo\calc\Random.cpp" />
+    <ClCompile Include="csgo\DataPair.cpp" />
     <ClCompile Include="csgo\FindCsgo.cpp" />
+    <ClCompile Include="csgo\FreshPair.cpp" />
     <ClCompile Include="csgo\GameData.cpp" />
-    <ClCompile Include="csgo\sir\SirArchive.cpp" />
     <ClCompile Include="csgo\sir\SirFresh.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ui\console\ConsoleApp.cpp" />
     <ClCompile Include="util\TextFileOps.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -192,13 +232,19 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="csgo\Archive.h" />
+    <ClInclude Include="csgo\ArchivePair.h" />
     <ClInclude Include="csgo\bbox\BboxArchive.h" />
     <ClInclude Include="csgo\bbox\BboxFresh.h" />
-    <ClInclude Include="csgo\Calc.h" />
+    <ClInclude Include="csgo\calc\Calc.h" />
+    <ClInclude Include="csgo\calc\Random.h" />
+    <ClInclude Include="csgo\DataPair.h" />
     <ClInclude Include="csgo\FindCsgo.h" />
+    <ClInclude Include="csgo\FreshPair.h" />
     <ClInclude Include="csgo\GameData.h" />
     <ClInclude Include="csgo\sir\SirArchive.h" />
     <ClInclude Include="csgo\sir\SirFresh.h" />
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="ui\console\ConsoleApp.h" />
     <ClInclude Include="util\TextFileOps.h" />
   </ItemGroup>
   <ItemGroup>

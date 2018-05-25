@@ -1,13 +1,6 @@
 #pragma once
 
-#ifndef STRICT
-	#define STRICT 1
-#endif //STRICT
-
-#ifndef WIN32_LEAN_AND_MEAN
-	#define WIN32_LEAN_AND_MEAN 1
-#endif //WIN32_LEAN_AND_MEAN
-
+#include "..\..\targetver.h"
 #include "..\GameData.h"
 #include "BboxArchive.h"
 #include <string>
@@ -20,9 +13,11 @@ namespace bbox {
 class BboxFresh : public GameData
 {
 public:
-	BboxFresh() = default;
+	BboxFresh() = delete;
 	BboxFresh(const BboxArchive &bboxArchive) : GameData(bboxArchive, nullptr) {};
+	BboxFresh(const BboxFresh &otherBboxFresh) = delete;
 	~BboxFresh() = default;
+	BboxFresh &operator= (const BboxFresh &otherBboxFresh) = delete;
 
 	bool bUnpackModels(const std::wstring csgoDir) const;
 	//Precondition: csgoDir is a directory containing a valid install of CS:GO; HLExtract files are in ./HLExtract directory

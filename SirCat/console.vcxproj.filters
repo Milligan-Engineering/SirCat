@@ -46,6 +46,24 @@
     <Filter Include="Source Files\csgo\bbox">
       <UniqueIdentifier>{3e254057-8cf4-4b48-be05-ac9b09afd19d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\ui">
+      <UniqueIdentifier>{7a3096a7-a547-43bb-912c-d5e3141611fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ui\console">
+      <UniqueIdentifier>{2d213300-6ebd-4e9b-bd7b-7526f1b0bde5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{1b474061-2cdd-4444-8a1c-522fca800a33}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\console">
+      <UniqueIdentifier>{3037ff3e-9a9c-437d-950c-780b5f73cc37}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\csgo\calc">
+      <UniqueIdentifier>{314200e3-675f-4cf9-a94d-91d4ae814399}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\calc">
+      <UniqueIdentifier>{61f6c577-af36-40f5-9a8d-c49f5bc81a65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,9 +78,6 @@
     <ClCompile Include="util\TextFileOps.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\Calc.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
     <ClCompile Include="csgo\GameData.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
@@ -72,8 +87,23 @@
     <ClCompile Include="csgo\sir\SirFresh.cpp">
       <Filter>Source Files\csgo\sir</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\sir\SirArchive.cpp">
-      <Filter>Source Files\csgo\sir</Filter>
+    <ClCompile Include="ui\console\ConsoleApp.cpp">
+      <Filter>Source Files\ui\console</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\ArchivePair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\FreshPair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\DataPair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\calc\Calc.cpp">
+      <Filter>Source Files\csgo\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\calc\Random.cpp">
+      <Filter>Source Files\csgo\calc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -97,18 +127,6 @@
     <ClInclude Include="util\TextFileOps.h">
       <Filter>Header Files\util</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\Archive.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
-    <ClInclude Include="csgo\FindCsgo.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
-    <ClInclude Include="csgo\Calc.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
-    <ClInclude Include="csgo\GameData.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
     <ClInclude Include="csgo\bbox\BboxFresh.h">
       <Filter>Header Files\csgo\bbox</Filter>
     </ClInclude>
@@ -120,6 +138,36 @@
     </ClInclude>
     <ClInclude Include="csgo\bbox\BboxArchive.h">
       <Filter>Header Files\csgo\bbox</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\Archive.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FindCsgo.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\GameData.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\DataPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\console\ConsoleApp.h">
+      <Filter>Header Files\ui\console</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\ArchivePair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FreshPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\calc\Calc.h">
+      <Filter>Header Files\csgo\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\calc\Random.h">
+      <Filter>Header Files\csgo\calc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
