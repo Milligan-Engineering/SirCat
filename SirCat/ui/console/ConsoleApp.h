@@ -6,9 +6,9 @@
 namespace sircat {
 namespace csgo {
 
-class Archive;
 class ArchivePair;
 class FreshPair;
+class Archive;
 
 namespace bbox { class BboxArchive; }
 namespace sir { class SirArchive; }
@@ -21,9 +21,6 @@ namespace console {
 class ConsoleApp
 {
 public:
-	ConsoleApp() = default;
-	~ConsoleApp() = default;
-
 	void introDialogue() const;
 
 	void hitEnterToExit() const;

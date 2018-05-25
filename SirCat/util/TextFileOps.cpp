@@ -137,20 +137,21 @@ bool TextFileOps::bSkipToColumnNum(const int numColumn, Params &params) const
 	return bTooFewColumns;
 }
 
-int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wchar_t searchRes[][_MAX_PATH], const int maxRes,
-							   const wchar_t ignoreChars[], const int numIgnoreChars, const wchar_t retChar) const
+int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wchar_t **searchRes, const int maxRes,
+							   const int maxResLength, const wchar_t ignoreChars[], const int numIgnoreChars,
+							   const wchar_t retChar) const
 {
 	int instancesFound = 0;
+	int i = 0;
 	wchar_t character = L'\b'; //Backspace character is arbitrarily used to allow the comparison in the first while statement
 	wstring testString;
 
 	file >> testString;
 
-	while (!file.eof() && instancesFound < maxRes && character != retChar)
+	while (!file.eof() && instancesFound < maxRes && i < maxResLength && character != retChar)
 	{
 		if (testString == searchTerm)
 		{
-			int i = 0;
 			wchar_t characterLast = L'\0';
 
 			file.get(character);

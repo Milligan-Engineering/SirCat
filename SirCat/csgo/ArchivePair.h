@@ -12,30 +12,16 @@ namespace csgo {
 class ArchivePair : public DataPair
 {
 public:
-	struct Pair
-	{
-		bbox::BboxArchive &bbox;
-		sir::SirArchive &sir;
+	ArchivePair(const std::wstring bboxCsvName,
+				const std::wstring sirCsvName) : DataPair(bboxCsvName, sirCsvName),
+												 bboxArchive(dynamic_cast<bbox::BboxArchive &>(*pBbox)),
+												 sirArchive(dynamic_cast<sir::SirArchive &>(*pSir)) {};
 
-		Pair() = delete;
-		Pair(GameData *bbox, GameData *sir) : bbox(*dynamic_cast<bbox::BboxArchive *>(bbox)),
-											  sir(*dynamic_cast<sir::SirArchive *>(sir)) {};
-		Pair(const Pair &otherPair) = delete;
-		~Pair() = default;
-		Pair &operator= (const Pair &otherPair) = delete;
-	};
-
-	ArchivePair() = delete;
-	ArchivePair(const std::wstring bboxCsvName, const std::wstring sirCsvName) : DataPair(bboxCsvName, sirCsvName),
-																				 pair(bbox, sir) {};
-	ArchivePair(const ArchivePair &ArchivePair) = delete;
-	~ArchivePair();
-
-	ArchivePair &operator= (const ArchivePair &otherArchivePair) = delete;
-
-	const Pair &getPair() const;
+	bbox::BboxArchive &getBboxArchive() const;
+	sir::SirArchive &getSirArchive() const;
 private:
-	Pair pair;
+	bbox::BboxArchive &bboxArchive;
+	sir::SirArchive &sirArchive;
 };
 
 } //namespace csgo

@@ -12,21 +12,20 @@ namespace csgo {
 
 class DataPair
 {
-public:
-	virtual ~DataPair() = default;
 protected:
-	DataPair() = delete;
-	DataPair(const std::wstring bboxCsvName, const std::wstring sirCsvName) : bbox(new bbox::BboxArchive(bboxCsvName)),
-																			  sir(new sir::SirArchive(sirCsvName)) {};
+	DataPair(const std::wstring bboxCsvName, const std::wstring sirCsvName) : pBbox(new bbox::BboxArchive(bboxCsvName)),
+																			  pSir(new sir::SirArchive(sirCsvName)) {};
 
-	DataPair(const bbox::BboxArchive &bboxArchive, const sir::SirArchive &sirArchive) : bbox(new bbox::BboxFresh(bboxArchive)),
-																						sir(new sir::SirFresh(sirArchive)) {};
+	DataPair(const bbox::BboxArchive &bboxArchive, const sir::SirArchive &sirArchive) : pBbox(new bbox::BboxFresh(bboxArchive)),
+																						pSir(new sir::SirFresh(sirArchive)) {};
 
 	DataPair(const DataPair &otherDataPair) = delete;
+	~DataPair();
+
 	DataPair &operator= (const DataPair &otherDataPair) = delete;
 
-	GameData *bbox;
-	GameData *sir;
+	GameData *pBbox;
+	GameData *pSir;
 };
 
 } //namespace csgo

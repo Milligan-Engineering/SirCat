@@ -76,11 +76,12 @@ bool BboxFresh::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
 	WinInfo winInfo;
 
 	winInfo.dwProcessId = pi.dwProcessId;
-	winInfo.hwnd = 0;
 	BlockInput(TRUE); //No user input so info about GUI elements with focus will be consistent 
 
-	while (GetForegroundWindow() != winInfo.hwnd) //Loop until Crowbar's main window is created
+	do
+	{
 		EnumWindows(EnumWindowsProc, reinterpret_cast<LPARAM>(&winInfo)); //Look for visible owner window using PID+TID
+	} while (GetForegroundWindow() != winInfo.hwnd); //Loop until Crowbar's main window is created
 
 	AttachThreadInput(GetCurrentThreadId(), winInfo.dwThreadId, TRUE);
 	gui.cbSize = sizeof(GUITHREADINFO);

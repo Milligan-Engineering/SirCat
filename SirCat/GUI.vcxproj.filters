@@ -87,6 +87,12 @@
     <ClInclude Include="csgo\DataPair.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
+    <ClInclude Include="csgo\ArchivePair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\FreshPair.h">
+      <Filter>Header Files\csgo</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wWinMain.cpp">
@@ -112,6 +118,15 @@
     </ClCompile>
     <ClCompile Include="csgo\sir\SirFresh.cpp">
       <Filter>Source Files\csgo\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\ArchivePair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\DataPair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\FreshPair.cpp">
+      <Filter>Source Files\csgo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

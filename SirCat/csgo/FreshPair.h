@@ -1,7 +1,7 @@
 #pragma once
 
-#include "DataPair.h"
 #include "ArchivePair.h"
+#include "DataPair.h"
 #include "bbox\BboxArchive.h"
 #include "bbox\BboxFresh.h"
 #include "sir\SirArchive.h"
@@ -14,29 +14,15 @@ namespace csgo {
 class FreshPair : public DataPair
 {
 public:
-	struct Pair
-	{
-		bbox::BboxFresh &bbox;
-		sir::SirFresh &sir;
+	FreshPair(const ArchivePair &archivePair) : DataPair(archivePair.getBboxArchive(), archivePair.getSirArchive()),
+												bboxFresh(dynamic_cast<bbox::BboxFresh &>(*pBbox)),
+												sirFresh(dynamic_cast<sir::SirFresh &>(*pSir)) {};
 
-		Pair() = delete;
-		Pair(GameData *bbox, GameData *sir) : bbox(*dynamic_cast<bbox::BboxFresh *>(bbox)),
-											  sir(*dynamic_cast<sir::SirFresh *>(sir)) {};
-		Pair(const Pair &otherPair) = delete;
-		~Pair() = default;
-		Pair &operator= (const Pair &otherPair) = delete;
-	};
-
-	FreshPair() = delete;
-	FreshPair(const ArchivePair::Pair &archivePair) : DataPair(archivePair.bbox, archivePair.sir), pair(bbox, sir) {};
-	FreshPair(const FreshPair &otherFreshPair) = delete;
-	~FreshPair();
-
-	FreshPair &operator= (const FreshPair &otherFreshPair) = delete;
-
-	const Pair &getPair() const;
+	bbox::BboxFresh &getBboxFresh() const;
+	sir::SirFresh &getSirFresh() const;
 private:
-	Pair pair;
+	bbox::BboxFresh &bboxFresh;
+	sir::SirFresh &sirFresh;
 };
 
 } //namespace csgo

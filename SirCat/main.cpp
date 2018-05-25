@@ -32,7 +32,7 @@ int main()
 
 	do
 	{
-		if (menuOption == 1) //Controlled by switch in bUserMenu for re-running the program
+		if (menuOption == 1)
 		{
 			FreshPair *freshPair = nullptr;
 
@@ -41,13 +41,13 @@ int main()
 
 			archivePair = new ArchivePair(wstring(L"archiveBboxData.csv"), wstring(L"archiveSirData.csv"));
 
-			if (!archivePair->getPair().bbox.getBSuccessUseCsv() || !archivePair->getPair().sir.getBSuccessUseCsv())
+			if (!archivePair->getBboxArchive().getBSuccessUseCsv() || !archivePair->getSirArchive().getBSuccessUseCsv())
 			{
 				delete archivePair;
 				consoleApp.hitEnterToExit();
 			}
 
-			freshPair = new FreshPair(archivePair->getPair());
+			freshPair = new FreshPair(*archivePair);
 			consoleApp.attemptFindCsgo(*archivePair, *freshPair);
 			delete freshPair;
 			consoleApp.pickCalcParams(calcParams, *archivePair);

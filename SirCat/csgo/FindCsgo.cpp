@@ -45,7 +45,7 @@ bool FindCsgo::bFetchSteamDir(wstring &steamDir)
 		}
 	}
 
-	if (ret == ERROR_SUCCESS)
+	if (ret == ERROR_SUCCESS && data != nullptr)
 	{
 		if (data[cbData - 1] != '\0')
 			data[cbData] = '\0';

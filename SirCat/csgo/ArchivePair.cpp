@@ -3,18 +3,14 @@
 namespace sircat {
 namespace csgo {
 
-ArchivePair::~ArchivePair()
+bbox::BboxArchive &ArchivePair::getBboxArchive() const
 {
-	if (bbox != nullptr)
-		delete bbox;
-
-	if (sir != nullptr)
-		delete sir;
+	return bboxArchive;
 }
 
-const ArchivePair::Pair &ArchivePair::getPair() const
+sir::SirArchive &ArchivePair::getSirArchive() const
 {
-	return pair;
+	return sirArchive;
 }
 
 } //namespace csgo

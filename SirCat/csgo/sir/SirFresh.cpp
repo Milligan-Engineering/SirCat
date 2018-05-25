@@ -57,14 +57,23 @@ void SirFresh::fetchWeaponSirData(const int i, wifstream &weapFile)
 	constexpr int k_num_unparsed_attr = 70;
 
 	int unparsedAttrs;
-	wchar_t parsedWeapData[k_num_unparsed_attr][k_data_len];
-	wchar_t searchResult[1][_MAX_PATH];
-	wchar_t unparsedData[k_num_unparsed_attr][_MAX_PATH];
+	wchar_t **searchResult = new wchar_t *[1];
+	wchar_t **parsedWeapData = new wchar_t *[k_num_unparsed_attr];
+	wchar_t **unparsedData = new wchar_t *[k_num_unparsed_attr];
 	wstring searchTerm = wstring(L"\"") + rowHeaders[i] + L"_prefab\"";
 
-	textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1);
+	searchResult[0] = new wchar_t[_MAX_PATH];
+
+	for (int j = 0; j < k_num_unparsed_attr; ++j)
+	{
+		parsedWeapData[j] = new wchar_t[k_data_len];
+		unparsedData[j] = new wchar_t[_MAX_PATH];
+	}
+
+	textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1, _MAX_PATH);
 	searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
-	unparsedAttrs = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, _MAX_PATH, L"\t\"\0", 2, L'}');
+	unparsedAttrs = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, k_num_unparsed_attr, _MAX_PATH,
+											   L"\t\"\0", 2, L'}');
 
 	for (int j = 0; j < unparsedAttrs; ++j) //Enumerate all returned unparsed attributes for each weapon
 	{

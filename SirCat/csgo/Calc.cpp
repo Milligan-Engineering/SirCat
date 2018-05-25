@@ -13,7 +13,8 @@ using std::round;
 using std::stod;
 using std::wstring;
 
-Calc::Calc(const Params &params, const SirArchive &sirArchive) : tickrate(params.b64Tick ? 64.0 : 128.0), params(params)
+Calc::Calc(const Params &params, const SirArchive &sirArchive) : tickrate(params.b64Tick ? 64.0 : 128.0), params(params),
+																 stats{ 0 }
 {
 	wstring stance = wstring();
 	wstring statNames[Stats::NUM_STATS] = { L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",

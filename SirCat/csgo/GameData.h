@@ -38,7 +38,7 @@ public:
 	int getNumNonMatches() const;
 	const NonMatch *const getNonMatches() const;
 protected:
-	GameData();
+	GameData() noexcept;
 	GameData(const GameData &otherGameData, const void *const voidParam);
 
 	GameData(const GameData &otherGameData) = delete;

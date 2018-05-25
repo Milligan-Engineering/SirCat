@@ -1,10 +1,10 @@
 #include "ConsoleApp.h"
+#include "..\..\csgo\ArchivePair.h"
+#include "..\..\csgo\FreshPair.h"
 #include "..\..\csgo\bbox\BboxArchive.h"
 #include "..\..\csgo\sir\SirArchive.h"
 #include "..\..\csgo\Archive.h"
 #include "..\..\csgo\GameData.h"
-#include "..\..\csgo\ArchivePair.h"
-#include "..\..\csgo\FreshPair.h"
 #include "..\..\csgo\Calc.h"
 #include "..\..\csgo\FindCsgo.h"
 #include <cstdlib>
@@ -16,12 +16,12 @@ namespace sircat {
 namespace ui {
 namespace console {
 
+using csgo::ArchivePair;
+using csgo::FreshPair;
 using csgo::bbox::BboxArchive;
 using csgo::sir::SirArchive;
 using csgo::Archive;
 using csgo::GameData;
-using csgo::ArchivePair;
-using csgo::FreshPair;
 using csgo::Calc;
 using csgo::FindCsgo;
 using std::exit;
@@ -90,10 +90,10 @@ void ConsoleApp::pickCalcParams(Calc::Params &calcParams, const ArchivePair &arc
 								const Calc::WhichParam whichParams) const
 {
 	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::MODEL_INDEX)
-		calcParams.modelIndex = pickModelSide(archivePair.getPair().bbox);
+		calcParams.modelIndex = pickModelSide(archivePair.getBboxArchive());
 
 	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::WEAPON_INDEX)
-		calcParams.weaponIndex = pickWeapon(archivePair.getPair().sir);
+		calcParams.weaponIndex = pickWeapon(archivePair.getSirArchive());
 
 	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::DISTANCE)
 		calcParams.distance = pickDistance();
@@ -101,9 +101,9 @@ void ConsoleApp::pickCalcParams(Calc::Params &calcParams, const ArchivePair &arc
 
 void ConsoleApp::calcIdealFreq(const Calc::Params &calcParams, const ArchivePair &archivePair) const
 {
-	Calc calculation(calcParams, archivePair.getPair().sir);
-	const double radius = stod(archivePair.getPair().bbox.getDatum(calcParams.modelIndex,
-																   archivePair.getPair().bbox.getNumColumns() - 1));
+	Calc calculation(calcParams, archivePair.getSirArchive());
+	const double radius = stod(archivePair.getBboxArchive().getDatum(calcParams.modelIndex,
+																   archivePair.getBboxArchive().getNumColumns() - 1));
 	double targetInaccuracy = radius / (0.001 * calcParams.distance);
 	double tapInterval = calculation.tapInterval(targetInaccuracy);
 
@@ -111,8 +111,8 @@ void ConsoleApp::calcIdealFreq(const Calc::Params &calcParams, const ArchivePair
 		wcout << endl << endl << L"Weapon is not accurate enough for 100% tapping accuracy with current criteria.";
 	else
 	{
-		double cycleTime = stod(archivePair.getPair().sir.getDatum(calcParams.weaponIndex,
-															archivePair.getPair().sir.fetchColumnIndex(L"cycletime")));
+		double cycleTime = stod(archivePair.getSirArchive().getDatum(calcParams.weaponIndex,
+															archivePair.getSirArchive().fetchColumnIndex(L"cycletime")));
 
 		wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds";
 		wcout << (tapInterval == cycleTime ? " (max firing speed)" : "") << endl << endl << endl;
@@ -205,19 +205,19 @@ bool ConsoleApp::bReadGameFiles(const wstring csgoDir, FreshPair &freshPair) con
 
 	wcout << L"... Unpacking hitbox binaries from CS:GO VPK with HLExtract ...\n";
 
-	if (freshPair.getPair().bbox.bUnpackModels(csgoDir))
+	if (freshPair.getBboxFresh().bUnpackModels(csgoDir))
 	{
 		wcout << L"... Decompiling hitbox binaries with Crowbar ...\n";
 
-		if (freshPair.getPair().bbox.bDecompileModels())
+		if (freshPair.getBboxFresh().bDecompileModels())
 		{
 			wcout << L"... Reading decompiled hitbox files ...\n";
 
-			if (freshPair.getPair().bbox.bReadModelFiles())
+			if (freshPair.getBboxFresh().bReadModelFiles())
 			{
 				wcout << L"... Reading weapon data from CS:GO items_game.txt ...\n";
 
-				if (freshPair.getPair().sir.bReadWeapFile(csgoDir))
+				if (freshPair.getSirFresh().bReadWeapFile(csgoDir))
 					bSuccess = true;
 				else
 					wcout << endl << L"Reading weapon data from CS:GO items_game.txt failed ...\n";
@@ -227,7 +227,7 @@ bool ConsoleApp::bReadGameFiles(const wstring csgoDir, FreshPair &freshPair) con
 		}
 		else
 		{
-			freshPair.getPair().bbox.bReadModelFiles(true);
+			freshPair.getBboxFresh().bReadModelFiles(true);
 			wcout << endl << L"Decompiling hitbox binaries failed.\n";
 		}
 	}
@@ -240,16 +240,16 @@ bool ConsoleApp::bReadGameFiles(const wstring csgoDir, FreshPair &freshPair) con
 void ConsoleApp::compAndUpdate(ArchivePair &archivePair, const FreshPair &freshPair) const
 {
 	wcout << L"... done.";
-	archivePair.getPair().bbox.compareGameData(freshPair.getPair().bbox);
-	archivePair.getPair().sir.compareGameData(freshPair.getPair().sir);
+	archivePair.getBboxArchive().compareGameData(freshPair.getBboxFresh());
+	archivePair.getSirArchive().compareGameData(freshPair.getSirFresh());
 
-	if (archivePair.getPair().bbox.getNumNonMatches() == 0 && archivePair.getPair().sir.getNumNonMatches() == 0)
+	if (archivePair.getBboxArchive().getNumNonMatches() == 0 && archivePair.getSirArchive().getNumNonMatches() == 0)
 		wcout << L" No discrepancies detected.\n";
 	else
 	{
 		wcout << endl;
-		listNonMatches(archivePair.getPair().bbox);
-		listNonMatches(archivePair.getPair().sir);
+		listNonMatches(archivePair.getBboxArchive());
+		listNonMatches(archivePair.getSirArchive());
 
 		updatePrompt(archivePair, freshPair);
 	}
@@ -288,10 +288,10 @@ void ConsoleApp::updatePrompt(ArchivePair &archivePair, const FreshPair &freshPa
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			*dynamic_cast<GameData *>(&archivePair.getPair().bbox) = freshPair.getPair().bbox;
-			*dynamic_cast<GameData *>(&archivePair.getPair().sir) = freshPair.getPair().sir;
+			dynamic_cast<GameData &>(archivePair.getBboxArchive()) = dynamic_cast<GameData &>(freshPair.getBboxFresh());
+			dynamic_cast<GameData &>(archivePair.getSirArchive()) = dynamic_cast<GameData &>(freshPair.getSirFresh());
 
-			if (archivePair.getPair().bbox.bWriteArchiveFile() && archivePair.getPair().sir.bWriteArchiveFile())
+			if (archivePair.getBboxArchive().bWriteArchiveFile() && archivePair.getSirArchive().bWriteArchiveFile())
 				wcout << endl << endl << L"Archive files updated.";
 			else
 				wcout << endl << endl << L"Failed to update archive files.";

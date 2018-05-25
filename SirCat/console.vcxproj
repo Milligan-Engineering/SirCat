@@ -204,6 +204,7 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClCompile Include="csgo\ArchivePair.cpp" />
     <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
     <ClCompile Include="csgo\Calc.cpp" />
+    <ClCompile Include="csgo\DataPair.cpp" />
     <ClCompile Include="csgo\FindCsgo.cpp" />
     <ClCompile Include="csgo\FreshPair.cpp" />
     <ClCompile Include="csgo\GameData.cpp" />

@@ -24,7 +24,7 @@ public:
 
 	const AltMode *getAltModes() const { return altModes; };
 private:
-	AltMode altModes[6] =
+	const AltMode altModes[6] =
 	{
 		{ L"weapon_aug", L"scoped" },
 		{ L"weapon_ssg556", L"scoped" },

@@ -58,6 +58,12 @@
     <Filter Include="Source Files\ui\console">
       <UniqueIdentifier>{3037ff3e-9a9c-437d-950c-780b5f73cc37}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\calc">
+      <UniqueIdentifier>{314200e3-675f-4cf9-a94d-91d4ae814399}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\calc">
+      <UniqueIdentifier>{61f6c577-af36-40f5-9a8d-c49f5bc81a65}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -91,6 +97,9 @@
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
     <ClCompile Include="csgo\FreshPair.cpp">
+      <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\DataPair.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
   </ItemGroup>

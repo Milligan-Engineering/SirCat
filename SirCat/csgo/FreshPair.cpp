@@ -3,18 +3,14 @@
 namespace sircat {
 namespace csgo {
 
-FreshPair::~FreshPair()
+bbox::BboxFresh &FreshPair::getBboxFresh() const
 {
-	if (bbox != nullptr)
-		delete bbox;
-
-	if (sir != nullptr)
-		delete sir;
+	return bboxFresh;
 }
 
-const FreshPair::Pair &FreshPair::getPair() const
+sir::SirFresh &FreshPair::getSirFresh() const
 {
-	return pair;
+	return sirFresh;
 }
 
 } //namespace csgo
