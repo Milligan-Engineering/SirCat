@@ -1,10 +1,14 @@
+#define _USE_MATH_DEFINES
+
 #include "Calc.h"
-#include "sir\SirArchive.h"
+#include "Random.h"
+#include "..\sir\SirArchive.h"
 #include <cmath>
 #include <string>
 
 namespace sircat {
 namespace csgo {
+namespace calc {
 
 using sir::SirArchive;
 using std::log10;
@@ -13,7 +17,7 @@ using std::round;
 using std::stod;
 using std::wstring;
 
-Calc::Calc(const Params &params, const SirArchive &sirArchive) : tickrate(params.b64Tick ? 64.0 : 128.0), params(params),
+Calc::Calc(const Params &params, const SirArchive &sirArchive) : k_tickrate(params.b64Tick ? 64.0 : 128.0), k_params(params),
 																 stats{ 0 }
 {
 	wstring stance = wstring();
@@ -54,7 +58,7 @@ double Calc::tapInterval(const double targetInaccuracy) const
 
 		double inaccuracy = stats[Stats::SPREAD] + stats[Stats::INACCURACY_STANCE];
 		double totalDecayTime = 0;
-		
+
 		for (int taps = 1; taps < static_cast<int>(stats[Stats::PRIMARY_CLIP_SIZE]); ++taps)
 		{
 			double newInaccuracy = calcNewInaccuracy(inaccuracy, tapInterval, totalDecayTime);
@@ -88,7 +92,7 @@ double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval
 
 double Calc::roundTimeToTick(const double time) const
 {
-	return round(time * tickrate) / tickrate;
+	return round(time * k_tickrate) / k_tickrate;
 }
 
 bool Calc::bHitPercentInDistribution() const
@@ -98,5 +102,6 @@ bool Calc::bHitPercentInDistribution() const
 	return bGreaterOrEqual;
 }
 
+} //namespace calc
 } //namespace csgo
 } //namespace sircat

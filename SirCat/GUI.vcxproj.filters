@@ -46,8 +46,20 @@
     <Filter Include="Source Files\csgo\bbox">
       <UniqueIdentifier>{26d3ceaf-847d-42c6-8123-a9e186896053}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\csgo\csgo">
+    <Filter Include="Header Files\csgo\calc">
+      <UniqueIdentifier>{c2f3e419-1198-46c7-810b-eb581c7fbdb0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\sir">
       <UniqueIdentifier>{a26e52fd-dd08-4076-b641-fac2853686ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\csgo\calc">
+      <UniqueIdentifier>{d42fb710-0e0d-4239-8e21-46eb36ed2a22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui">
+      <UniqueIdentifier>{642db2ac-4c3d-4530-9782-07729eb955e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ui\gui">
+      <UniqueIdentifier>{798c88e6-83bc-4a96-a60c-af65c9a84ffa}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -75,9 +87,6 @@
     <ClInclude Include="csgo\Archive.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
-    <ClInclude Include="csgo\Calc.h">
-      <Filter>Header Files\csgo</Filter>
-    </ClInclude>
     <ClInclude Include="csgo\FindCsgo.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
@@ -93,6 +102,12 @@
     <ClInclude Include="csgo\FreshPair.h">
       <Filter>Header Files\csgo</Filter>
     </ClInclude>
+    <ClInclude Include="csgo\calc\Calc.h">
+      <Filter>Header Files\csgo\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="csgo\calc\Random.h">
+      <Filter>Header Files\csgo\calc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="wWinMain.cpp">
@@ -102,9 +117,6 @@
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="csgo\Archive.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
-    <ClCompile Include="csgo\Calc.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
     <ClCompile Include="csgo\FindCsgo.cpp">
@@ -117,7 +129,7 @@
       <Filter>Source Files\csgo\bbox</Filter>
     </ClCompile>
     <ClCompile Include="csgo\sir\SirFresh.cpp">
-      <Filter>Source Files\csgo\csgo</Filter>
+      <Filter>Source Files\csgo\sir</Filter>
     </ClCompile>
     <ClCompile Include="csgo\ArchivePair.cpp">
       <Filter>Source Files\csgo</Filter>
@@ -127,6 +139,12 @@
     </ClCompile>
     <ClCompile Include="csgo\FreshPair.cpp">
       <Filter>Source Files\csgo</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\calc\Random.cpp">
+      <Filter>Source Files\csgo\calc</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\calc\Calc.cpp">
+      <Filter>Source Files\csgo\calc</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

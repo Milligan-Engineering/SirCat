@@ -5,6 +5,8 @@ namespace csgo {
 
 namespace sir { class SirArchive; }
 
+namespace calc {
+
 class Calc
 {
 public:
@@ -25,7 +27,7 @@ public:
 	};
 
 	Calc() = delete;
-	Calc(const Params &params, const sir::SirArchive &sirArchive);
+	Calc(const Params &k_params, const sir::SirArchive &sirArchive);
 	~Calc() = default;
 
 	double tapInterval(const double targetInaccuracy) const;
@@ -33,7 +35,7 @@ private:
 	struct Stats
 	{
 		enum I { CYCLETIME, PRIMARY_CLIP_SIZE, MAX_PLAYER_SPEED, RECOVERY_TIME, RECOVERY_TIME_FINAL, SPREAD, INACCURACY_STANCE,
-			   INACCURACY_FIRE, INACCURACY_MOVE, RECOIL_MAGNITUDE, RECOIL_MAGNITUDE_VARIANCE, RECOIL_ANGLE_VARIANCE, NUM_STATS };
+				 INACCURACY_FIRE, INACCURACY_MOVE, RECOIL_MAGNITUDE, RECOIL_MAGNITUDE_VARIANCE, RECOIL_ANGLE_VARIANCE, NUM_STATS };
 	};
 
 	double calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const;
@@ -42,10 +44,11 @@ private:
 
 	bool bHitPercentInDistribution() const;
 
-	const double tickrate;
-	const Params params;
+	const double k_tickrate;
+	const Params k_params;
 	double stats[Stats::NUM_STATS];
 };
 
+} //namespace calc
 } //namespace csgo
 } //namespace sircat

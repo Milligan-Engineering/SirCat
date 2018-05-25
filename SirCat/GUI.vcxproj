@@ -141,7 +141,8 @@ if exist %srcilk% del /f /q %srcilk%</Command>
     <ClInclude Include="csgo\ArchivePair.h" />
     <ClInclude Include="csgo\bbox\BboxArchive.h" />
     <ClInclude Include="csgo\bbox\BboxFresh.h" />
-    <ClInclude Include="csgo\Calc.h" />
+    <ClInclude Include="csgo\calc\Calc.h" />
+    <ClInclude Include="csgo\calc\Random.h" />
     <ClInclude Include="csgo\DataPair.h" />
     <ClInclude Include="csgo\FindCsgo.h" />
     <ClInclude Include="csgo\FreshPair.h" />
@@ -156,7 +157,8 @@ if exist %srcilk% del /f /q %srcilk%</Command>
     <ClCompile Include="csgo\Archive.cpp" />
     <ClCompile Include="csgo\ArchivePair.cpp" />
     <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
-    <ClCompile Include="csgo\Calc.cpp" />
+    <ClCompile Include="csgo\calc\Calc.cpp" />
+    <ClCompile Include="csgo\calc\Random.cpp" />
     <ClCompile Include="csgo\DataPair.cpp" />
     <ClCompile Include="csgo\FindCsgo.cpp" />
     <ClCompile Include="csgo\FreshPair.cpp" />

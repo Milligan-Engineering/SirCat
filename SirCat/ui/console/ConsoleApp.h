@@ -1,6 +1,6 @@
 #pragma once
 
-#include "..\..\csgo\Calc.h"
+#include "..\..\csgo\calc\Calc.h"
 #include <string>
 
 namespace sircat {
@@ -32,12 +32,12 @@ public:
 		//archivePair and freshPair are compared and option is given to update the CSV file
 		//Returns true if CS:GO is found and the game data is successfully parsed into freshPair, and false otherwise
 
-	void pickCalcParams(csgo::Calc::Params &calcParams, const csgo::ArchivePair &archivePair,
-						const csgo::Calc::WhichParam whichParams = csgo::Calc::WhichParam::ALL) const;
+	void pickCalcParams(csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair,
+						const csgo::calc::Calc::WhichParam whichParams = csgo::calc::Calc::WhichParam::ALL) const;
 
-	void calcIdealFreq(const csgo::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
+	void calcIdealFreq(const csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
 
-	bool bUserMenu(int &menuOption, csgo::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
+	bool bUserMenu(int &menuOption, csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
 	//Precondition: menuOption and calcParams are modifiable and archivePair is populated with game data
 		//The console is ready to display a message then receive user input
 	//Postcondition: menuOption is updated according to user input in response to a program menu

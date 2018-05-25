@@ -1,6 +1,5 @@
 #include "SirFresh.h"
 #include "..\..\util\TextFileOps.h"
-#include <cstdlib>
 #include <cwctype>
 #include <fstream>
 #include <string>

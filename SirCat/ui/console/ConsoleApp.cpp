@@ -5,7 +5,7 @@
 #include "..\..\csgo\sir\SirArchive.h"
 #include "..\..\csgo\Archive.h"
 #include "..\..\csgo\GameData.h"
-#include "..\..\csgo\Calc.h"
+#include "..\..\csgo\calc\Calc.h"
 #include "..\..\csgo\FindCsgo.h"
 #include <cstdlib>
 #include <cwctype>
@@ -22,7 +22,7 @@ using csgo::bbox::BboxArchive;
 using csgo::sir::SirArchive;
 using csgo::Archive;
 using csgo::GameData;
-using csgo::Calc;
+using csgo::calc::Calc;
 using csgo::FindCsgo;
 using std::exit;
 using std::iswdigit;
@@ -102,20 +102,20 @@ void ConsoleApp::pickCalcParams(Calc::Params &calcParams, const ArchivePair &arc
 void ConsoleApp::calcIdealFreq(const Calc::Params &calcParams, const ArchivePair &archivePair) const
 {
 	Calc calculation(calcParams, archivePair.getSirArchive());
-	const double radius = stod(archivePair.getBboxArchive().getDatum(calcParams.modelIndex,
-																   archivePair.getBboxArchive().getNumColumns() - 1));
-	double targetInaccuracy = radius / (0.001 * calcParams.distance);
+	const double k_radius = stod(archivePair.getBboxArchive().getDatum(calcParams.modelIndex,
+																	   archivePair.getBboxArchive().getNumColumns() - 1));
+	double targetInaccuracy = k_radius / (0.001 * calcParams.distance);
 	double tapInterval = calculation.tapInterval(targetInaccuracy);
 
 	if (tapInterval == 0.0)
 		wcout << endl << endl << L"Weapon is not accurate enough for 100% tapping accuracy with current criteria.";
 	else
 	{
-		double cycleTime = stod(archivePair.getSirArchive().getDatum(calcParams.weaponIndex,
-															archivePair.getSirArchive().fetchColumnIndex(L"cycletime")));
+		double cycleT = stod(archivePair.getSirArchive().getDatum(calcParams.weaponIndex,
+																  archivePair.getSirArchive().fetchColumnIndex(L"cycletime")));
 
 		wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds";
-		wcout << (tapInterval == cycleTime ? " (max firing speed)" : "") << endl << endl << endl;
+		wcout << (tapInterval == cycleT ? " (max firing speed)" : "") << endl << endl << endl;
 	}
 }
 
