@@ -31,7 +31,7 @@ bool SirFresh::bReadWeapFile(const wstring csgoDir)
 
 		if (!weapFile.fail())
 		{
-			wchar_t defCycletime[1][_MAX_PATH];
+			wstring defCycletime[1];
 
 			textFileOps->parseTextFile(wstring(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
 
@@ -57,49 +57,29 @@ void SirFresh::fetchWeaponSirData(const int i, wifstream &weapFile)
 	constexpr int k_num_unparsed_attr = 70;
 
 	int unparsedAttrs;
-	wchar_t **searchResult = new wchar_t *[1];
-	wchar_t **parsedWeapData = new wchar_t *[k_num_unparsed_attr];
-	wchar_t **unparsedData = new wchar_t *[k_num_unparsed_attr];
+	wstring parsedWeapData[k_num_unparsed_attr];
+	wstring searchResult[1];
 	wstring searchTerm = wstring(L"\"") + rowHeaders[i] + L"_prefab\"";
+	wstring unparsedData[k_num_unparsed_attr];
 
-	searchResult[0] = new wchar_t[_MAX_PATH];
-
-	for (int j = 0; j < k_num_unparsed_attr; ++j)
-	{
-		parsedWeapData[j] = new wchar_t[k_data_len];
-		unparsedData[j] = new wchar_t[_MAX_PATH];
-	}
-
-	textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1, _MAX_PATH);
+	textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1);
 	searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
-	unparsedAttrs = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, k_num_unparsed_attr, _MAX_PATH,
-											   L"\t\"\0", 2, L'}');
+	unparsedAttrs = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, k_num_unparsed_attr, L"\t\"\0", 2, L'}');
 
 	for (int j = 0; j < unparsedAttrs; ++j) //Enumerate all returned unparsed attributes for each weapon
 	{
-		for (int k = 0; k < k_attr_len; ++k) //Enumerate characters for each returned unparsed attribute
+		int kmax = unparsedData[j].length() > k_attr_len ? k_attr_len : unparsedData[j].length();
+
+		for (int k = 0; k < kmax; ++k) //Enumerate characters for each returned unparsed attribute
 		{
-			if (iswdigit(static_cast<wint_t>(unparsedData[j][k])) != 0) //Check for number digit in unparsed attribute characters
+			if (iswdigit(static_cast<wint_t>(unparsedData[j].at(k))) != 0) //Check for number digit
 			{
-				int l;
+				int lmax = unparsedData[j].length() - k > k_data_len ? k + k_data_len : unparsedData[j].length();
 
-				for (l = 0; l < k_data_len; ++l) //Add relevant remaining data from unpared attribute to parsed weapon data
-				{
-					if (unparsedData[j][k + l] == L'\0')
-						break;
+				for (int l = k; l < lmax; ++l)
+					parsedWeapData[j] += unparsedData[j].at(l); //Add remaining data from unparsed attribute
 
-					parsedWeapData[j][l] = unparsedData[j][k + l];
-					unparsedData[j][k + l] = L'\0';
-				}
-
-				parsedWeapData[j][l] = L'\0'; //Add terminal null character to character array
-
-				while (unparsedData[j][k + l] != L'\0')
-				{
-					unparsedData[j][k + l] = L'\0'; //Change trailing chars to null chars, leaving parsed attribute names
-					++l;
-				}
-
+				unparsedData[j].erase(k); //unparsedData[j] now contains a parsed attribute name
 				break; //Stop enumerating characters for unparsed attribute since number digit was found
 			}
 		}

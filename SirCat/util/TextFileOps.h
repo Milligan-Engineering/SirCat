@@ -22,8 +22,8 @@ public:
 		int numSlice;
 		wchar_t wchar;
 
-		Params() : delimitedFile(nullptr), parsedSlice(nullptr), maxElements(0), bSliceIsRow(true), skipToElement(1),
-			       delimiter(L','), numSlice(1) {};
+		Params() noexcept : delimitedFile(nullptr), parsedSlice(nullptr), maxElements(0), bSliceIsRow(true), skipToElement(1),
+							delimiter(L','), numSlice(1), wchar(L'\0') {};
 	};
 
 	TextFileOps() = default;
@@ -40,9 +40,8 @@ public:
 
 	bool bSkipToColumnNum(const int numColumn, Params &params) const;
 
-	int parseTextFile(const std::wstring searchTerm, std::wifstream &file, wchar_t **searchRes, const int maxRes,
-					  const int maxResLength, const wchar_t ignoreChars[] = L"", const int numIgnoreChars = 0,
-					  const wchar_t retChar = L'\0') const;
+	int parseTextFile(const std::wstring searchTerm, std::wifstream &file, std::wstring searchRes[], const int maxRes,
+					  const wchar_t ignoreChars[] = L"", const int numIgnoreChars = 0, const wchar_t retChar = L'\0') const;
 	//Precondition: searchTerm should not contain any whitespace characters
 		//The file input stream searchFile has been successfully connected to a file
 		//The two-dimensional array searchRes is modifiable

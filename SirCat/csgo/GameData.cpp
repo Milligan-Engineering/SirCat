@@ -220,8 +220,9 @@ const GameData::NonMatch *const GameData::getNonMatches() const
 	return nonMatches;
 }
 
-GameData::GameData() : numColumns(0), numRows(0), textFileOps(new TextFileOps), columnHeaders(nullptr), rowHeaders(nullptr),
-					   data(nullptr), outCsv(new wofstream), numNonMatches(0), nonMatches(nullptr) {}
+GameData::GameData() noexcept : numColumns(0), numRows(0), textFileOps(new TextFileOps), columnHeaders(nullptr),
+								rowHeaders(nullptr), data(nullptr), outCsv(new wofstream), numNonMatches(0), nonMatches(nullptr)
+{}
 
 GameData::GameData(const GameData &otherGameData, const void *const voidParam) : GameData()
 {

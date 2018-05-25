@@ -17,22 +17,20 @@ public:
 	};
 
 	SirArchive() = delete;
-	SirArchive(const std::wstring csvName) : Archive(csvName) {};
+	SirArchive(const std::wstring csvName) : Archive(csvName), altModes{ { L"weapon_aug", L"scoped" },
+																		 { L"weapon_ssg556", L"scoped" },
+																		 { L"weapon_g3sg1", L"scoped" },
+																		 { L"weapon_scar20", L"scoped" },
+																		 { L"weapon_m4a1_silencer", L"silencer-off" },
+																		 { L"weapon_usp_silencer", L"silencer-off" }
+																	   } {};
 	SirArchive(const SirArchive &otherSirArchive) = delete;
 	~SirArchive() = default;
 	SirArchive &operator= (const SirArchive &otherSirArchive) = delete;
 
 	const AltMode *getAltModes() const { return altModes; };
 private:
-	const AltMode altModes[6] =
-	{
-		{ L"weapon_aug", L"scoped" },
-		{ L"weapon_ssg556", L"scoped" },
-		{ L"weapon_g3sg1", L"scoped" },
-		{ L"weapon_scar20", L"scoped" },
-		{ L"weapon_m4a1_silencer", L"silencer-off" },
-		{ L"weapon_usp_silencer", L"silencer-off" }
-	};
+	const AltMode altModes[6];
 };
 
 } //namespace sir

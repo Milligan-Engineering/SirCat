@@ -309,7 +309,7 @@ void BboxFresh::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR 
 int BboxFresh::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 {
 	int success = 0;
-	WCHAR searchResult[1][MAX_PATH];
+	wstring searchResult[1];
 	wstring searchTerm = L"$hbox"; //Search term to find the line that contains bbox data
 	wifstream modelFile;
 
@@ -322,20 +322,20 @@ int BboxFresh::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 		for (int j = 0; j < numColumns; ++j) //Collect each attribute for this model
 		{
 			const int elementsToCopy[7] = { 2, 3, 4, 5, 6, 7, 11 }; //Only collect bbox size data and not angles
-			int charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
+			size_t charPos = 1; //Will skip first char (a space) when reading searchResult[0] char by char later
 			int spaceDelimitedElement = 0; //Tracks the current space-delimited string element in searchResult[0]
 			wstring bboxDatumBuilder;
 
 			do
 			{
-				if (searchResult[0][charPos] == L' ')
+				if (searchResult[0].at(charPos) == L' ')
 					++spaceDelimitedElement;
 
-				if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0][charPos] != L' ')
-					bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum
+				if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0].at(charPos) != L' ')
+					bboxDatumBuilder += searchResult[0].at(charPos); //Build bbox datum
 
 				++charPos;
-			} while (spaceDelimitedElement <= elementsToCopy[j] && searchResult[0][charPos] != L'\0');
+			} while (spaceDelimitedElement <= elementsToCopy[j] && charPos < searchResult[0].length());
 
 			data[i][j] = bboxDatumBuilder; //Bbox datum is built, add it to bbox data array
 		}

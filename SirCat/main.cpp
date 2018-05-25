@@ -34,8 +34,6 @@ int main()
 	{
 		if (menuOption == 1)
 		{
-			FreshPair *freshPair = nullptr;
-
 			if (archivePair != nullptr)
 				delete archivePair;
 
@@ -47,9 +45,8 @@ int main()
 				consoleApp.hitEnterToExit();
 			}
 
-			freshPair = new FreshPair(*archivePair);
-			consoleApp.attemptFindCsgo(*archivePair, *freshPair);
-			delete freshPair;
+			FreshPair freshPair(*archivePair);
+			consoleApp.attemptFindCsgo(*archivePair, freshPair);
 			consoleApp.pickCalcParams(calcParams, *archivePair);
 		}
 

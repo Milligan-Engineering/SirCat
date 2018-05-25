@@ -420,7 +420,7 @@ int ConsoleApp::pickModelVariant(const BboxArchive &bboxArchive, const wstring b
 	int modelIndex;
 	int i;
 	int menuOption;
-	int numVariants;
+	int numVariants = 0;
 
 	do
 	{

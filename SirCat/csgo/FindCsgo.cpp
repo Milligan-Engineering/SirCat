@@ -69,14 +69,14 @@ bool FindCsgo::bCheckCsgoInstall()
 
 	if (!manifest.fail())
 	{
-		WCHAR searchResult[1][MAX_PATH];
+		wstring searchResult[1];
 
 		//Verify CS:GO installation directory listed in manifest file contents
 		if (textFileOps.parseTextFile(wstring(L"\"installdir\""), manifest, searchResult, 1, L"\t\"\0", 2) != 0)
 		{
 			DWORD nBufferLength;
 
-			testDir += wstring(L"\\common\\") + searchResult[0];
+			testDir += L"\\common\\" + searchResult[0];
 			nBufferLength = GetFullPathNameW((testDir + L"\\csgo.exe").c_str(), 0, nullptr, NULL);
 
 			if (nBufferLength != 0)
@@ -124,13 +124,13 @@ bool FindCsgo::bSearchSteamLibs()
 		while (i < 10 && !bFoundCsgo)
 		{
 			const wstring searchTerm = { L'\"', static_cast<WCHAR>(i + static_cast<int>(L'0')), L'\"', L'\0' };
-			WCHAR searchResult[1][MAX_PATH];
+			wstring searchResult[1];
 
 			if (textFileOps.parseTextFile(searchTerm, libFile, searchResult, 1, L"\t\"\0", 2) == 0)
 				break; //No other user-defined Steam libraries found to check for CS:GO
 			else
 			{
-				testDir += wstring(searchResult[0]) + L"\\steamapps"; //Found user-defined Steam library to check for CS:GO
+				testDir += searchResult[0] + L"\\steamapps"; //Found user-defined Steam library to check for CS:GO
 				++i;
 
 				if (bCheckCsgoInstall())

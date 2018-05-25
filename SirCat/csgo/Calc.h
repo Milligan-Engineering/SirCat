@@ -21,7 +21,7 @@ public:
 		bool b64Tick;
 		bool bUseAlt;
 
-		Params() : bCrouch(false), moveSpeed(0), hitPercent(100.0), distance(0.01), b64Tick(false), bUseAlt(false) {}; //temp////
+		Params() noexcept : modelIndex(0), weaponIndex(0), bCrouch(false), moveSpeed(0), hitPercent(100.0), distance(0.01), b64Tick(false), bUseAlt(false) {}; //temp////
 	};
 
 	Calc() = delete;
