@@ -18,10 +18,10 @@ Random::Random() : m_iy(0)
 
 float Random::RandomFloat(float flMinVal, float flMaxVal)
 {
-	float fl = static_cast<float>((1.0 / IM) * static_cast<float>(GenerateRandomNumber()));
+	float fl = (1.0f / IM) * GenerateRandomNumber();
 
-	if (fl > 1.0 - 1.2e-7)
-		fl = static_cast<float>(1.0 - 1.2e-7);
+	if (fl > 1.0f - 1.2e-7f)
+		fl = 1.0f - 1.2e-7f;
 
 	return (fl * (flMaxVal - flMinVal)) + flMinVal;
 }
