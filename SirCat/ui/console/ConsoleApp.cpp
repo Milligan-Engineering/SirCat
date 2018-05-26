@@ -4,10 +4,8 @@
 #include "..\..\csgo\bbox\BboxArchive.h"
 #include "..\..\csgo\sir\SirArchive.h"
 #include "..\..\csgo\Archive.h"
-#include "..\..\csgo\GameData.h"
 #include "..\..\csgo\calc\Calc.h"
 #include "..\..\csgo\FindCsgo.h"
-#include <cstdlib>
 #include <cwctype>
 #include <iostream>
 #include <string>
@@ -21,10 +19,8 @@ using csgo::FreshPair;
 using csgo::bbox::BboxArchive;
 using csgo::sir::SirArchive;
 using csgo::Archive;
-using csgo::GameData;
 using csgo::calc::Calc;
 using csgo::FindCsgo;
-using std::exit;
 using std::iswdigit;
 using std::endl;
 using std::wcin;
@@ -51,7 +47,6 @@ void ConsoleApp::hitEnterToExit() const
 	wcout << endl << L"Hit enter to exit: ";
 	bTakeOnlyOneWchar(exitWchar);
 	wcout << endl;
-	exit(1);
 }
 
 void ConsoleApp::attemptFindCsgo(ArchivePair &archivePair, FreshPair &freshPair) const
@@ -59,13 +54,13 @@ void ConsoleApp::attemptFindCsgo(ArchivePair &archivePair, FreshPair &freshPair)
 	bool bFoundCsgo = false;
 	FindCsgo findCsgo;
 	wstring steamDir;
+	int successfulSteps = attemptFind(findCsgo, steamDir);
 
-	if (findCsgo.bFetchSteamDir(steamDir))
+	if (successfulSteps >= k_found_steam)
 	{
 		wcout << L"Steam installation found in directory:\n" << steamDir << endl << endl;
 
-		if (findCsgo.bCheckCsgoInstall() //CSGO found in default Steam library
-			|| findCsgo.bSearchSteamLibs()) //CSGO found in alternate Steam library
+		if (successfulSteps == k_found_csgo)
 		{
 			wcout << L"CS:GO installation found in directory:\n" << findCsgo.getTestDir() << endl << endl;
 			wcout << L"Checking fresh CS:GO hitbox and weapon data against file archive data.\n";
@@ -89,23 +84,19 @@ void ConsoleApp::attemptFindCsgo(ArchivePair &archivePair, FreshPair &freshPair)
 void ConsoleApp::pickCalcParams(Calc::Params &calcParams, const ArchivePair &archivePair,
 								const Calc::WhichParam whichParams) const
 {
-	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::MODEL_INDEX)
+	if (whichParams == Calc::WhichParam::k_all || whichParams == Calc::WhichParam::k_model_index)
 		calcParams.modelIndex = pickModelSide(archivePair.getBboxArchive());
 
-	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::WEAPON_INDEX)
+	if (whichParams == Calc::WhichParam::k_all || whichParams == Calc::WhichParam::k_weapon_index)
 		calcParams.weaponIndex = pickWeapon(archivePair.getSirArchive());
 
-	if (whichParams == Calc::WhichParam::ALL || whichParams == Calc::WhichParam::DISTANCE)
+	if (whichParams == Calc::WhichParam::k_all || whichParams == Calc::WhichParam::k_distance)
 		calcParams.distance = pickDistance();
 }
 
 void ConsoleApp::calcIdealFreq(const Calc::Params &calcParams, const ArchivePair &archivePair) const
 {
-	Calc calculation(calcParams, archivePair.getSirArchive());
-	const double k_radius = stod(archivePair.getBboxArchive().getDatum(calcParams.modelIndex,
-																	   archivePair.getBboxArchive().getNumColumns() - 1));
-	double targetInaccuracy = k_radius / (0.001 * calcParams.distance);
-	double tapInterval = calculation.tapInterval(targetInaccuracy);
+	double tapInterval = calcTapInterval(calcParams, archivePair);
 
 	if (tapInterval == 0.0)
 		wcout << endl << endl << L"Weapon is not accurate enough for 100% tapping accuracy with current criteria.";
@@ -205,34 +196,20 @@ bool ConsoleApp::bReadGameFiles(const wstring csgoDir, FreshPair &freshPair) con
 
 	wcout << L"... Unpacking hitbox binaries from CS:GO VPK with HLExtract ...\n";
 
-	if (freshPair.getBboxFresh().bUnpackModels(csgoDir))
+	wstring retWString;
+
+	for (int step = k_start; step < k_finish; ++step)
 	{
-		wcout << L"... Decompiling hitbox binaries with Crowbar ...\n";
+		bSuccess = bReadGameFilesStep(csgoDir, freshPair, step, retWString);
 
-		if (freshPair.getBboxFresh().bDecompileModels())
+		if (!bSuccess)
 		{
-			wcout << L"... Reading decompiled hitbox files ...\n";
-
-			if (freshPair.getBboxFresh().bReadModelFiles())
-			{
-				wcout << L"... Reading weapon data from CS:GO items_game.txt ...\n";
-
-				if (freshPair.getSirFresh().bReadWeapFile(csgoDir))
-					bSuccess = true;
-				else
-					wcout << endl << L"Reading weapon data from CS:GO items_game.txt failed ...\n";
-			}
-			else
-				wcout << endl << L"Reading decompiled hitbox files failed.\n";
+			wcout << endl << retWString << endl;
+			break;
 		}
-		else
-		{
-			freshPair.getBboxFresh().bReadModelFiles(true);
-			wcout << endl << L"Decompiling hitbox binaries failed.\n";
-		}
+		else if (!retWString.empty())
+			wcout << retWString << endl;
 	}
-	else
-		wcout << endl << L"Unpacking hitbox files from CS:GO VPK failed.\n";
 
 	return bSuccess;
 }
@@ -240,10 +217,8 @@ bool ConsoleApp::bReadGameFiles(const wstring csgoDir, FreshPair &freshPair) con
 void ConsoleApp::compAndUpdate(ArchivePair &archivePair, const FreshPair &freshPair) const
 {
 	wcout << L"... done.";
-	archivePair.getBboxArchive().compareGameData(freshPair.getBboxFresh());
-	archivePair.getSirArchive().compareGameData(freshPair.getSirFresh());
 
-	if (archivePair.getBboxArchive().getNumNonMatches() == 0 && archivePair.getSirArchive().getNumNonMatches() == 0)
+	if (!archivePair.bCompareDiscrepancies(freshPair))
 		wcout << L" No discrepancies detected.\n";
 	else
 	{
@@ -255,23 +230,23 @@ void ConsoleApp::compAndUpdate(ArchivePair &archivePair, const FreshPair &freshP
 	}
 }
 
-void ConsoleApp::listNonMatches(const Archive &archivePair) const
+void ConsoleApp::listNonMatches(const Archive &archive) const
 {
-	if (archivePair.getNumNonMatches() > 0)
+	if (archive.getNumNonMatches() > 0)
 	{
-		wcout << endl << L"Data non-match detected in " << archivePair.getCsvName() << ":\n";
+		wcout << endl << L"Data non-match detected in " << archive.getK_csv_name() << ":\n";
 
-		for (int i = 0; i < archivePair.getNumNonMatches(); ++i)
+		for (int i = 0; i < archive.getNumNonMatches(); ++i)
 		{
-			wcout << endl << L"Non-matching data for " << archivePair.getNonMatches()[i].otherRowHeader << L" ";
-			wcout << archivePair.getNonMatches()[i].commonColumnHeader << endl;
+			wcout << endl << L"Non-matching data for " << archive.getNonMatches()[i].otherRowHeader << L" ";
+			wcout << archive.getNonMatches()[i].commonColumnHeader << endl;
 
-			if (archivePair.getNonMatches()[i].datum.empty())
+			if (archive.getNonMatches()[i].datum.empty())
 				wcout << L"** New data--not matched in archive file **\n";
 			else
-				wcout << L"Value from archive file: " << archivePair.getNonMatches()[i].datum << endl;
+				wcout << L"Value from archive file: " << archive.getNonMatches()[i].datum << endl;
 
-			wcout << L"Value from CS:GO's game files: " << archivePair.getNonMatches()[i].otherDatum << endl;
+			wcout << L"Value from CS:GO's game files: " << archive.getNonMatches()[i].otherDatum << endl;
 		}
 	}
 }
@@ -288,10 +263,7 @@ void ConsoleApp::updatePrompt(ArchivePair &archivePair, const FreshPair &freshPa
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			dynamic_cast<GameData &>(archivePair.getBboxArchive()) = dynamic_cast<GameData &>(freshPair.getBboxFresh());
-			dynamic_cast<GameData &>(archivePair.getSirArchive()) = dynamic_cast<GameData &>(freshPair.getSirFresh());
-
-			if (archivePair.getBboxArchive().bWriteArchiveFile() && archivePair.getSirArchive().bWriteArchiveFile())
+			if (bUpdateArchive(archivePair, freshPair))
 				wcout << endl << endl << L"Archive files updated.";
 			else
 				wcout << endl << endl << L"Failed to update archive files.";
@@ -379,16 +351,8 @@ int ConsoleApp::pickModelBase(const BboxArchive &bboxArchive, const wstring mode
 
 		for (int i = 0; i < bboxArchive.getNumRows(); ++i)
 		{
-			if (bboxArchive.getRowHeader(i).substr(0, menuModels[numBaseModels].length()) != menuModels[numBaseModels]
-				&& bboxArchive.getRowHeader(i).substr(0, 2) == modelPrefix) //List only CT or T models
+			if (bAddModelBase(bboxArchive, modelPrefix, i, numBaseModels, menuModels))
 			{
-				size_t lastUnderscore = bboxArchive.getRowHeader(i).find_last_of(L'_');
-
-				if (bboxArchive.getRowHeader(i).find_first_of(L'_') != lastUnderscore)
-					menuModels[++numBaseModels] = bboxArchive.getRowHeader(i).substr(0, lastUnderscore);
-				else
-					menuModels[++numBaseModels] = bboxArchive.getRowHeader(i);
-
 				wcout << numBaseModels << L" - " << menuModels[numBaseModels] << endl; //Build model menu
 				validChars += intDigitToWchar(numBaseModels);
 			}

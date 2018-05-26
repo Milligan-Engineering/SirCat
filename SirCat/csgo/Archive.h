@@ -11,21 +11,20 @@ class Archive : public GameData
 {
 public:
 	virtual ~Archive() = default;
+	Archive &operator= (const Archive &otherArchive) = delete;
 
 	bool bWriteArchiveFile();
 
 	bool getBSuccessUseCsv() const;
-	std::wstring getCsvName() const;
+	const std::wstring &getK_csv_name() const;
 protected:
-	Archive() = delete;
 	Archive(const std::wstring csvName);
-	Archive(const Archive &otherArchive) = delete;
-	Archive &operator= (const Archive &otherArchive) = delete;
+
 private:
 	void useCsv(sircat::util::TextFileOps::Params &params);
 
 	bool bSuccessUseCsv;
-	std::wstring csvName;
+	const std::wstring k_csv_name;
 };
 
 } //namespace csgo

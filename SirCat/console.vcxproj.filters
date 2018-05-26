@@ -105,6 +105,9 @@
     <ClCompile Include="csgo\calc\Random.cpp">
       <Filter>Source Files\csgo\calc</Filter>
     </ClCompile>
+    <ClCompile Include="ui\Shared.cpp">
+      <Filter>Source Files\ui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\custom build step files\archiveSirData.csv">
@@ -168,6 +171,9 @@
     </ClInclude>
     <ClInclude Include="csgo\calc\Random.h">
       <Filter>Header Files\csgo\calc</Filter>
+    </ClInclude>
+    <ClInclude Include="ui\Shared.h">
+      <Filter>Header Files\ui</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,8 +1,4 @@
 #include "DataPair.h"
-#include "bbox\BboxArchive.h"
-#include "bbox\BboxFresh.h"
-#include "sir\SirArchive.h"
-#include "sir\SirFresh.h"
 #include "GameData.h"
 
 namespace sircat {
@@ -15,6 +11,30 @@ DataPair::~DataPair()
 
 	if (pSir != nullptr)
 		delete pSir;
+}
+
+DataPair &DataPair::operator= (const DataPair &otherDataPair)
+{
+	if (this != &otherDataPair) //No self-assignment
+	{
+		dynamic_cast<GameData &>(*pBbox) = dynamic_cast<GameData &>(*otherDataPair.pBbox);
+		dynamic_cast<GameData &>(*pSir) = dynamic_cast<GameData &>(*otherDataPair.pSir);
+	}
+
+	return *this;
+}
+
+bool DataPair::bCompareDiscrepancies(const DataPair &otherDataPair) const
+{
+	bool bDiscrepancies = false;
+
+	pBbox->compareGameData(*otherDataPair.pBbox);
+	pSir->compareGameData(*otherDataPair.pSir);
+
+	if (pBbox->getNumNonMatches() != 0 || pSir->getNumNonMatches() != 0)
+		bDiscrepancies = true;
+
+	return bDiscrepancies;
 }
 
 } //namespace csgo

@@ -12,11 +12,11 @@ namespace bbox {
 
 class BboxFresh : public GameData
 {
+private:
+	struct WinInfo;
+	struct ChildInfo;
 public:
-	BboxFresh() = delete;
 	BboxFresh(const BboxArchive &bboxArchive) : GameData(bboxArchive, nullptr) {};
-	BboxFresh(const BboxFresh &otherBboxFresh) = delete;
-	~BboxFresh() = default;
 	BboxFresh &operator= (const BboxFresh &otherBboxFresh) = delete;
 
 	bool bUnpackModels(const std::wstring csgoDir) const;
@@ -44,9 +44,6 @@ public:
 	//Postcondition: Parses the model files and reads bbox data into a BboxData object's data array
 		//Returns true if data array was fully filled with bbox data, and false otherwise
 private:
-	struct WinInfo;
-	struct ChildInfo;
-
 	bool bCreateProcess(const WCHAR *const applicationName, WCHAR *const commandLine,
 						PROCESS_INFORMATION *const pPi = nullptr, bool bWaitForExit = true) const;
 

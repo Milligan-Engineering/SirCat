@@ -18,10 +18,10 @@ using std::stod;
 using std::wstring;
 
 Calc::Calc(const Params &params, const SirArchive &sirArchive) : k_tickrate(params.b64Tick ? 64.0 : 128.0), k_params(params),
-																 stats{ 0 }
+																 stats{ 0.0 }
 {
 	wstring stance = wstring();
-	wstring statNames[Stats::NUM_STATS] = { L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",
+	wstring statNames[k_num_stats] = { L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",
 											L"recovery time  final", L"spread",	L"inaccuracy ", L"inaccuracy fire",
 											L"inaccuracy move", L"recoil magnitude", L"recoil magnitude variance",
 											L"recoil angle variance" };
@@ -37,17 +37,17 @@ Calc::Calc(const Params &params, const SirArchive &sirArchive) : k_tickrate(para
 
 	if (params.bUseAlt)
 	{
-		for (int i = 5; i < Stats::NUM_STATS; ++i)
+		for (int i = 5; i < k_num_stats; ++i)
 			statNames[i] += L" alt";
 	}
 
-	for (Stats::I i = Stats::CYCLETIME; i < Stats::NUM_STATS; i = static_cast<Stats::I>(i + 1))
+	for (int i = k_first_stat; i < k_num_stats; ++i)
 		stats[i] = stod(sirArchive.getDatum(params.weaponIndex, sirArchive.fetchColumnIndex(statNames[i])));
 }
 
 double Calc::tapInterval(const double targetInaccuracy) const
 {
-	double tapInterval = stats[Stats::CYCLETIME];
+	double tapInterval = stats[k_cycletime];
 	//deagle for now, make it change for according to each weapon////////////////////////////////////////////////////////////////
 	double maxInterval = log10(1.090000 / 122.330001) * 0.811200 / log10(0.1); //////////////////////////////////////////////////
 	double maxInaccuracy;
@@ -56,10 +56,10 @@ double Calc::tapInterval(const double targetInaccuracy) const
 	{
 		maxInaccuracy = 0.0;
 
-		double inaccuracy = stats[Stats::SPREAD] + stats[Stats::INACCURACY_STANCE];
+		double inaccuracy = stats[k_spread] + stats[k_inaccuracy_stance];
 		double totalDecayTime = 0;
 
-		for (int taps = 1; taps < static_cast<int>(stats[Stats::PRIMARY_CLIP_SIZE]); ++taps)
+		for (int taps = 1; taps < static_cast<int>(stats[k_primary_clip_size]); ++taps)
 		{
 			double newInaccuracy = calcNewInaccuracy(inaccuracy, tapInterval, totalDecayTime);
 
@@ -87,7 +87,7 @@ double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval
 
 	double tickTapInterval = roundTimeToTick(totalDecayTime) - roundTimeToTick(oldTotalDecayTime);
 
-	return inaccuracy * pow(0.1, tickTapInterval / stats[Stats::RECOVERY_TIME]) + stats[Stats::INACCURACY_FIRE];
+	return inaccuracy * pow(0.1, tickTapInterval / stats[k_recovery_time]) + stats[k_inaccuracy_fire];
 }
 
 double Calc::roundTimeToTick(const double time) const

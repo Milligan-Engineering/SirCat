@@ -10,20 +10,20 @@ using std::chrono::high_resolution_clock;
 using std::rand;
 using std::srand;
 
-Random::Random() : m_iy(0)
+Random::Random() noexcept : k_am(1.0 / k_im), k_rnmx(1.0 - 1.2e-7), iv{}, iy(0)
 {
 	srand(static_cast<unsigned int>(high_resolution_clock::now().time_since_epoch().count()));
-	m_idum = -(rand() % 256); //Sets a pseduorandom seed value
+	idum = -(rand() % 256); //Sets a pseduorandom seed value
 }
 
-float Random::RandomFloat(float flMinVal, float flMaxVal)
+double Random::RandomDouble(double dblMinVal, double dblMaxVal)
 {
-	float fl = (1.0f / IM) * GenerateRandomNumber();
+	double dbl = k_am * GenerateRandomNumber();
 
-	if (fl > 1.0f - 1.2e-7f)
-		fl = 1.0f - 1.2e-7f;
+	if (dbl > k_rnmx)
+		dbl = k_rnmx;
 
-	return (fl * (flMaxVal - flMinVal)) + flMinVal;
+	return (dbl * (dblMaxVal - dblMinVal)) + dblMinVal;
 }
 
 int Random::GenerateRandomNumber()
@@ -31,39 +31,39 @@ int Random::GenerateRandomNumber()
 	int j;
 	int k;
 
-	if (m_idum <= 0 || m_iy == 0)
+	if (idum <= 0 || iy == 0)
 	{
-		if (m_idum > -1)
-			m_idum = 1;
+		if (idum > -1)
+			idum = 1;
 		else
-			m_idum *= -1;
+			idum *= -1;
 
-		for (j = NTAB + 7; j >= 0; --j)
+		for (j = k_ntab + 7; j >= 0; --j)
 		{
-			k = m_idum / IQ;
-			m_idum = IA * (m_idum - k * IQ) - IR * k;
+			k = idum / k_iq;
+			idum = k_ia * (idum - k * k_iq) - k_ir * k;
 
-			if (m_idum < 0)
-				m_idum += IM;
+			if (idum < 0)
+				idum += k_im;
 
-			if (j < NTAB)
-				m_iv[j] = m_idum;
+			if (j < k_ntab)
+				iv[j] = idum;
 		}
 
-		m_iy = m_iv[0];
+		iy = iv[0];
 	}
 
-	k = m_idum / IQ;
-	m_idum = IA * (m_idum - k * IQ) - IR * k;
+	k = idum / k_iq;
+	idum = k_ia * (idum - k * k_iq) - k_ir * k;
 
-	if (m_idum < 0)
-		m_idum += IM;
+	if (idum < 0)
+		idum += k_im;
 
-	j = m_iy / (1 + (IM - 1) / NTAB);
-	m_iy = m_iv[j];
-	m_iv[j] = m_idum;
+	j = iy / k_ndiv;
+	iy = iv[j];
+	iv[j] = idum;
 
-	return m_iy;
+	return iy;
 }
 
 } //namespace calc

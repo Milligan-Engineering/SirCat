@@ -3,7 +3,7 @@
 //Author: Casey Williams
 //Email Address: cjwilliams@my.milligan.edu
 //Description: Calculates the optimal frequency for tap-firing at a capsule-shaped target in Counter-Strike: Global Offensive.
-//Last Changed: May 25, 2018
+//Last Changed: May 26, 2018
 
 #include "ui\console\ConsoleApp.h"
 #include "csgo\ArchivePair.h"
@@ -41,11 +41,12 @@ int main()
 
 			if (!archivePair->getBboxArchive().getBSuccessUseCsv() || !archivePair->getSirArchive().getBSuccessUseCsv())
 			{
-				delete archivePair;
 				consoleApp.hitEnterToExit();
+				break;
 			}
 
 			FreshPair freshPair(*archivePair);
+
 			consoleApp.attemptFindCsgo(*archivePair, freshPair);
 			consoleApp.pickCalcParams(calcParams, *archivePair);
 		}

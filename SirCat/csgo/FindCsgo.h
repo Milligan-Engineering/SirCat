@@ -9,9 +9,6 @@ namespace csgo {
 class FindCsgo
 {
 public:
-	FindCsgo() = default;
-	~FindCsgo() = default;
-
 	bool bFetchSteamDir(std::wstring &steamDir);
 
 	bool bCheckCsgoInstall();

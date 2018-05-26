@@ -212,6 +212,7 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClCompile Include="csgo\sir\SirFresh.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="ui\console\ConsoleApp.cpp" />
+    <ClCompile Include="ui\Shared.cpp" />
     <ClCompile Include="util\TextFileOps.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -245,6 +246,7 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
     <ClInclude Include="csgo\sir\SirFresh.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="ui\console\ConsoleApp.h" />
+    <ClInclude Include="ui\Shared.h" />
     <ClInclude Include="util\TextFileOps.h" />
   </ItemGroup>
   <ItemGroup>

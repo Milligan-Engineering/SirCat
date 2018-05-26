@@ -7,16 +7,22 @@ namespace calc {
 class Random
 {
 public:
-	Random();
-	float RandomFloat(float flMinVal = 0.0f, float flMaxVal = 1.0f);
-private:
-	enum { NTAB = 32, IR = 2836, IA = 16807, IQ = 127773, IM = 2147483647 };
+	Random() noexcept;
 
-	int m_idum;
-	int m_iy;
-	int m_iv[NTAB];
+	Random(const Random &otherRandom) = delete;
+
+	double RandomDouble(double dblMinVal = 0.0, double dblMaxVal = 1.0);
+
+private:
+	enum { k_ntab = 32, k_ir = 2836, k_ia = 16807, k_iq = 127773, k_im = 2147483647, k_ndiv = (1 + (k_im - 1) / k_ntab) };
 
 	int GenerateRandomNumber();
+
+	const double k_am;
+	const double k_rnmx;
+	int idum;
+	int iv[k_ntab];
+	int iy;
 };
 
 } //namespace calc

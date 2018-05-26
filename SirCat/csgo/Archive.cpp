@@ -12,7 +12,7 @@ using std::wstring;
 
 bool Archive::bWriteArchiveFile()
 {
-	return bWriteCsvFile(csvName);
+	return bWriteCsvFile(k_csv_name);
 }
 
 bool Archive::getBSuccessUseCsv() const
@@ -20,18 +20,18 @@ bool Archive::getBSuccessUseCsv() const
 	return bSuccessUseCsv;
 }
 
-wstring Archive::getCsvName() const
+const wstring &Archive::getK_csv_name() const
 {
-	return csvName;
+	return k_csv_name;
 }
 
-Archive::Archive(const wstring csvName) : GameData()
+Archive::Archive(const wstring csvName) : GameData(), bSuccessUseCsv(true), k_csv_name(csvName)
 {
 	wifstream inArchive;
 	TextFileOps::Params params;
 
 	params.delimitedFile = &inArchive;
-	params.filename = csvName;
+	params.filename = k_csv_name;
 	numColumns = textFileOps->fetchNumColumns(params) - 1;
 	numRows = textFileOps->fetchNumRows(params) - 1;
 
@@ -41,17 +41,15 @@ Archive::Archive(const wstring csvName) : GameData()
 
 	for (int i = 0; i < numRows; ++i)
 		data[i] = new wstring[numColumns];
-
-	bSuccessUseCsv = true; //Defaults to true because useCsv sets bSuccessUseCsv to false if there is an error
-	Archive::csvName = csvName;
-	useCsv(params);
+	
+	useCsv(params); //Sets bSuccessUseCsv to false if there is an error
 }
 
 void Archive::useCsv(TextFileOps::Params &params)
 {
-	const bool sliceIsRow[2] = { false, true };
-	const int numSlice[2] = { 1, 1 };
-	const int sliceSize[2] = { numRows, numColumns };
+	const bool k_b_slice_is_row[2] = { false, true };
+	const int k_num_slice[2] = { 1, 1 };
+	const int k_slice_size[2] = { numRows, numColumns };
 	wstring *headers[2] = { rowHeaders, columnHeaders };
 
 	params.skipToElement = 2;
@@ -59,11 +57,11 @@ void Archive::useCsv(TextFileOps::Params &params)
 	for (int i = 0; i < 2; ++i)
 	{
 		params.parsedSlice = headers[i];
-		params.maxElements = sliceSize[i];
-		params.bSliceIsRow = sliceIsRow[i];
-		params.numSlice = numSlice[i];
+		params.maxElements = k_slice_size[i];
+		params.bSliceIsRow = k_b_slice_is_row[i];
+		params.numSlice = k_num_slice[i];
 
-		if (textFileOps->fetchDelimitedSlice(params) != sliceSize[i]) //Fills rowHeaders and columnHeaders from CSV file slices
+		if (textFileOps->fetchDelimitedSlice(params) != k_slice_size[i]) //Fills rowHeaders and columnHeaders from CSV file slices
 		{
 			bSuccessUseCsv = false;
 			break;

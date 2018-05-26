@@ -151,6 +151,7 @@ if exist %srcilk% del /f /q %srcilk%</Command>
     <ClInclude Include="csgo\sir\SirFresh.h" />
     <ClInclude Include="ui\gui\resource.h" />
     <ClInclude Include="targetver.h" />
+    <ClInclude Include="ui\Shared.h" />
     <ClInclude Include="util\TextFileOps.h" />
   </ItemGroup>
   <ItemGroup>
@@ -164,6 +165,7 @@ if exist %srcilk% del /f /q %srcilk%</Command>
     <ClCompile Include="csgo\FreshPair.cpp" />
     <ClCompile Include="csgo\GameData.cpp" />
     <ClCompile Include="csgo\sir\SirFresh.cpp" />
+    <ClCompile Include="ui\Shared.cpp" />
     <ClCompile Include="util\TextFileOps.cpp" />
     <ClCompile Include="wWinMain.cpp" />
   </ItemGroup>

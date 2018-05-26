@@ -1,5 +1,6 @@
 #pragma once
 
+#include "..\Shared.h"
 #include "..\..\csgo\calc\Calc.h"
 #include <string>
 
@@ -18,7 +19,7 @@ namespace sir { class SirArchive; }
 namespace ui {
 namespace console {
 
-class ConsoleApp
+class ConsoleApp : public Shared
 {
 public:
 	void introDialogue() const;
@@ -33,7 +34,7 @@ public:
 		//Returns true if CS:GO is found and the game data is successfully parsed into freshPair, and false otherwise
 
 	void pickCalcParams(csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair,
-						const csgo::calc::Calc::WhichParam whichParams = csgo::calc::Calc::WhichParam::ALL) const;
+						const csgo::calc::Calc::WhichParam whichParams = csgo::calc::Calc::WhichParam::k_all) const;
 
 	void calcIdealFreq(const csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
 
@@ -58,7 +59,7 @@ private:
 	//Precondition: archivePair and freshPair are modifiable and populated with game data
 	//Postcondition: archivePair and freshPair are compared, the results are displayed with option to update archive CSV files
 
-	void listNonMatches(const csgo::Archive &archivePair) const;
+	void listNonMatches(const csgo::Archive &archive) const;
 	//Postcondition: The non-matching data array from archivePair is parsed and non-matches are displayed
 
 	void updatePrompt(csgo::ArchivePair &archivePair, const csgo::FreshPair &freshPair) const;
@@ -95,6 +96,7 @@ private:
 	//Postcondition: To continue, user must pick a weapon, whose index will be returned
 
 	double pickDistance() const;
+
 };
 
 } //namespace console

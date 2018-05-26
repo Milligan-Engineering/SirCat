@@ -26,9 +26,6 @@ public:
 							delimiter(L','), numSlice(1), wchar(L'\0') {};
 	};
 
-	TextFileOps() = default;
-	~TextFileOps() = default;
-
 	int fetchDelimitedSlice(Params &params) const;
 
 	int fetchNumColumns(Params &params, const int numRow = 1) const;
@@ -55,6 +52,7 @@ public:
 		//Returns the number of null-terminated wstrings *searchRes[maxResLength] filled in the array of wstrings searchRes
 private:
 	bool bPrepForSlicing(int &numElements, int &targetNumElements, Params &params) const;
+
 };
 
 } //namespace util
