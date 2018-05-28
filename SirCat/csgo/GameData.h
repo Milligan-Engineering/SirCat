@@ -40,9 +40,9 @@ public:
 protected:
 	GameData() noexcept;
 
-	GameData(const GameData &otherGameData, const void *const voidParam);
+	GameData(const GameData &otherGameData, const void *const);
 
-	GameData(const GameData &otherGameData) = delete;
+	GameData(const GameData &other) = delete;
 
 	int numColumns;
 	int numRows;

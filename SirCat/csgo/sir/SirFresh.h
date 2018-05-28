@@ -13,7 +13,7 @@ class SirFresh : public GameData
 {
 public:
 	SirFresh(const SirArchive &sirArchive) : GameData(sirArchive, nullptr) {};
-	SirFresh &operator= (const SirFresh &otherSirFresh) = delete;
+	SirFresh &operator= (const SirFresh &other) = delete;
 
 	bool bReadWeapFile(const std::wstring csgoDir);
 

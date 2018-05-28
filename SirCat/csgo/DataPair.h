@@ -13,7 +13,7 @@ namespace csgo {
 class DataPair
 {
 public:
-	DataPair(const DataPair &otherDataPair) = delete;
+	DataPair(const DataPair &other) = delete;
 	virtual ~DataPair();
 
 	DataPair &operator= (const DataPair &otherDataPair);

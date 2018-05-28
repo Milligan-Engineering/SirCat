@@ -11,7 +11,7 @@ class Archive : public GameData
 {
 public:
 	virtual ~Archive() = default;
-	Archive &operator= (const Archive &otherArchive) = delete;
+	Archive &operator= (const Archive &other) = delete;
 
 	bool bWriteArchiveFile();
 

@@ -71,12 +71,12 @@ void SirFresh::fetchWeaponSirData(const int i, wifstream &weapFile)
 
 		for (int k = 0; k < kmax; ++k) //Enumerate characters for each returned unparsed attribute
 		{
-			if (iswdigit(static_cast<wint_t>(unparsedData[j].at(k))) != 0) //Check for number digit
+			if (iswdigit(static_cast<wint_t>(unparsedData[j][k])) != 0) //Check for number digit
 			{
 				int lmax = unparsedData[j].length() - k > k_data_len ? k + k_data_len : unparsedData[j].length();
 
 				for (int l = k; l < lmax; ++l)
-					parsedWeapData[j] += unparsedData[j].at(l); //Add remaining data from unparsed attribute
+					parsedWeapData[j] += unparsedData[j][l]; //Add remaining data from unparsed attribute
 
 				unparsedData[j].erase(k); //unparsedData[j] now contains a parsed attribute name
 				break; //Stop enumerating characters for unparsed attribute since number digit was found

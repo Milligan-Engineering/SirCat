@@ -17,34 +17,6 @@ using std::round;
 using std::stod;
 using std::wstring;
 
-Calc::Calc(const Params &params, const SirArchive &sirArchive) : k_tickrate(params.b64Tick ? 64.0 : 128.0), k_params(params),
-																 stats{ 0.0 }
-{
-	wstring stance = wstring();
-	wstring statNames[k_num_stats] = { L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",
-											L"recovery time  final", L"spread",	L"inaccuracy ", L"inaccuracy fire",
-											L"inaccuracy move", L"recoil magnitude", L"recoil magnitude variance",
-											L"recoil angle variance" };
-
-	if (params.bCrouch)
-		stance = L"crouch";
-	else
-		stance = L"stand";
-
-	statNames[3] += stance;
-	statNames[4].insert(14, stance);
-	statNames[6] += stance;
-
-	if (params.bUseAlt)
-	{
-		for (int i = 5; i < k_num_stats; ++i)
-			statNames[i] += L" alt";
-	}
-
-	for (int i = k_first_stat; i < k_num_stats; ++i)
-		stats[i] = stod(sirArchive.getDatum(params.weaponIndex, sirArchive.fetchColumnIndex(statNames[i])));
-}
-
 double Calc::tapInterval(const double targetInaccuracy) const
 {
 	double tapInterval = stats[k_cycletime];
@@ -79,6 +51,33 @@ double Calc::tapInterval(const double targetInaccuracy) const
 	return tapInterval;
 }
 
+const Calc::Params &Calc::getParams() const
+{
+	return params;
+}
+
+void Calc::setParams(const Params &newParams, const sir::SirArchive &sirArchive)
+{
+	params = newParams;
+	tickrate = params.b64Tick ? 64.0 : 128.0;
+
+	wstring stance(params.bCrouch ? L"crouch" : L"stand");
+
+	statNames = partialStatNames;
+	statNames[3] += stance;
+	statNames[4].insert(14, stance);
+	statNames[6] += stance;
+
+	if (params.bUseAlt)
+	{
+		for (int i = 5; i < k_num_stats; ++i)
+			statNames[i] += L" alt";
+	}
+
+	for (int i = k_first_stat; i < k_num_stats; ++i)
+		stats[i] = stod(sirArchive.getDatum(params.weaponIndex, sirArchive.fetchColumnIndex(statNames[i])));
+}
+
 double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const
 {
 	double oldTotalDecayTime = totalDecayTime;
@@ -92,7 +91,7 @@ double Calc::calcNewInaccuracy(const double inaccuracy, const double tapInterval
 
 double Calc::roundTimeToTick(const double time) const
 {
-	return round(time * k_tickrate) / k_tickrate;
+	return round(time * tickrate) / tickrate;
 }
 
 bool Calc::bHitPercentInDistribution() const

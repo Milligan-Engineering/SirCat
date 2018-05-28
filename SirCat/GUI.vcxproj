@@ -59,7 +59,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -97,13 +97,17 @@ if exist %srcilk% del /f /q %srcilk%</Command>
       <Message>...</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(IntDir)$(ProjectName)\$(TargetName).ilk;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded;$(IntDir)$(ProjectName)\$(TargetName).ilk;%(Outputs)</Outputs>
       <Command>echo off</Command>
     </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>set codeana="$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded"
+if exist %codeana% del /f /q %codeana%</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -133,8 +137,12 @@ if exist %srcilk% del /f /q %srcilk%</Command>
       <Message>...</Message>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;%(Outputs)</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded;%(Outputs)</Outputs>
     </CustomBuildStep>
+    <PreBuildEvent>
+      <Command>set codeana="$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded"
+if exist %codeana% del /f /q %codeana%</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="csgo\Archive.h" />

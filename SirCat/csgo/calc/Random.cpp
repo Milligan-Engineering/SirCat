@@ -1,35 +1,60 @@
 #include "Random.h"
+#include <array>
 #include <chrono>
-#include <cstdlib>
+#include <cstdint>
+#include <random>
 
 namespace sircat {
 namespace csgo {
 namespace calc {
 
+using std::array;
 using std::chrono::high_resolution_clock;
-using std::rand;
-using std::srand;
+using std::uint32_t;
+using std::uint8_t;
+using std::seed_seq;
 
-Random::Random() noexcept : k_am(1.0 / k_im), k_rnmx(1.0 - 1.2e-7), iv{}, iy(0)
+uint8_t Random::GeneratePseudorandomSeed() const
 {
-	srand(static_cast<unsigned int>(high_resolution_clock::now().time_since_epoch().count()));
-	idum = -(rand() % 256); //Sets a pseduorandom seed value
+	array<uint32_t, 1> seed;
+	seed_seq seq{ static_cast<uint32_t>(high_resolution_clock::now().time_since_epoch().count()) };
+
+	seq.generate(seed.begin(), seed.end());
+
+	return static_cast<uint8_t>(seed[0] & UINT8_MAX);
+}
+
+void Random::SetSeed(uint8_t seed)
+{
+	seed += 1;
+	idum = (seed < 0 ? seed : -seed);
+	iy = 0;
 }
 
 double Random::RandomDouble(double dblMinVal, double dblMaxVal)
 {
+	if (bAutoSeed)
+	{
+		SetSeed(GeneratePseudorandomSeed());
+		bAutoSeed = false;
+	}
+
 	double dbl = k_am * GenerateRandomNumber();
 
 	if (dbl > k_rnmx)
 		dbl = k_rnmx;
 
-	return (dbl * (dblMaxVal - dblMinVal)) + dblMinVal;
+	return dbl * (dblMaxVal - dblMinVal) + dblMinVal;
+}
+
+void Random::setBAutoSeed(const bool b_newAutoSeed)
+{
+	bAutoSeed = b_newAutoSeed;
 }
 
 int Random::GenerateRandomNumber()
 {
-	int j;
-	int k;
+	int j, k;
 
 	if (idum <= 0 || iy == 0)
 	{

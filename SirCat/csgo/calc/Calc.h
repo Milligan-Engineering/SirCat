@@ -1,5 +1,7 @@
 #pragma once
-#define k_FIRST_STAT 40
+
+#include <array>
+#include <string>
 
 namespace sircat {
 namespace csgo {
@@ -16,25 +18,23 @@ public:
 
 	struct Params
 	{
-		int modelIndex;
-		int weaponIndex;
-		bool bCrouch;
-		int moveSpeed;
-		double hitPercent;
-		double distance;
-		bool b64Tick;
-		bool bUseAlt;
-
-		Params() noexcept : modelIndex(0), weaponIndex(0), bCrouch(false), moveSpeed(0), hitPercent(100.0), distance(0.01),
-							b64Tick(false), bUseAlt(false) {};
-
+		int modelIndex = 0;
+		int weaponIndex = 0;
+		bool bCrouch = false;
+		double moveSpeed = 0.0;
+		double hitPercent = 100.0;
+		double distance = 0.0;
+		bool b64Tick = false;
+		bool bUseAlt = false;
 	};
 
-	Calc(const Params &k_params, const sir::SirArchive &sirArchive);
-
-	Calc(const Calc &othercalc) = delete;
+	Calc() = default;
 
 	double tapInterval(const double targetInaccuracy) const;
+
+	const Params &getParams() const;
+
+	void setParams(const Params &newParams, const sir::SirArchive &sirArchive);
 
 private:
 	enum { k_first_stat, k_cycletime = 0, k_primary_clip_size, k_max_player_speed, k_recovery_time, k_recovery_time_final,
@@ -47,9 +47,14 @@ private:
 
 	bool bHitPercentInDistribution() const;
 
-	const double k_tickrate;
-	const Params k_params;
-	double stats[k_num_stats];
+	double stats[k_num_stats]{ 0.0 };
+	double tickrate = 0.0;
+	Params params;
+	std::array<std::wstring, 12> partialStatNames{ L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",
+												   L"recovery time  final", L"spread", L"inaccuracy ", L"inaccuracy fire",
+												   L"inaccuracy move", L"recoil magnitude", L"recoil magnitude variance",
+												   L"recoil angle variance" };
+	std::array<std::wstring, 12> statNames = partialStatNames;
 };
 
 } //namespace calc

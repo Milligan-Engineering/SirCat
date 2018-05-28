@@ -7,6 +7,7 @@
 #include "..\csgo\GameData.h"
 #include "..\csgo\calc\Calc.h"
 #include "..\csgo\FindCsgo.h"
+#include <cstddef>
 #include <string>
 
 namespace sircat {
@@ -19,6 +20,7 @@ using csgo::bbox::BboxArchive;
 using csgo::GameData;
 using csgo::calc::Calc;
 using csgo::FindCsgo;
+using std::size_t;
 using std::stod;
 using std::wstring;
 
@@ -41,11 +43,12 @@ int Shared::attemptFind(FindCsgo &findCsgo, wstring &steamDir) const
 double Shared::calcTapInterval(const Calc::Params &calcParams, const ArchivePair &archivePair) const
 {
 	double tapInterval;
-	Calc calculation(calcParams, archivePair.getSirArchive());
+	Calc calculation;
 	const double k_radius = stod(archivePair.getBboxArchive().getDatum(calcParams.modelIndex,
 																	   archivePair.getBboxArchive().getNumColumns() - 1));
 	double targetInaccuracy = k_radius / (0.001 * calcParams.distance);
 
+	calculation.setParams(calcParams, archivePair.getSirArchive());
 	tapInterval = calculation.tapInterval(targetInaccuracy);
 
 	return tapInterval;

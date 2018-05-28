@@ -12,12 +12,12 @@ namespace bbox {
 
 class BboxFresh : public GameData
 {
-private:
+public:
 	struct WinInfo;
 	struct ChildInfo;
-public:
+
 	BboxFresh(const BboxArchive &bboxArchive) : GameData(bboxArchive, nullptr) {};
-	BboxFresh &operator= (const BboxFresh &otherBboxFresh) = delete;
+	BboxFresh &operator= (const BboxFresh &other) = delete;
 
 	bool bUnpackModels(const std::wstring csgoDir) const;
 	//Precondition: csgoDir is a directory containing a valid install of CS:GO; HLExtract files are in ./HLExtract directory
@@ -50,7 +50,7 @@ private:
 	static BOOL CALLBACK EnumWindowsProc(HWND hwnd, LPARAM lParam);
 	static BOOL CALLBACK EnumChildProc(HWND hwnd, LPARAM lParam);
 
-	void fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
+	void fetchModelFileDir(const DWORD nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
 						   WIN32_FIND_DATAW &FindFileData) const;
 	//Postcondition: Attempts to find the extended-length path of the ./legacy directory, and the normal path if unsuccessful
 		//hFind receives HANDLE from FindFirstFileW; *lpBuffer receives the extended-length path if one was found

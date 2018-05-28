@@ -23,9 +23,9 @@ protected:
 		   k_read_weap_file, k_finish };
 
 	Shared() = default;
-	Shared(const Shared &otherShared) = delete;
+	Shared(const Shared &other) = delete;
 	~Shared() = default;
-	Shared &operator= (const Shared &otherShared) = delete;
+	Shared &operator= (const Shared &other) = delete;
 
 	int attemptFind(csgo::FindCsgo &findCsgo, std::wstring &steamDir) const;
 

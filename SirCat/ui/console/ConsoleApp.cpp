@@ -6,6 +6,7 @@
 #include "..\..\csgo\Archive.h"
 #include "..\..\csgo\calc\Calc.h"
 #include "..\..\csgo\FindCsgo.h"
+#include <cstddef>
 #include <cwctype>
 #include <iostream>
 #include <string>
@@ -21,6 +22,7 @@ using csgo::sir::SirArchive;
 using csgo::Archive;
 using csgo::calc::Calc;
 using csgo::FindCsgo;
+using std::size_t;
 using std::iswdigit;
 using std::endl;
 using std::wcin;
@@ -31,7 +33,6 @@ using std::wstring;
 void ConsoleApp::introDialogue() const
 {
 	wchar_t startWchar;
-
 	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
 	wcout << L"Hit enter to begin... ";
 	bTakeOnlyOneWchar(startWchar);

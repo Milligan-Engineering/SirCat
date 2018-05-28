@@ -16,6 +16,7 @@ namespace csgo {
 namespace bbox {
 
 using sircat::util::TextFileOps;
+using std::size_t;
 using std::wifstream;
 using std::wstring;
 
@@ -155,7 +156,7 @@ bool BboxFresh::bReadModelFiles(const bool bCleanLegacyDir)
 	WIN32_FIND_DATAW FindFileData;
 	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
 
-	fetchModelFileDir(static_cast<int>(nBufferLength), hFind, lpBuffer, lpFileName, FindFileData);
+	fetchModelFileDir(nBufferLength, hFind, lpBuffer, lpFileName, FindFileData);
 
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
@@ -280,7 +281,7 @@ BOOL BboxFresh::EnumChildProc(HWND hwnd, LPARAM lParam)
 	return bContinueEnum;
 }
 
-void BboxFresh::fetchModelFileDir(const int nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
+void BboxFresh::fetchModelFileDir(const DWORD nBufferLength, HANDLE &hFind, WCHAR *&lpBuffer, WCHAR *&lpFileName,
 								 WIN32_FIND_DATAW &FindFileData) const
 {
 	if (nBufferLength != 0)
@@ -328,11 +329,11 @@ int BboxFresh::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 
 			do
 			{
-				if (searchResult[0].at(charPos) == L' ')
+				if (searchResult[0][charPos] == L' ')
 					++spaceDelimitedElement;
 
-				if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0].at(charPos) != L' ')
-					bboxDatumBuilder += searchResult[0].at(charPos); //Build bbox datum
+				if (spaceDelimitedElement == elementsToCopy[j] && searchResult[0][charPos] != L' ')
+					bboxDatumBuilder += searchResult[0][charPos]; //Build bbox datum
 
 				++charPos;
 			} while (spaceDelimitedElement <= elementsToCopy[j] && charPos < searchResult[0].length());

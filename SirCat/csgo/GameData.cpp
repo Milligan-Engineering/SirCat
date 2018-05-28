@@ -224,7 +224,7 @@ GameData::GameData() noexcept : numColumns(0), numRows(0), textFileOps(new TextF
 								rowHeaders(nullptr), data(nullptr), outCsv(new wofstream), numNonMatches(0), nonMatches(nullptr)
 {}
 
-GameData::GameData(const GameData &otherGameData, const void *const voidParam) : GameData()
+GameData::GameData(const GameData &otherGameData, const void *const) : GameData()
 {
 	numColumns = otherGameData.numColumns;
 	numRows = otherGameData.numRows;

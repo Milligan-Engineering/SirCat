@@ -52,16 +52,18 @@
     <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
     <TargetExt>.com</TargetExt>
     <TargetName>$(SolutionName)</TargetName>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(SolutionDir)Intermediate\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <TargetExt>.com</TargetExt>
     <TargetName>$(SolutionName)</TargetName>
+    <CodeAnalysisRuleSet>NativeRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
@@ -74,11 +76,14 @@
     </ClCompile>
     <CustomBuildStep>
       <Command>echo off</Command>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(IntDir)$(ProjectName)\$(TargetName).ilk</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded;$(IntDir)$(ProjectName)\$(TargetName).ilk</Outputs>
       <Message>...</Message>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
+      <Command>set codeana="$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded"
+if exist %codeana% del /f /q %codeana%
+
+set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
 copy /y /b "$(SolutionDir)custom build step files\archiveBboxData.csv" %archivea%
 
@@ -135,7 +140,7 @@ if exist %srcilk% del /f /q %srcilk%</Command>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -168,11 +173,14 @@ if exist %srcilk% del /f /q %srcilk%</Command>
       <Command>echo off</Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\archiveBboxData.csv;$(SolutionDir)$(Configuration)\archiveSirData.csv;$(SolutionDir)$(Configuration)\HLExtract\HLExtract.exe;$(SolutionDir)$(Configuration)\HLExtract\HLLib.dll;$(SolutionDir)$(Configuration)\Crowbar\Crowbar.exe;$(SolutionDir)$(Configuration)\Crowbar\Data\Crowbar Settings.xml;$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded</Outputs>
       <Message>...</Message>
     </CustomBuildStep>
     <PreBuildEvent>
-      <Command>set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
+      <Command>set codeana="$(SolutionDir)$(Configuration)\$(SolutionName)$(TargetExt).lastcodeanalysissucceeded"
+if exist %codeana% del /f /q %codeana%
+
+set archivea="$(SolutionDir)$(Configuration)\archiveBboxData.csv"
 if exist %archivea% del /f /q %archivea%
 copy /y /b "$(SolutionDir)custom build step files\archiveBboxData.csv" %archivea%
 
