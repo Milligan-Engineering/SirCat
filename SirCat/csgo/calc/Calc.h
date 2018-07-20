@@ -25,7 +25,7 @@ public:
 		unsigned int weaponIndex;
 		bool bCrouch;
 		float moveSpeed;
-		float hitPercent;
+		float targetHitPercent;
 		float distance;
 		bool b64Tick;
 		bool bUseAlt;
@@ -47,10 +47,21 @@ private:
 
 	enum { k_cycletime, k_primary_clip_size, k_max_player_speed, k_recovery_time, k_recovery_time_final, k_spread,
 		   k_inaccuracy_stance, k_inaccuracy_fire, k_inaccuracy_move, k_recoil_magnitude, k_recoil_magnitude_variance,
-		   k_recoil_angle_variance, k_recoil_seed, k_is_full_auto, k_num_sir_stats, k_first_stat = 0,
+		   k_recoil_angle, k_recoil_angle_variance, k_recoil_seed, k_is_full_auto, k_num_sir_stats, k_first_stat = 0,
 		   k_bbminx = 0, k_bbminy, k_bbminz, k_bbmaxx, k_bbmaxy, k_bbmaxz, k_radius,
 		   k_angle = 0, k_magnitude,
 		   k_x = 0, k_y };
+
+	struct Cvars
+	{
+		float weapon_recoil_decay2_exp;
+		float weapon_recoil_decay2_lin;
+		float weapon_recoil_scale;
+		float weapon_recoil_suppression_factor;
+		float weapon_recoil_suppression_shots;
+		float weapon_recoil_variance;
+		float weapon_recoil_vel_decay;
+	};
 
 	RecoilTable generateRecoilTable(const bool bIsFullAuto) const;
 
@@ -58,21 +69,22 @@ private:
 
 	float findMaxInterval(const RecoilTable recoilTable, const RecoveryTimes recoveryTimes) const;
 
-	Recoil calcRecoil(const std::size_t ticksSinceLastCalc, const RecoilTable recoilTable, float &recoilIndex, Recoil recoil,
-					  Recoil &velocity) const;
+	Recoil updateRecoil(const std::size_t ticksSinceLastCalc, const RecoilTable recoilTable, float &recoilIndex,
+						Recoil recoil, Recoil &velocity) const;
 
 	std::size_t ticksSinceLastTap(const float tapInterval, float &sumDecayTime) const;
 
 	std::size_t ceilToInt(const float inputFloat) const;
 
-	float calcInaccuracy(const float inaccuracy, const float recoveryTime, const float elapsedTime) const;
+	float updateInaccuracy(const float inaccuracy, const float recoveryTime, const float elapsedTime) const;
 
 	float tapHitPercent(const float inaccuracy, Random &rand, Recoil recoil) const;
 
 	void fillSirStats(const bool bUseAlt, const int weaponIndex, const sir::SirArchive &sir, const wchar_t stance[]);
 
-	float floorTo6(const float inputFloat) const;
+	float floor6(const float inputFloat) const;
 
+	Cvars cvars;
 	float baseInaccuracy;
 	float bboxCylHalfHeight;
 	float bboxRadius;

@@ -163,7 +163,7 @@ if exist %codeana% del /f /q %codeana%</Command>
     <ClInclude Include="util\TextFileOps.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="csgo\ArchivePair.cpp" />
+    <ClCompile Include="csgo\Archive.cpp" />
     <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
     <ClCompile Include="csgo\calc\Calc.cpp" />
     <ClCompile Include="csgo\calc\Random.cpp" />

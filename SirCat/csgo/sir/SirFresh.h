@@ -20,6 +20,8 @@ public:
 private:
 	void fetchWeaponSirData(const int i, std::wifstream &weapFile);
 
+	void fillInMissingValue(const int i, const int j, const std::wstring assignValue);
+
 };
 
 } //namespace sir

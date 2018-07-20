@@ -131,9 +131,6 @@
     <ClCompile Include="csgo\sir\SirFresh.cpp">
       <Filter>Source Files\csgo\sir</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\ArchivePair.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
     <ClCompile Include="csgo\DataPair.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
@@ -145,6 +142,9 @@
     </ClCompile>
     <ClCompile Include="ui\Shared.cpp">
       <Filter>Source Files\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="csgo\Archive.cpp">
+      <Filter>Source Files\csgo</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

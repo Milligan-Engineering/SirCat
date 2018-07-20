@@ -31,16 +31,16 @@ using std::stof; using std::wstring;
 
 float Calc::tapInterval(float &maxInterval) const
 {
-	float tapInterval = sirStats[k_cycletime];
+	float tapInterval = sirStats[k_cycletime]; //Starts simulation at max firing speed
 
 	const bool bIsFullAuto = sirStats[k_is_full_auto] == 1.f;
 	const RecoilTable recoilTable = generateRecoilTable(bIsFullAuto);
 	const RecoveryTimes recoveryTimes = generateRecoveryTimes(bIsFullAuto);
-	float totalTapHitPercent = 0.f;
+	float totalTapHitPercent = 0.f; //Stores the percentage of shots that landed within hitbox over each simulation
 	Random rand;
 
 	rand.setSeed();
-	maxInterval = findMaxInterval(recoilTable, recoveryTimes);
+	maxInterval = findMaxInterval(recoilTable, recoveryTimes); //Sets max tapInterval that can be incremented to for simulations
 
 	do
 	{
@@ -49,24 +49,24 @@ float Calc::tapInterval(float &maxInterval) const
 		float sumDecayTime = 0.f;
 		Recoil recoil{};
 		Recoil velocity{};
-		size_t ticks = 0u;
+		size_t ticks = 0u; //Stores the the number of ticks that have passed between consecutive taps in a simulation
 
-		recoil = calcRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
+		recoil = updateRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
 		totalTapHitPercent = tapHitPercent(inaccuracy, rand, recoil);
 
 		for (unsigned int taps = 1u; taps < params.maxTaps; ++taps)
 		{
 			ticks = ticksSinceLastTap(tapInterval, sumDecayTime);
-			recoil = calcRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
-			inaccuracy = calcInaccuracy(inaccuracy, recoveryTimes[ceilToInt(recoilIndex)], ticks / tickrate);
+			recoil = updateRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
+			inaccuracy = updateInaccuracy(inaccuracy, recoveryTimes[ceilToInt(recoilIndex)], ticks / tickrate);
 			totalTapHitPercent += tapHitPercent(inaccuracy, rand, recoil);
 		}
 
 		totalTapHitPercent = totalTapHitPercent / params.maxTaps; //Calculates average hit percentage for taps
 
-		if (totalTapHitPercent < params.hitPercent)
+		if (totalTapHitPercent < params.targetHitPercent)
 			tapInterval += params.tapIncr;
-	} while (totalTapHitPercent < params.hitPercent && tapInterval < maxInterval);
+	} while (totalTapHitPercent < params.targetHitPercent && tapInterval < maxInterval);
 
 	return tapInterval;
 }
@@ -80,6 +80,10 @@ void Calc::setParams(Params &inParams, const ArchivePair &archivePair)
 {
 	fillSirStats(inParams.bUseAlt, inParams.weaponIndex, archivePair.getSir(), inParams.bCrouch ? L"crouch" : L"stand");
 
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	//Add algorithm to retrieve cvars from game files?///////////////////////////////////////////////////////////////////////////
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	cvars = { 8.f, 18.f, 2.f, 0.75f, 4.f, 0.55f, 4.5f };
 	params = inParams;
 	params.maxTaps = params.maxTaps == 0u ? static_cast<unsigned int>(sirStats[k_primary_clip_size]) : params.maxTaps;
 
@@ -110,26 +114,30 @@ Calc::RecoilTable Calc::generateRecoilTable(const bool bIsFullAuto) const
 
 	for (size_t i = 0u; i < 64u; ++i)
 	{
-		table[i][k_angle] = rand.randomFloat(-1.f, 1.f) * sirStats[k_recoil_angle_variance];
+		table[i][k_angle] = sirStats[k_recoil_angle] + rand.randomFloat(-1.f, 1.f) * sirStats[k_recoil_angle_variance];
 		table[i][k_magnitude] = sirStats[k_recoil_magnitude] + rand.randomFloat(-1.f, 1.f)
 								* sirStats[k_recoil_magnitude_variance];
 
 		if (bIsFullAuto)
 		{
-			if (i != 0)
+			if (i != 0u)
 			{
 				const size_t last = i - 1u;
 
+				//Smooths out angular variance between consecutive shots in the recoil pattern
 				table[i][k_angle] = table[last][k_angle] + (table[i][k_angle] - table[last][k_angle]) * 0.55f;
 				table[i][k_magnitude] = table[last][k_magnitude] + (table[i][k_magnitude] - table[last][k_magnitude]) * 0.55f;
 			}
 
-			if (i < 4)
-				table[i][k_magnitude] *= i / 4.f * 0.25f + 0.75f;
+			if (i < 4u)
+				//Lerps over first four shots to reduce their recoil
+				table[i][k_magnitude] *= i / cvars.weapon_recoil_suppression_shots
+										 * (1.f - cvars.weapon_recoil_suppression_factor)
+										 + cvars.weapon_recoil_suppression_factor;
 		}
 	}
 
-	for (size_t i = 64u; i < 150u; ++i)
+	for (size_t i = 64u; i < 150u; ++i) //Recoil pattern repeats every 64 shots
 		table[i] = table[i - 64u];
 
 	return table;
@@ -171,8 +179,8 @@ float Calc::findMaxInterval(const RecoilTable recoilTable, const RecoveryTimes r
 {
 	float tapInterval = sirStats[k_cycletime];
 
-	const unsigned int clipSize = static_cast<unsigned int>(sirStats[k_primary_clip_size]);
-	unsigned int taps;
+	const int clipSize = static_cast<int>(sirStats[k_primary_clip_size]);
+	int taps;
 
 	do
 	{
@@ -183,19 +191,19 @@ float Calc::findMaxInterval(const RecoilTable recoilTable, const RecoveryTimes r
 		Recoil velocity{};
 		size_t ticks = 0u;
 
-		recoil = calcRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
-		recoil = { floorTo6(recoil[k_x]), floorTo6(recoil[k_y]) };
+		recoil = updateRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
+		recoil = { floor6(recoil[k_x]), floor6(recoil[k_y]) };
 
-		for (taps = 1u; taps < clipSize; ++taps)
+		for (taps = 1; taps < clipSize; ++taps)
 		{
 			ticks = ticksSinceLastTap(tapInterval, sumDecayTime);
 
-			Recoil newRecoil = calcRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
-			float newInaccuracy = floorTo6(calcInaccuracy(inaccuracy, recoveryTimes[ceilToInt(recoilIndex)], ticks / tickrate));
+			Recoil newRecoil = updateRecoil(ticks, recoilTable, recoilIndex, recoil, velocity);
+			float newInaccuracy = floor6(updateInaccuracy(inaccuracy, recoveryTimes[ceilToInt(recoilIndex)], ticks / tickrate));
 
-			newRecoil = { floorTo6(newRecoil[k_x]), floorTo6(newRecoil[k_y]) };
+			newRecoil = { floor6(newRecoil[k_x]), floor6(newRecoil[k_y]) };
 
-			if ((newInaccuracy != inaccuracy || newRecoil != recoil) && taps != 1u) //Skips comparison to base inaccuracy
+			if ((newInaccuracy != inaccuracy || newRecoil != recoil) && taps != 1) //Skips comparison to base inaccuracy
 			{
 				tapInterval += params.tapIncr;
 				break;
@@ -204,22 +212,22 @@ float Calc::findMaxInterval(const RecoilTable recoilTable, const RecoveryTimes r
 			inaccuracy = newInaccuracy;
 			recoil = newRecoil;
 		}
-	} while (taps != clipSize);
+	} while (taps != clipSize); //Loops until the foor loop inaccuracy and recoil have converged for the entire clip
 
 	return tapInterval;
 }
 
-Calc::Recoil Calc::calcRecoil(const size_t ticksSinceLastCalc, const RecoilTable recoilTable, float &recoilIndex, Recoil recoil,
-							  Recoil &velocity) const
+Calc::Recoil Calc::updateRecoil(const size_t ticksSinceLastCalc, const RecoilTable recoilTable, float &recoilIndex,
+								Recoil recoil, Recoil &velocity) const
 {
-	const float decay2Exp = expf(-8.f / tickrate);
-	const float decay2Lin = 18.f / tickrate;
-	const float velDecay = expf(-4.5f / tickrate);
+	const float decay2Exp = expf(-cvars.weapon_recoil_decay2_exp / tickrate);
+	const float decay2Lin = cvars.weapon_recoil_decay2_lin / tickrate;
+	const float velDecay = expf(-cvars.weapon_recoil_vel_decay / tickrate);
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//Decay recoilIndex inside this for loop/////////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	for (size_t i = 0u; i < ticksSinceLastCalc; ++i)
+	for (size_t i = 0u; i < ticksSinceLastCalc; ++i) //Decays recoil each tick
 	{
 		recoil = { recoil[k_x] * decay2Exp, recoil[k_y] * decay2Exp };
 
@@ -236,6 +244,7 @@ Calc::Recoil Calc::calcRecoil(const size_t ticksSinceLastCalc, const RecoilTable
 
 		const float averageConstant = 1.f / tickrate / 2.f;
 
+		//Smooths recoil vecolity between consecutive ticks
 		recoil = { recoil[k_x] + velocity[k_x] * averageConstant, recoil[k_y] + velocity[k_y] * averageConstant };
 		velocity = { velocity[k_x] * velDecay, velocity[k_y] * velDecay };
 		recoil = { recoil[k_x] + velocity[k_x] * averageConstant, recoil[k_y] + velocity[k_y] * averageConstant };
@@ -244,6 +253,7 @@ Calc::Recoil Calc::calcRecoil(const size_t ticksSinceLastCalc, const RecoilTable
 	const size_t index = static_cast<size_t>(recoilIndex++);
 	const float recoilAngle = recoilTable[index][k_angle] * static_cast<float>(M_PI) / 180.f;
 
+	//Adds velocity from recoil table based on this shot's recoil index
 	velocity = { velocity[k_x] + recoilTable[index][k_magnitude] * sinf(recoilAngle),
 				 velocity[k_y] + recoilTable[index][k_magnitude] * cosf(recoilAngle) };
 
@@ -252,9 +262,10 @@ Calc::Recoil Calc::calcRecoil(const size_t ticksSinceLastCalc, const RecoilTable
 
 size_t Calc::ticksSinceLastTap(const float tapInterval, float &sumDecayTime) const
 {
+	//Accounts for the simulations first tick shot calculations
 	const float oldTotalDecayTime = sumDecayTime + (sumDecayTime == 0.f ? 1.f / tickrate : 0.f);
 
-	sumDecayTime = floorTo6(sumDecayTime + tapInterval); //Floors to 6 decimal places to avoid accumulated floating-point error
+	sumDecayTime = floor6(sumDecayTime + tapInterval); //Floors to 6 decimal places to avoid accumulated floating-point error
 
 	return ceilToInt(sumDecayTime * tickrate) - ceilToInt(oldTotalDecayTime * tickrate);
 }
@@ -264,7 +275,7 @@ size_t Calc::ceilToInt(const float inputFloat) const
 	return static_cast<size_t>(ceilf(inputFloat));
 }
 
-float Calc::calcInaccuracy(const float inaccuracy, const float recoveryTime, const float elapsedTime) const
+float Calc::updateInaccuracy(const float inaccuracy, const float recoveryTime, const float elapsedTime) const
 {
 	return (sirStats[k_inaccuracy_fire] + inaccuracy - baseInaccuracy) * powf(0.1f, elapsedTime / recoveryTime) + baseInaccuracy;
 }
@@ -274,10 +285,12 @@ float Calc::tapHitPercent(const float inaccuracy, Random &rand, Recoil recoil) c
 	constexpr float k_2_pi = static_cast<float>(2. * M_PI);
 
 	const float bboxHalfHeight = bboxCylHalfHeight + bboxRadius;
-	const float scaleToDistance = 0.001f * params.distance;
+	const float scaleToDistance = 0.001f * params.distance; //Scales shot spread to x/y coordinates based on distance from target
 	int hits = 0;
+	const float radiansScale = cvars.weapon_recoil_scale * static_cast<float>(M_PI) / 180.f;
 
-	recoil = { tanf(recoil[k_x] * k_2_pi / 180.f) * params.distance, tanf(recoil[k_y] * k_2_pi / 180.f) * params.distance };
+	//Converts view punch angles and scales shot recoil to x/y coordinates based on distance from target
+	recoil = { tanf(recoil[k_x] * radiansScale) * params.distance, tanf(recoil[k_y] * radiansScale) * params.distance };
 
 	for (unsigned int i = 0; i < params.simsPerTap; ++i)
 	{
@@ -286,15 +299,15 @@ float Calc::tapHitPercent(const float inaccuracy, Random &rand, Recoil recoil) c
 		const float randSpread = rand.randomFloat() * sirStats[k_spread];
 		const float randAngle2 = rand.randomFloat(0.f, k_2_pi);
 
-		const float spreadX = fabsf(recoil[k_x] - (sinf(randAngle1) * randInaccuracy + sinf(randAngle1) * randSpread)
+		const float xCoordinate = fabsf(recoil[k_x] - (sinf(randAngle1) * randInaccuracy + sinf(randAngle1) * randSpread)
 									* scaleToDistance);
-		const float spreadY = fabsf(recoil[k_y] - (cosf(randAngle2) * randInaccuracy + cosf(randAngle2) * randSpread)
+		const float yCoordinate = fabsf(recoil[k_y] - (cosf(randAngle2) * randInaccuracy + cosf(randAngle2) * randSpread)
 									* scaleToDistance);
 
-		if (spreadX <= bboxRadius && spreadY <= bboxCylHalfHeight //Shot falls inside 2d bbox rectangle
-			|| spreadY > bboxCylHalfHeight && spreadY <= bboxHalfHeight //Shot falls inside 2d bbox semicircle
-			   && spreadX <= sqrt(powf(bboxRadius, 2.f) - powf(spreadY - bboxCylHalfHeight, 2.f)))
-			++hits;
+		if (xCoordinate <= bboxRadius && yCoordinate <= bboxCylHalfHeight
+			|| yCoordinate > bboxCylHalfHeight && yCoordinate <= bboxHalfHeight
+			   && xCoordinate <= sqrt(powf(bboxRadius, 2.f) - powf(yCoordinate - bboxCylHalfHeight, 2.f)))
+			++hits; //Registers shots whose coordinates were within the 2d bbox's rectangle or semicircle
 	}
 
 	return hits * 100.f / params.simsPerTap;
@@ -304,7 +317,8 @@ void Calc::fillSirStats(const bool bUseAlt, const int weaponIndex, const SirArch
 {
 	wstring statNames[] = { L"cycletime", L"primary clip size", L"max player speed", L"recovery time ", L"recovery time  final",
 							L"spread", L"inaccuracy ", L"inaccuracy fire", L"inaccuracy move", L"recoil magnitude",
-							L"recoil magnitude variance", L"recoil angle variance", L"recoil seed", L"is full auto" };
+							L"recoil magnitude variance", L"recoil angle", L"recoil angle variance", L"recoil seed",
+							L"is full auto" };
 
 	for (int i = k_first_stat; i < k_num_sir_stats; ++i)
 	{
@@ -321,7 +335,7 @@ void Calc::fillSirStats(const bool bUseAlt, const int weaponIndex, const SirArch
 	}
 }
 
-float Calc::floorTo6(const float inputFloat) const
+float Calc::floor6(const float inputFloat) const
 {
 	return floorf(inputFloat * 1000000) / 1000000;
 }

@@ -38,15 +38,10 @@ bool SirFresh::bReadWeapFile(const wstring csgoDir)
 
 			for (int i = 0; i < numRows; ++i)
 			{
-				int columnIndex = fetchColumnIndex(L"cycletime");
-
-				if (data[i][columnIndex].empty())
-					data[i][columnIndex] = defCycletime[0]; //Assigns default value for weapons missing cycletime
-
-				columnIndex = fetchColumnIndex(L"is full auto");
-
-				if (data[i][columnIndex].empty())
-					data[i][columnIndex] = L'0'; //Assigns value representing false for weapons missing 'is full auto'
+				fillInMissingValue(i, fetchColumnIndex(L"cycletime"), defCycletime[0]);
+				fillInMissingValue(i, fetchColumnIndex(L"is full auto"), L"0");
+				fillInMissingValue(i, fetchColumnIndex(L"recoil angle"), L"0");
+				fillInMissingValue(i, fetchColumnIndex(L"recoil angle alt"), L"0");
 			}
 
 			bSuccess = true;
@@ -98,6 +93,12 @@ void SirFresh::fetchWeaponSirData(const int i, wifstream &weapFile)
 				data[i][m] = parsedWeapData[j]; //Stores data if parsed attribute name matches archive attribute name
 		}
 	}
+}
+
+void SirFresh::fillInMissingValue(const int i, const int j, const wstring assignValue)
+{
+	if (data[i][j].empty())
+		data[i][j] = assignValue;
 }
 
 } //namespace sir
