@@ -1,4 +1,5 @@
 #include "GameData.h"
+
 #include "..\util\TextFileOps.h"
 #include <fstream>
 #include <ostream>
@@ -172,6 +173,7 @@ bool GameData::bWriteCsvFile(const wstring csvName)
 int GameData::fetchColumnIndex(const wstring columnHeader) const
 {
 	int columnIndex = -1;
+
 	int j = 0;
 
 	do

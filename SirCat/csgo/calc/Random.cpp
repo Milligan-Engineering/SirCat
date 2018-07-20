@@ -1,4 +1,5 @@
 #include "Random.h"
+
 #include <array>
 #include <chrono>
 #include <cstdint>
@@ -11,48 +12,40 @@ namespace calc {
 using std::array;
 using std::chrono::high_resolution_clock;
 using std::uint32_t;
-using std::uint8_t;
 using std::seed_seq;
 
-uint8_t Random::GeneratePseudorandomSeed() const
+void Random::setSeed(int iSeed)
+{
+	if (iSeed == 0)
+		iSeed = generatePseudorandomSeed();
+
+	idum = (iSeed < 0 ? iSeed : -iSeed);
+	iy = 0;
+}
+
+int Random::generatePseudorandomSeed() const
 {
 	array<uint32_t, 1> seed;
 	seed_seq seq{ static_cast<uint32_t>(high_resolution_clock::now().time_since_epoch().count()) };
 
 	seq.generate(seed.begin(), seed.end());
 
-	return static_cast<uint8_t>(seed[0] & UINT8_MAX);
+	return static_cast<int>((seed[0] & UINT8_MAX) + 1);
 }
 
-void Random::SetSeed(uint8_t seed)
+float Random::randomFloat(float flMinVal, float flMaxVal)
 {
-	seed += 1;
-	idum = (seed < 0 ? seed : -seed);
-	iy = 0;
+	float fl = 1.f * generateRandomNumber() / k_im;
+
+	constexpr float k_rnmx = 1.f - 1.2e-7f;
+
+	if (fl > k_rnmx)
+		fl = k_rnmx;
+
+	return fl * (flMaxVal - flMinVal) + flMinVal;
 }
 
-double Random::RandomDouble(double dblMinVal, double dblMaxVal)
-{
-	if (bAutoSeed)
-	{
-		SetSeed(GeneratePseudorandomSeed());
-		bAutoSeed = false;
-	}
-
-	double dbl = k_am * GenerateRandomNumber();
-
-	if (dbl > k_rnmx)
-		dbl = k_rnmx;
-
-	return dbl * (dblMaxVal - dblMinVal) + dblMinVal;
-}
-
-void Random::setBAutoSeed(const bool b_newAutoSeed)
-{
-	bAutoSeed = b_newAutoSeed;
-}
-
-int Random::GenerateRandomNumber()
+int Random::generateRandomNumber()
 {
 	int j, k;
 

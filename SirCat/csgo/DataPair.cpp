@@ -1,5 +1,6 @@
 #include "DataPair.h"
-#include "GameData.h"
+
+#include "GameData.h"	//Using sircat::csgo::GameData
 
 namespace sircat {
 namespace csgo {

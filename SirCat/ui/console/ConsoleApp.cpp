@@ -1,4 +1,5 @@
 #include "ConsoleApp.h"
+
 #include "..\..\csgo\ArchivePair.h"
 #include "..\..\csgo\FreshPair.h"
 #include "..\..\csgo\bbox\BboxArchive.h"
@@ -9,6 +10,7 @@
 #include <cstddef>
 #include <cwctype>
 #include <iostream>
+#include <locale>
 #include <string>
 
 namespace sircat {
@@ -24,17 +26,19 @@ using csgo::calc::Calc;
 using csgo::FindCsgo;
 using std::size_t;
 using std::iswdigit;
-using std::endl;
-using std::wcin;
-using std::wcout;
-using std::stod;
-using std::wstring;
+using std::endl; using std::fixed; using std::wcin; using std::wcout;
+using std::locale;
+using std::stof; using std::wstring;
 
 void ConsoleApp::introDialogue() const
 {
-	wchar_t startWchar;
+	wcout.imbue(locale(""));
+	wcout << fixed;
 	wcout << endl << L"SirCat will check for updated game data if CS:GO is installed.\n";
-	wcout << L"Hit enter to begin... ";
+	wcout << L"Hit enter to begin ... ";
+
+	wchar_t startWchar;
+
 	bTakeOnlyOneWchar(startWchar);
 	wcout << endl << endl << L"If CS:GO is found, a helper program called Crowbar will run automatically.\n";
 	wcout << L"User input will be disabled while it runs. Press Ctrl+Alt+Del if it hangs up.\n\n";
@@ -42,10 +46,11 @@ void ConsoleApp::introDialogue() const
 
 void ConsoleApp::hitEnterToExit() const
 {
-	wchar_t exitWchar;
-
 	wcout << L"Failed to correctly retrieve archived data.\n\n\n";
 	wcout << endl << L"Hit enter to exit: ";
+
+	wchar_t exitWchar;
+
 	bTakeOnlyOneWchar(exitWchar);
 	wcout << endl;
 }
@@ -86,28 +91,35 @@ void ConsoleApp::pickCalcParams(Calc::Params &calcParams, const ArchivePair &arc
 								const Calc::WhichParam whichParams) const
 {
 	if (whichParams == Calc::WhichParam::k_all || whichParams == Calc::WhichParam::k_model_index)
-		calcParams.modelIndex = pickModelSide(archivePair.getBboxArchive());
+		calcParams.modelIndex = pickModelSide(archivePair.getBbox());
 
 	if (whichParams == Calc::WhichParam::k_all || whichParams == Calc::WhichParam::k_weapon_index)
-		calcParams.weaponIndex = pickWeapon(archivePair.getSirArchive());
+		calcParams.weaponIndex = pickWeapon(archivePair.getSir());
 
 	if (whichParams == Calc::WhichParam::k_all || whichParams == Calc::WhichParam::k_distance)
 		calcParams.distance = pickDistance();
 }
 
-void ConsoleApp::calcIdealFreq(const Calc::Params &calcParams, const ArchivePair &archivePair) const
+void ConsoleApp::calcIdealFreq(Calc::Params &calcParams, const ArchivePair &archivePair) const
 {
-	double tapInterval = calcTapInterval(calcParams, archivePair);
+	wcout << endl << endl << L"Calcuating ...\n";
 
-	if (tapInterval == 0.0)
-		wcout << endl << endl << L"Weapon is not accurate enough for 100% tapping accuracy with current criteria.";
+	float cycleTime = stof(archivePair.getSir().getDatum(calcParams.weaponIndex,
+														 archivePair.getSir().fetchColumnIndex(L"cycletime")));
+	float maxInterval = 0.f;
+	float tapInterval = calcTapInterval(calcParams, archivePair, maxInterval);
+
+	wcout << L" ... done. ~";
+	wcout << static_cast<long long>(((tapInterval - cycleTime) / calcParams.tapIncr)
+									+ 1.f) * calcParams.simsPerTap * calcParams.maxTaps;
+	wcout << L" random-spread shot simulations were performed.\n";
+
+	if (tapInterval >= maxInterval)
+		wcout << endl << L"Weapon is not accurate enough for 100% tapping accuracy with current criteria.";
 	else
 	{
-		double cycleT = stod(archivePair.getSirArchive().getDatum(calcParams.weaponIndex,
-																  archivePair.getSirArchive().fetchColumnIndex(L"cycletime")));
-
-		wcout << endl << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds";
-		wcout << (tapInterval == cycleT ? " (max firing speed)" : "") << endl << endl << endl;
+		wcout << endl << L"Ideal tap-fire interval: " << tapInterval << " seconds";
+		wcout << (tapInterval == cycleTime ? " (max firing speed)" : "") << endl << endl << endl;
 	}
 }
 
@@ -129,31 +141,8 @@ bool ConsoleApp::bUserMenu(int &menuOption, Calc::Params &calcParams, const Arch
 			wcout << endl << endl;
 			break;
 		case 2:
-			do
-			{
-				int subMenuOption = 0;
-
-				wcout << endl << endl;
-				wcout << L"1 - modify model selection\n";
-				wcout << L"2 - modify weapon selection\n";
-				wcout << L"3 - modify stance\n";
-				wcout << L"4 - modify move speed\n";
-				wcout << L"5 - modify tapping accuracy\n";
-				wcout << L"6 - modify distance\n";
-				wcout << L"7 - modify tickrate\n";
-				wcout << L"8 - no more modifications; perform the calculation\n";
-				wcout << L"Please enter a choice from the preceding menu options: ";
-				subMenuOption = takeOnlyOneInt(8, L"12345678");
-
-				if (subMenuOption == 8)
-					break;
-
-				if (subMenuOption != 0)
-					pickCalcParams(calcParams, archivePair, static_cast<Calc::WhichParam>(subMenuOption));
-				else
-					wcout << endl << endl << L"That is not a valid menu option.";
-			} while (true);
-
+			pickModifications(calcParams, archivePair);
+			++menuOption; //Controls flow in main.cpp
 			break;
 		case 3:
 			wcout << endl;
@@ -170,6 +159,7 @@ bool ConsoleApp::bUserMenu(int &menuOption, Calc::Params &calcParams, const Arch
 bool ConsoleApp::bTakeOnlyOneWchar(wchar_t &character) const
 {
 	bool bValidInput = false;
+
 	bool bFirstChar = true;
 	wchar_t input;
 
@@ -224,8 +214,8 @@ void ConsoleApp::compAndUpdate(ArchivePair &archivePair, const FreshPair &freshP
 	else
 	{
 		wcout << endl;
-		listNonMatches(archivePair.getBboxArchive());
-		listNonMatches(archivePair.getSirArchive());
+		listNonMatches(archivePair.getBbox());
+		listNonMatches(archivePair.getSir());
 
 		updatePrompt(archivePair, freshPair);
 	}
@@ -235,7 +225,7 @@ void ConsoleApp::listNonMatches(const Archive &archive) const
 {
 	if (archive.getNumNonMatches() > 0)
 	{
-		wcout << endl << L"Data non-match detected in " << archive.getK_csv_name() << ":\n";
+		wcout << endl << L"Data non-match detected in " << archive.getCsvName() << ":\n";
 
 		for (int i = 0; i < archive.getNumNonMatches(); ++i)
 		{
@@ -282,6 +272,7 @@ void ConsoleApp::updatePrompt(ArchivePair &archivePair, const FreshPair &freshPa
 int ConsoleApp::takeOnlyOneInt(const int numValidChars, const wchar_t validChars[]) const
 {
 	int integer = 0;
+
 	wchar_t character;
 
 	if (bTakeOnlyOneWchar(character))
@@ -304,9 +295,10 @@ int ConsoleApp::wcharDigitToInt(const wchar_t wcharDigit) const
 	return (static_cast<int>(wcharDigit) - static_cast<int>(L'0'));
 }
 
-int ConsoleApp::pickModelSide(const BboxArchive &bboxArchive) const
+unsigned int ConsoleApp::pickModelSide(const BboxArchive &bboxArchive) const
 {
 	int modelIndex = -1;
+
 	int menuOption = 0;
 
 	do
@@ -319,10 +311,10 @@ int ConsoleApp::pickModelSide(const BboxArchive &bboxArchive) const
 		switch (menuOption = takeOnlyOneInt(2, L"12"))
 		{
 		case 1:
-			modelIndex = pickModelBase(bboxArchive, wstring(L"ct"));
+			modelIndex = pickModelBase(bboxArchive, L"ct");
 			break;
 		case 2:
-			modelIndex = pickModelBase(bboxArchive, wstring(L"tm"));
+			modelIndex = pickModelBase(bboxArchive, L"tm");
 			break;
 		default:
 			wcout << endl << endl << L"That is not a valid menu option.";
@@ -332,12 +324,13 @@ int ConsoleApp::pickModelSide(const BboxArchive &bboxArchive) const
 			menuOption = 0;
 	} while (menuOption == 0); //Loop until a valid menu option is input
 
-	return modelIndex;
+	return static_cast<unsigned int>(modelIndex);
 }
 
 int ConsoleApp::pickModelBase(const BboxArchive &bboxArchive, const wstring modelPrefix) const
 {
-	int modelIndex;
+	int modelIndex = -1;
+
 	int menuOption;
 	int numBaseModels;
 
@@ -383,6 +376,7 @@ int ConsoleApp::pickModelBase(const BboxArchive &bboxArchive, const wstring mode
 int ConsoleApp::pickModelVariant(const BboxArchive &bboxArchive, const wstring baseModel) const
 {
 	int modelIndex;
+
 	int i;
 	int menuOption;
 	int numVariants = 0;
@@ -431,9 +425,10 @@ wchar_t ConsoleApp::intDigitToWchar(const int intDigit) const
 	return static_cast<wchar_t>(intDigit + static_cast<int>(L'0'));
 }
 
-int ConsoleApp::pickWeapon(const SirArchive &sirArchive) const
+unsigned int ConsoleApp::pickWeapon(const SirArchive &sirArchive) const
 {
 	int weaponIndex = -1;
+
 	int i = 0;
 	int menuOption = 0;
 	int menuNumber;
@@ -474,27 +469,25 @@ int ConsoleApp::pickWeapon(const SirArchive &sirArchive) const
 			i = 0; //Goes back to start of weapon list
 	} while (menuOption == 0 || menuOption == menuNumber);
 
-	return weaponIndex;
+	return static_cast<unsigned int>(weaponIndex);
 }
 
-double ConsoleApp::pickDistance() const
+float ConsoleApp::pickDistance() const
 {
 	wstring distance = L"not empty";
 
 	do
 	{
-		size_t decimalPos;
-
 		if (distance.empty())
 		{
 			wcout << endl << endl << L"That distance is not valid.";
-			wcout << endl << L"Requires 0.01 <= distance <= 300.00 and 2 or fewer decimal places.";
+			wcout << endl << L"Requires 0.010000 <= distance <= 300.000000 and 6 or fewer decimal places.";
 		}
 
-		wcout << endl << endl << L"Input distance from target in feet (0.01-300.00): ";
+		wcout << endl << endl << L"Input distance from target in feet (0.010000-300.000000): ";
 		getline(wcin, distance);
 
-		for (size_t i = 0; i < distance.length(); ++i)
+		for (size_t i = 0u; i < distance.length(); ++i)
 		{
 			if (iswdigit(static_cast<wint_t>(distance[i])) == 0 && distance[i] != L'.')
 			{
@@ -503,20 +496,67 @@ double ConsoleApp::pickDistance() const
 			}
 		}
 
-		decimalPos = distance.find_first_of(L'.');
+		const size_t decimalPos = distance.find_first_of(L'.');
 
-		if (distance.length() == decimalPos + 1)
-			distance += L'0';
-
-		//More than one decimal, more than 2 decimal places, or not from 0.01-300.00 feet inclusive
-		if ((distance.find_last_of(L'.') != decimalPos || distance.substr(decimalPos + 1).length() > 2)
-			&& decimalPos != distance.npos || stod(distance) < 0.01 || stod(distance) > 300.00)
-		{
+		//Evaluates true when more than one decimal, more than 6 decimal places, or not from 0.010000-300.000000 feet inclusive
+		if ((distance.find_last_of(L'.') != decimalPos || distance.substr(decimalPos + 1).length() > 6u)
+			&& decimalPos != distance.npos || stof(distance) < 0.010000f || stof(distance) > 300.000000f)
 			distance.clear();
-		}
 	} while (distance.empty());
 
-	return stod(distance) * 12.0; //Convert to inches
+	return stof(distance) * 12.f; //Converts to inches
+}
+
+void ConsoleApp::pickModifications(Calc::Params &calcParams, const ArchivePair &archivePair) const
+{
+	do
+	{
+		int subMenuOption = 0;
+
+		wcout << endl << endl;
+		wcout << L"1 - modify model selection\n";
+		wcout << L"2 - modify weapon selection\n";
+		wcout << L"3 - modify stance\n";
+		wcout << L"4 - modify move speed\n";
+		wcout << L"5 - modify tapping accuracy\n";
+		wcout << L"6 - modify distance\n";
+		wcout << L"7 - modify tickrate\n";
+		wcout << L"8 - specify calculation precision parameters\n";
+		wcout << L"9 - no more modifications; perform the calculation\n";
+		wcout << L"Please enter a choice from the preceding menu options: ";
+		subMenuOption = takeOnlyOneInt(9, L"123456789");
+
+		if (subMenuOption == 9)
+			break;
+
+		if (subMenuOption == 8)
+		{
+			int subSubMenuOption = 0;
+
+			do
+			{
+				wcout << endl << endl;
+				wcout << L"1 - specify max number of consecutive taps\n";
+				wcout << L"2 - specify min tap interval increase\n";
+				wcout << L"3 - specify number of random distribution simulations per tap\n";
+				wcout << L"4 - go back to modification selection\n";
+				wcout << L"Please enter a choice from the preceding menu options: ";
+				subSubMenuOption = takeOnlyOneInt(4, L"1234");
+
+				if (subSubMenuOption == 0)
+					wcout << endl << endl << L"That is not a valid menu option.";
+				else if (subMenuOption == 4)
+					subMenuOption = -1;
+				else
+					subMenuOption += subSubMenuOption;
+			} while (subSubMenuOption == 0);
+		}
+
+		if (subMenuOption > 0)
+			pickCalcParams(calcParams, archivePair, static_cast<Calc::WhichParam>(subMenuOption));
+		else if (subMenuOption == 0)
+			wcout << endl << endl << L"That is not a valid menu option.";
+	} while (true);
 }
 
 } //namespace console

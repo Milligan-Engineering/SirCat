@@ -90,12 +90,6 @@
     <ClCompile Include="ui\console\ConsoleApp.cpp">
       <Filter>Source Files\ui\console</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\ArchivePair.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
-    <ClCompile Include="csgo\FreshPair.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
     <ClCompile Include="csgo\DataPair.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>

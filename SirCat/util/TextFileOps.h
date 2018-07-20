@@ -12,18 +12,15 @@ class TextFileOps
 public:
 	struct Params
 	{
-		std::wifstream *delimitedFile;
+		std::wifstream *delimitedFile = nullptr;
 		std::wstring filename;
-		std::wstring *parsedSlice;
-		int maxElements;
-		bool bSliceIsRow;
-		int skipToElement;
-		wchar_t delimiter;
-		int numSlice;
-		wchar_t wchar;
-
-		Params() noexcept : delimitedFile(nullptr), parsedSlice(nullptr), maxElements(0), bSliceIsRow(true), skipToElement(1),
-							delimiter(L','), numSlice(1), wchar(L'\0') {};
+		std::wstring *parsedSlice = nullptr;
+		int maxElements = 0;
+		bool bSliceIsRow = true;
+		int skipToElement = 1;
+		wchar_t delimiter = L',';
+		int numSlice = 1;
+		wchar_t wchar = L'\0';
 	};
 
 	int fetchDelimitedSlice(Params &params) const;

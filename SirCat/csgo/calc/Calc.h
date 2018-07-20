@@ -1,60 +1,84 @@
 #pragma once
 
-#include <array>
-#include <string>
+#include <array>	//Using std::array
+#include <cstddef>	//Using std::size_t
 
 namespace sircat {
 namespace csgo {
 
-namespace sir { class SirArchive; }
+class ArchivePair;
 
+namespace sir { class SirArchive; }
 namespace calc {
+
+class Random;
 
 class Calc
 {
 public:
 	enum class WhichParam { k_all, k_model_index, k_weapon_index, k_b_crouch, k_move_speed, k_hit_percent, k_distance,
-							k_b_64_tick, k_b_use_alt };
+							k_b_64_tick, k_b_use_alt, k_max_taps, k_tap_incr, k_sims_per_tap };
 
 	struct Params
 	{
-		int modelIndex = 0;
-		int weaponIndex = 0;
-		bool bCrouch = false;
-		double moveSpeed = 0.0;
-		double hitPercent = 100.0;
-		double distance = 0.0;
-		bool b64Tick = false;
-		bool bUseAlt = false;
+		unsigned int modelIndex;
+		unsigned int weaponIndex;
+		bool bCrouch;
+		float moveSpeed;
+		float hitPercent;
+		float distance;
+		bool b64Tick;
+		bool bUseAlt;
+		unsigned int maxTaps;
+		float tapIncr;
+		unsigned int simsPerTap;
 	};
 
-	Calc() = default;
+	float tapInterval(float &maxInterval) const;
 
-	double tapInterval(const double targetInaccuracy) const;
+	Params getParams() const;
 
-	const Params &getParams() const;
-
-	void setParams(const Params &newParams, const sir::SirArchive &sirArchive);
+	void setParams(Params &inParams, const ArchivePair &archivePair);
 
 private:
-	enum { k_first_stat, k_cycletime = 0, k_primary_clip_size, k_max_player_speed, k_recovery_time, k_recovery_time_final,
-		   k_spread, k_inaccuracy_stance, k_inaccuracy_fire, k_inaccuracy_move, k_recoil_magnitude,
-		   k_recoil_magnitude_variance,	k_recoil_angle_variance, k_num_stats };
+	typedef std::array<float, 2u> Recoil;
+	typedef std::array<Recoil, 150u> RecoilTable;
+	typedef std::array<float, 150u> RecoveryTimes;
 
-	double calcNewInaccuracy(const double inaccuracy, const double tapInterval, double &totalDecayTime) const;
+	enum { k_cycletime, k_primary_clip_size, k_max_player_speed, k_recovery_time, k_recovery_time_final, k_spread,
+		   k_inaccuracy_stance, k_inaccuracy_fire, k_inaccuracy_move, k_recoil_magnitude, k_recoil_magnitude_variance,
+		   k_recoil_angle_variance, k_recoil_seed, k_is_full_auto, k_num_sir_stats, k_first_stat = 0,
+		   k_bbminx = 0, k_bbminy, k_bbminz, k_bbmaxx, k_bbmaxy, k_bbmaxz, k_radius,
+		   k_angle = 0, k_magnitude,
+		   k_x = 0, k_y };
 
-	double roundTimeToTick(const double time) const;
+	RecoilTable generateRecoilTable(const bool bIsFullAuto) const;
 
-	bool bHitPercentInDistribution() const;
+	RecoveryTimes generateRecoveryTimes(const bool bIsFullAuto) const;
 
-	double stats[k_num_stats]{ 0.0 };
-	double tickrate = 0.0;
+	float findMaxInterval(const RecoilTable recoilTable, const RecoveryTimes recoveryTimes) const;
+
+	Recoil calcRecoil(const std::size_t ticksSinceLastCalc, const RecoilTable recoilTable, float &recoilIndex, Recoil recoil,
+					  Recoil &velocity) const;
+
+	std::size_t ticksSinceLastTap(const float tapInterval, float &sumDecayTime) const;
+
+	std::size_t ceilToInt(const float inputFloat) const;
+
+	float calcInaccuracy(const float inaccuracy, const float recoveryTime, const float elapsedTime) const;
+
+	float tapHitPercent(const float inaccuracy, Random &rand, Recoil recoil) const;
+
+	void fillSirStats(const bool bUseAlt, const int weaponIndex, const sir::SirArchive &sir, const wchar_t stance[]);
+
+	float floorTo6(const float inputFloat) const;
+
+	float baseInaccuracy;
+	float bboxCylHalfHeight;
+	float bboxRadius;
+	float sirStats[k_num_sir_stats];
+	float tickrate;
 	Params params;
-	std::array<std::wstring, 12> partialStatNames{ L"cycletime", L"primary clip size", L"max player speed", L"recovery time ",
-												   L"recovery time  final", L"spread", L"inaccuracy ", L"inaccuracy fire",
-												   L"inaccuracy move", L"recoil magnitude", L"recoil magnitude variance",
-												   L"recoil angle variance" };
-	std::array<std::wstring, 12> statNames = partialStatNames;
 };
 
 } //namespace calc

@@ -1,10 +1,9 @@
 #include "Shared.h"
+
 #include "..\csgo\ArchivePair.h"
 #include "..\csgo\FreshPair.h"
 #include "..\csgo\DataPair.h"
 #include "..\csgo\bbox\BboxArchive.h"
-#include "..\csgo\sir\SirArchive.h"
-#include "..\csgo\GameData.h"
 #include "..\csgo\calc\Calc.h"
 #include "..\csgo\FindCsgo.h"
 #include <cstddef>
@@ -17,12 +16,10 @@ using csgo::ArchivePair;
 using csgo::FreshPair;
 using csgo::DataPair;
 using csgo::bbox::BboxArchive;
-using csgo::GameData;
 using csgo::calc::Calc;
 using csgo::FindCsgo;
 using std::size_t;
-using std::stod;
-using std::wstring;
+using std::stof; using std::wstring;
 
 int Shared::attemptFind(FindCsgo &findCsgo, wstring &steamDir) const
 {
@@ -40,18 +37,13 @@ int Shared::attemptFind(FindCsgo &findCsgo, wstring &steamDir) const
 	return successfulSteps;
 }
 
-double Shared::calcTapInterval(const Calc::Params &calcParams, const ArchivePair &archivePair) const
+float Shared::calcTapInterval(Calc::Params &calcParams, const ArchivePair &archivePair, float &maxInterval) const
 {
-	double tapInterval;
 	Calc calculation;
-	const double k_radius = stod(archivePair.getBboxArchive().getDatum(calcParams.modelIndex,
-																	   archivePair.getBboxArchive().getNumColumns() - 1));
-	double targetInaccuracy = k_radius / (0.001 * calcParams.distance);
 
-	calculation.setParams(calcParams, archivePair.getSirArchive());
-	tapInterval = calculation.tapInterval(targetInaccuracy);
+	calculation.setParams(calcParams, archivePair);
 
-	return tapInterval;
+	return calculation.tapInterval(maxInterval);
 }
 
 bool Shared::bReadGameFilesStep(const wstring csgoDir, FreshPair &freshPair, int step, wstring &retWString) const
@@ -63,7 +55,7 @@ bool Shared::bReadGameFilesStep(const wstring csgoDir, FreshPair &freshPair, int
 	switch (step)
 	{
 	case k_unpack_models:
-		if (freshPair.getBboxFresh().bUnpackModels(csgoDir))
+		if (freshPair.getBbox().bUnpackModels(csgoDir))
 		{
 			retWString = L"... Decompiling hitbox binaries with Crowbar ...";
 			bSuccess = true;
@@ -73,20 +65,20 @@ bool Shared::bReadGameFilesStep(const wstring csgoDir, FreshPair &freshPair, int
 
 		break;
 	case k_decompile_models:
-		if (freshPair.getBboxFresh().bDecompileModels())
+		if (freshPair.getBbox().bDecompileModels())
 		{
 			retWString = L"... Reading decompiled hitbox files ...";
 			bSuccess = true;
 		}
 		else
 		{
-			freshPair.getBboxFresh().bReadModelFiles(true);
+			freshPair.getBbox().bReadModelFiles(true);
 			retWString = L"Decompiling hitbox binaries failed.";
 		}
 
 		break;
 	case k_read_model_files:
-		if (freshPair.getBboxFresh().bReadModelFiles())
+		if (freshPair.getBbox().bReadModelFiles())
 		{
 			retWString = L"... Reading weapon data from CS:GO items_game.txt ...";
 			bSuccess = true;
@@ -96,7 +88,7 @@ bool Shared::bReadGameFilesStep(const wstring csgoDir, FreshPair &freshPair, int
 
 		break;
 	case k_read_weap_file:
-		if (freshPair.getSirFresh().bReadWeapFile(csgoDir))
+		if (freshPair.getSir().bReadWeapFile(csgoDir))
 			bSuccess = true;
 		else
 			retWString = L"Reading weapon data from CS:GO items_game.txt failed ...";
@@ -115,7 +107,7 @@ bool Shared::bUpdateArchive(ArchivePair &archivePair, const FreshPair &freshPair
 	
 	dynamic_cast<csgo::DataPair &>(archivePair) = dynamic_cast<const csgo::DataPair &>(freshPair);
 
-	if (archivePair.getBboxArchive().bWriteArchiveFile() && archivePair.getSirArchive().bWriteArchiveFile())
+	if (archivePair.getBbox().bWriteArchiveFile() && archivePair.getSir().bWriteArchiveFile())
 		bUpdated = true;
 
 	return bUpdated;

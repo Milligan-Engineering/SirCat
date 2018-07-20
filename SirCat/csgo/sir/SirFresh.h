@@ -1,9 +1,9 @@
 #pragma once
 
-#include "..\GameData.h"
-#include "SirArchive.h"
-#include <iosfwd>
-#include <string>
+#include "..\GameData.h"	//Using sircat::csgo::GameData
+#include "SirArchive.h"		//Using sircat::csgo::sir::SirArchive
+#include <iosfwd>			//Using std::wifstream
+#include <string>			//Using std::wstring
 
 namespace sircat {
 namespace csgo {

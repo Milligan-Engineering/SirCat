@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\util\TextFileOps.h"
-#include <string>
+#include "..\util\TextFileOps.h"	//Using sircat::util::TextFileOps
+#include <string>					//Using std::wstring
 
 namespace sircat {
 namespace csgo {
@@ -25,9 +25,9 @@ public:
 private:
 	wchar_t *const newDynamicArray() const;
 
-	void deleteDynamicArray(wchar_t *&data) const;
+	void deleteDynamicArray(wchar_t *&array) const;
 
-	sircat::util::TextFileOps textFileOps;
+	util::TextFileOps textFileOps;
 	std::wstring testDir;
 };
 

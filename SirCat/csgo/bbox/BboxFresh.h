@@ -1,10 +1,11 @@
 #pragma once
 
 #include "..\..\targetver.h"
-#include "..\GameData.h"
-#include "BboxArchive.h"
-#include <string>
-#include <Windows.h>
+
+#include "..\GameData.h"	//Using sircat::csgo::GameData
+#include "BboxArchive.h"	//Using sircat::csgo::bbox::BboxArchive
+#include <string>			//Using std::wstring
+#include <Windows.h>		//Using BOOL, CALLBACK, DWORD, HANDLE, HWND, LPARAM, PROCESS_INFORMATION, WCHAR, WIN32_FIND_DATAW
 
 namespace sircat {
 namespace csgo {

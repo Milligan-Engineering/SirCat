@@ -1,8 +1,8 @@
 #pragma once
 
-#include "..\Shared.h"
-#include "..\..\csgo\calc\Calc.h"
-#include <string>
+#include "..\Shared.h"				//Using sircat::ui::Shared
+#include "..\..\csgo\calc\Calc.h"	//Using sircat::csgo::calc::Calc::Params, sircat::csgo::calc::Calc::WhichParam
+#include <string>					//Using std::wstring
 
 namespace sircat {
 namespace csgo {
@@ -36,7 +36,7 @@ public:
 	void pickCalcParams(csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair,
 						const csgo::calc::Calc::WhichParam whichParams = csgo::calc::Calc::WhichParam::k_all) const;
 
-	void calcIdealFreq(const csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
+	void calcIdealFreq(csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
 
 	bool bUserMenu(int &menuOption, csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
 	//Precondition: menuOption and calcParams are modifiable and archivePair is populated with game data
@@ -75,7 +75,7 @@ private:
 	//Precondition: wcharDigit is a digit (0-9)
 	//Postcondition: Converts wcharDigit to an integer and returns it
 
-	int pickModelSide(const csgo::bbox::BboxArchive &bboxArchive) const;
+	unsigned int pickModelSide(const csgo::bbox::BboxArchive &bboxArchive) const;
 	//Precondition: bboxArchive is populated with game data and the console is ready to display a message then receive user input
 	//Postcondition: Loops until model side, base, and variant are selected and returns index of that model
 
@@ -91,11 +91,13 @@ private:
 	//Precondition: intDigit is a digit (0-9)
 	//Postcondition: Converts intDigit to a character and returns it
 
-	int pickWeapon(const csgo::sir::SirArchive &sirArchive) const;
+	unsigned int pickWeapon(const csgo::sir::SirArchive &sirArchive) const;
 	//Precondition: sirArchive is populated with game data and the console is ready to display a message then receive user input
 	//Postcondition: To continue, user must pick a weapon, whose index will be returned
 
-	double pickDistance() const;
+	float pickDistance() const;
+
+	void pickModifications(csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
 
 };
 

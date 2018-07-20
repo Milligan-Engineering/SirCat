@@ -4,7 +4,9 @@
 
 #include "BboxFresh.h"
 #include "..\..\targetver.h"
+
 #include "..\..\util\TextFileOps.h"
+#include <cstdint>
 #include <cwchar>
 #include <fstream>
 #include <string>
@@ -16,6 +18,7 @@ namespace csgo {
 namespace bbox {
 
 using sircat::util::TextFileOps;
+//Using rsize_t
 using std::size_t;
 using std::wifstream;
 using std::wstring;
@@ -36,7 +39,8 @@ struct BboxFresh::ChildInfo
 bool BboxFresh::bUnpackModels(const wstring csgoDir) const
 {
 	bool bSuccess = false;
-	constexpr int pathAndCmdLine = PATHCCH_MAX_CCH + 142; //Accomodate max extended-length path plus command line arguments
+
+	constexpr rsize_t pathAndCmdLine = PATHCCH_MAX_CCH + 142u; //Accomodate max extended-length path plus command line arguments
 	constexpr WCHAR applicationName[26] = L".\\HLExtract\\HLExtract.exe";
 	WCHAR *cmdLine = new WCHAR[pathAndCmdLine];
 
@@ -56,6 +60,7 @@ bool BboxFresh::bUnpackModels(const wstring csgoDir) const
 bool BboxFresh::bDecompileModels() const
 {
 	bool bSuccess = false;
+
 	const WCHAR applicationName[22] = L".\\Crowbar\\Crowbar.exe";
 	PROCESS_INFORMATION pi;
 	WCHAR commandLine[12] = L"Crowbar.exe";
@@ -72,6 +77,7 @@ bool BboxFresh::bDecompileModels() const
 bool BboxFresh::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
 {
 	bool bSuccess = false;
+
 	GUITHREADINFO gui;
 	WCHAR lpClassName[MAX_PATH];
 	WinInfo winInfo;
@@ -105,6 +111,7 @@ bool BboxFresh::bWaitForCrowbarWindow(const PROCESS_INFORMATION &pi) const
 bool BboxFresh::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFocus) const
 {
 	bool bSuccess = false;
+
 	DWORD nBufferLength = GetFullPathNameW(L".", 0, nullptr, NULL);
 
 	if (nBufferLength != 0)
@@ -121,7 +128,7 @@ bool BboxFresh::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFoc
 			GetWindowRect(winInfoHwnd, &croRect);
 			MoveWindow(winInfoHwnd, static_cast<int>(conRect.right), static_cast<int>(conRect.top), //Crowbar blocks the console
 					   static_cast<int>(croRect.right - croRect.left), static_cast<int>(croRect.bottom - croRect.top), TRUE);
-			wcscat_s(lpBuffer, nBufferLength + 8, L"\\legacy\\"); //Subdirectoy of current working directory w/ HLExtract output
+			wcscat_s(lpBuffer, nBufferLength + 8ul, L"\\legacy\\"); //Subdirectoy of current working directory w/ HLExtract output
 			SetFocus(guiHwndFocus);
 			SendMessageW(guiHwndFocus, WM_SETTEXT, NULL, reinterpret_cast<LPARAM>(lpBuffer)); //Set 'MDL input:' to subdirectory
 			childInfo.childHwnd = guiHwndFocus;
@@ -150,6 +157,7 @@ bool BboxFresh::bAutomateCrowbar(const HWND &winInfoHwnd, const HWND &guiHwndFoc
 bool BboxFresh::bReadModelFiles(const bool bCleanLegacyDir)
 {
 	int success = 0;
+
 	HANDLE hFind;
 	WCHAR *lpBuffer = nullptr;
 	WCHAR *lpFileName = nullptr;
@@ -170,7 +178,7 @@ bool BboxFresh::bReadModelFiles(const bool bCleanLegacyDir)
 			const WCHAR *const dotFileExt = wcsrchr(FindFileData.cFileName, L'.'); //Locate the dot in the file extension
 			const wstring absolutePath = wstring(lpFileName) + FindFileData.cFileName;
 
-			if (wmemcmp(dotFileExt, L".qc", 3) == 0 && !bCleanLegacyDir) //Only parse model files with .qc extension
+			if (wmemcmp(dotFileExt, L".qc", 3u) == 0 && !bCleanLegacyDir) //Only parse model files with .qc extension
 				success = fetchModelBboxData(i, FindFileData); //i is incremented in this function call
 
 			DeleteFileW(absolutePath.c_str());
@@ -183,10 +191,10 @@ bool BboxFresh::bReadModelFiles(const bool bCleanLegacyDir)
 
 		while (GetLastError() != ERROR_NO_MORE_FILES) //Delete remaining files after last model file
 		{
-			wstring absolutePath;
-
 			FindNextFileW(hFind, &FindFileData);
-			absolutePath = wstring(lpFileName) + FindFileData.cFileName;
+
+			wstring absolutePath = wstring(lpFileName) + FindFileData.cFileName;
+
 			DeleteFileW(absolutePath.c_str());
 		}
 
@@ -204,6 +212,7 @@ bool BboxFresh::bCreateProcess(const WCHAR *const applicationName, WCHAR *const 
 							  PROCESS_INFORMATION *const pPi, bool bWaitForExit) const
 {
 	bool bSuccess;
+
 	PROCESS_INFORMATION pi;
 	STARTUPINFOW si;
 
@@ -229,6 +238,7 @@ bool BboxFresh::bCreateProcess(const WCHAR *const applicationName, WCHAR *const 
 BOOL BboxFresh::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
+
 	DWORD dwProcessId = 0;
 	WinInfo &winInfo = *reinterpret_cast<WinInfo *>(lParam); //lParam cast to WinInfo serves as input & output parameter
 
@@ -246,6 +256,7 @@ BOOL BboxFresh::EnumWindowsProc(HWND hwnd, LPARAM lParam)
 BOOL BboxFresh::EnumChildProc(HWND hwnd, LPARAM lParam)
 {
 	BOOL bContinueEnum = TRUE;
+
 	ChildInfo &childInfo = *reinterpret_cast<ChildInfo *>(lParam); //lParam cast to childInfo serves as input & output parameter
 	WCHAR buffer[MAX_PATH];
 
@@ -287,11 +298,11 @@ void BboxFresh::fetchModelFileDir(const DWORD nBufferLength, HANDLE &hFind, WCHA
 	if (nBufferLength != 0)
 	{
 		lpBuffer = new WCHAR[nBufferLength + 13];
-		wmemcpy_s(lpBuffer, nBufferLength + 13, L"\\\\?\\", 4); //Prefix to permit extended-length path with later function calls
+		wmemcpy_s(lpBuffer, nBufferLength + 13ul, L"\\\\?\\", 4u); //Prefix to permit extended-length path with later function calls
 
 		if (GetFullPathNameW(L".", nBufferLength, lpBuffer + 4, NULL) == nBufferLength - 1)
 		{
-			wcscat_s(lpBuffer, nBufferLength + 13, L"\\legacy\\*"); //Add subdirectory where the model files were created
+			wcscat_s(lpBuffer, nBufferLength + 13ul, L"\\legacy\\*"); //Add subdirectory where the model files were created
 			lpFileName = lpBuffer;
 		}
 	}
@@ -310,6 +321,7 @@ void BboxFresh::fetchModelFileDir(const DWORD nBufferLength, HANDLE &hFind, WCHA
 int BboxFresh::fetchModelBboxData(int &i, WIN32_FIND_DATAW &FindFileData)
 {
 	int success = 0;
+
 	wstring searchResult[1];
 	wstring searchTerm = L"$hbox"; //Search term to find the line that contains bbox data
 	wifstream modelFile;

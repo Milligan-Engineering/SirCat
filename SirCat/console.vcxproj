@@ -130,7 +130,7 @@ if exist %srcilk% del /f /q %srcilk%</Command>
       <Message>Moving incremental status file to solution directory</Message>
     </PreLinkEvent>
     <PostBuildEvent>
-      <Message>Moving incremental status file to intermediate directory</Message>
+      <Message>Moving back incremental status file to intermediate directory</Message>
       <Command>set dstilk="$(IntDir)$(ProjectName)\$(TargetName).ilk"
 set srcilk="$(SolutionDir)$(Configuration)\$(TargetName).ilk"
 if exist %dstilk% del /f /q %dstilk%
@@ -209,13 +209,11 @@ copy /y /b "$(SolutionDir)custom build step files\Crowbar\Data\Crowbar Settings.
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="csgo\Archive.cpp" />
-    <ClCompile Include="csgo\ArchivePair.cpp" />
     <ClCompile Include="csgo\bbox\BboxFresh.cpp" />
     <ClCompile Include="csgo\calc\Calc.cpp" />
     <ClCompile Include="csgo\calc\Random.cpp" />
     <ClCompile Include="csgo\DataPair.cpp" />
     <ClCompile Include="csgo\FindCsgo.cpp" />
-    <ClCompile Include="csgo\FreshPair.cpp" />
     <ClCompile Include="csgo\GameData.cpp" />
     <ClCompile Include="csgo\sir\SirFresh.cpp" />
     <ClCompile Include="main.cpp" />

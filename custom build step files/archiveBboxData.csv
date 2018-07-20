@@ -1,5 +1,5 @@
 ,bbminx,bbminy,bbminz,bbmaxx,bbmaxy,bbmaxz,radius
-ctm_fbi,1.01,1.02,1.03,1.04,1.05,1.06,1.07
+ctm_fbi,-0.4,0.9,0,3.3,0.7,0,4.2
 ctm_fbi_varianta,-0.4,0.9,0,3.3,0.7,0,4.2
 ctm_fbi_variantb,-0.4,0.9,0,3.3,0.7,0,4.2
 ctm_fbi_variantc,-0.4,0.9,0,3.3,0.7,0,4.2

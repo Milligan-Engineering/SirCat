@@ -119,9 +119,6 @@
     <ClCompile Include="util\TextFileOps.cpp">
       <Filter>Source Files\util</Filter>
     </ClCompile>
-    <ClCompile Include="csgo\Archive.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
     <ClCompile Include="csgo\FindCsgo.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
@@ -138,9 +135,6 @@
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
     <ClCompile Include="csgo\DataPair.cpp">
-      <Filter>Source Files\csgo</Filter>
-    </ClCompile>
-    <ClCompile Include="csgo\FreshPair.cpp">
       <Filter>Source Files\csgo</Filter>
     </ClCompile>
     <ClCompile Include="csgo\calc\Random.cpp">

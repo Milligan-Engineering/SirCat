@@ -1,4 +1,5 @@
 #include "SirFresh.h"
+
 #include "..\..\util\TextFileOps.h"
 #include <cwctype>
 #include <fstream>
@@ -16,28 +17,36 @@ using std::wstring;
 bool SirFresh::bReadWeapFile(const wstring csgoDir)
 {
 	bool bSuccess = false;
+
 	wifstream weapFile;
 
 	weapFile.open(csgoDir + L"\\csgo\\scripts\\items\\items_game.txt");
 
 	if (!weapFile.fail())
 	{
-		for (int i = 0; i < numRows; ++i) //Collect weapon data for each weapon
+		for (int i = 0; i < numRows; ++i) //Collects weapon data for each weapon
 			fetchWeaponSirData(i, weapFile);
 
-		weapFile.close(); //Close and reopen to start searching from the beginning
+		weapFile.close(); //Closes and reopens to start searching from the beginning
 		weapFile.open(csgoDir + L"\\csgo\\scripts\\items\\items_game.txt");
 
 		if (!weapFile.fail())
 		{
 			wstring defCycletime[1];
 
-			textFileOps->parseTextFile(wstring(L"\"cycletime\""), weapFile, defCycletime, 1, L"\t\"\0", 2);
+			textFileOps->parseTextFile(L"\"cycletime\"", weapFile, defCycletime, 1, L"\t\"\0", 2);
 
 			for (int i = 0; i < numRows; ++i)
 			{
-				if (data[i][0] == L"") //Weapons missing cycletime get the default value
-					data[i][0] = defCycletime[0];
+				int columnIndex = fetchColumnIndex(L"cycletime");
+
+				if (data[i][columnIndex].empty())
+					data[i][columnIndex] = defCycletime[0]; //Assigns default value for weapons missing cycletime
+
+				columnIndex = fetchColumnIndex(L"is full auto");
+
+				if (data[i][columnIndex].empty())
+					data[i][columnIndex] = L'0'; //Assigns value representing false for weapons missing 'is full auto'
 			}
 
 			bSuccess = true;
@@ -58,35 +67,35 @@ void SirFresh::fetchWeaponSirData(const int i, wifstream &weapFile)
 	int unparsedAttrs;
 	wstring parsedWeapData[k_num_unparsed_attr];
 	wstring searchResult[1];
-	wstring searchTerm = wstring(L"\"") + rowHeaders[i] + L"_prefab\"";
+	wstring searchTerm = L'\"' + rowHeaders[i] + L"_prefab\"";
 	wstring unparsedData[k_num_unparsed_attr];
 
 	textFileOps->parseTextFile(searchTerm, weapFile, searchResult, 1);
-	searchTerm = L"\"attributes\""; //Read until attributes are listed for each weapon
+	searchTerm = L"\"attributes\""; //Reads until attributes are listed for each weapon
 	unparsedAttrs = textFileOps->parseTextFile(searchTerm, weapFile, unparsedData, k_num_unparsed_attr, L"\t\"\0", 2, L'}');
 
-	for (int j = 0; j < unparsedAttrs; ++j) //Enumerate all returned unparsed attributes for each weapon
+	for (int j = 0; j < unparsedAttrs; ++j) //Enumerates all returned unparsed attributes for each weapon
 	{
 		int kmax = unparsedData[j].length() > k_attr_len ? k_attr_len : unparsedData[j].length();
 
-		for (int k = 0; k < kmax; ++k) //Enumerate characters for each returned unparsed attribute
+		for (int k = 0; k < kmax; ++k) //Enumerates characters for each returned unparsed attribute
 		{
-			if (iswdigit(static_cast<wint_t>(unparsedData[j][k])) != 0) //Check for number digit
+			if (iswdigit(static_cast<wint_t>(unparsedData[j][k])) != 0) //Checks for number digit
 			{
 				int lmax = unparsedData[j].length() - k > k_data_len ? k + k_data_len : unparsedData[j].length();
 
 				for (int l = k; l < lmax; ++l)
-					parsedWeapData[j] += unparsedData[j][l]; //Add remaining data from unparsed attribute
+					parsedWeapData[j] += unparsedData[j][l]; //Adds remaining data from unparsed attribute
 
 				unparsedData[j].erase(k); //unparsedData[j] now contains a parsed attribute name
-				break; //Stop enumerating characters for unparsed attribute since number digit was found
+				break; //Stops enumerating characters for unparsed attribute since number digit was found
 			}
 		}
 
-		for (int m = 0; m < numColumns; ++m) //unparsedData now is parsed attribute names, so compare to stored ones
+		for (int m = 0; m < numColumns; ++m) //unparsedData is now parsed attribute names
 		{
 			if (unparsedData[j] == columnHeaders[m])
-				data[i][m] = parsedWeapData[j];
+				data[i][m] = parsedWeapData[j]; //Stores data if parsed attribute name matches archive attribute name
 		}
 	}
 }

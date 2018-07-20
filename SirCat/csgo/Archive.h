@@ -1,8 +1,8 @@
 #pragma once
 
-#include "GameData.h"
-#include "..\util\TextFileOps.h"
-#include <string>
+#include "GameData.h"				//Using sircat::csgo::GameData
+#include "..\util\TextFileOps.h"	//Using sircat::util::TextFileOps
+#include <string>					//Using std::wstring
 
 namespace sircat {
 namespace csgo {
@@ -16,15 +16,14 @@ public:
 	bool bWriteArchiveFile();
 
 	bool getBSuccessUseCsv() const;
-	const std::wstring &getK_csv_name() const;
+	std::wstring getCsvName() const;
 protected:
 	Archive(const std::wstring csvName);
-
 private:
 	void useCsv(sircat::util::TextFileOps::Params &params);
 
 	bool bSuccessUseCsv;
-	const std::wstring k_csv_name;
+	std::wstring csvName;
 };
 
 } //namespace csgo

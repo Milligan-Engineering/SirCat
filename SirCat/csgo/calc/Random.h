@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cstdint>
+#include <array>	//Using std::array
 
 namespace sircat {
 namespace csgo {
@@ -9,27 +9,19 @@ namespace calc {
 class Random
 {
 public:
-	Random() = default;
-	Random(const bool bAutoSeed) : bAutoSeed(bAutoSeed) {};
+	void setSeed(int iSeed = 0);
 
-	std::uint8_t GeneratePseudorandomSeed() const;
+	int generatePseudorandomSeed() const;
 
-	void SetSeed(std::uint8_t seed);
-
-	double RandomDouble(double dblMinVal = 0.0, double dblMaxVal = 1.0);
-
-	void setBAutoSeed(const bool b_newAutoSeed);
+	float randomFloat(float flMinVal = 0.f, float flMaxVal = 1.f);
 private:
 	enum { k_ntab = 32, k_ir = 2836, k_ia = 16807, k_iq = 127773, k_im = 2147483647, k_ndiv = (1 + (k_im - 1) / k_ntab) };
 
-	int GenerateRandomNumber();
+	int generateRandomNumber();
 
-	bool bAutoSeed = false;
-	double k_am = 1.0 / k_im;
-	double k_rnmx = 1.0 - 1.2e-7;
-	int idum = 0;
-	int iv[k_ntab] = { 0 };
-	int iy = 0;
+	int idum;
+	int iy;
+	std::array<int, k_ntab> iv;
 };
 
 } //namespace calc

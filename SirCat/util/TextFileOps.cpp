@@ -1,4 +1,5 @@
 #include "TextFileOps.h"
+
 #include <cstdlib>
 #include <fstream>
 #include <string>
@@ -12,6 +13,7 @@ using std::wstring;
 int TextFileOps::fetchDelimitedSlice(Params &params) const
 {
 	int numElements = 0;
+
 	int targetNumElements;
 
 	if (bPrepForSlicing(numElements, targetNumElements, params))
@@ -119,6 +121,7 @@ void TextFileOps::skipToRowNum(const int numRow, Params &params) const
 bool TextFileOps::bSkipToColumnNum(const int numColumn, Params &params) const
 {
 	bool bTooFewColumns = false;
+
 	int currentColumn = 1;
 
 	while (currentColumn < numColumn && bTooFewColumns == false)
@@ -141,6 +144,7 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wstrin
 							   const wchar_t ignoreChars[], const int numIgnoreChars, const wchar_t retChar) const
 {
 	int instancesFound = 0;
+
 	wchar_t character = L'\b'; //Backspace character is arbitrarily used to allow the comparison in the first while statement
 	wstring testString;
 
@@ -155,7 +159,7 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wstrin
 			file.get(character);
 
 			while (!file.eof() && character != L'\n' && character != retChar
-				   && searchRes[instancesFound].size() < searchRes[instancesFound].max_size()) //Fill search result entry
+				   && searchRes[instancesFound].size() < searchRes[instancesFound].max_size()) //Fills search result entry
 			{
 				bool bIgnoreChar = false;
 
@@ -187,6 +191,7 @@ int TextFileOps::parseTextFile(const wstring searchTerm, wifstream &file, wstrin
 bool TextFileOps::bPrepForSlicing(int &numElements, int &targetNumElements, Params &params) const
 {
 	bool bSuccess = false;
+
 	int maxNumSlice;
 
 	if (params.bSliceIsRow)

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "..\csgo\calc\Calc.h"
-#include <string>
+#include "..\csgo\calc\Calc.h"	//Using sircat::csgo::calc::Calc::Params
+#include <string>				//Using std::wstring
 
 namespace sircat {
 namespace csgo {
@@ -23,13 +23,11 @@ protected:
 		   k_read_weap_file, k_finish };
 
 	Shared() = default;
-	Shared(const Shared &other) = delete;
 	~Shared() = default;
-	Shared &operator= (const Shared &other) = delete;
 
 	int attemptFind(csgo::FindCsgo &findCsgo, std::wstring &steamDir) const;
 
-	double calcTapInterval(const csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair) const;
+	float calcTapInterval(csgo::calc::Calc::Params &calcParams, const csgo::ArchivePair &archivePair, float &maxInterval) const;
 
 	bool bReadGameFilesStep(const std::wstring csgoDir, csgo::FreshPair &freshPair, int step, std::wstring &retWString) const;
 

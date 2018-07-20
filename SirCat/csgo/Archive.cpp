@@ -1,4 +1,5 @@
 #include "Archive.h"
+
 #include "..\util\TextFileOps.h"
 #include <fstream>
 #include <string>
@@ -12,7 +13,7 @@ using std::wstring;
 
 bool Archive::bWriteArchiveFile()
 {
-	return bWriteCsvFile(k_csv_name);
+	return bWriteCsvFile(csvName);
 }
 
 bool Archive::getBSuccessUseCsv() const
@@ -20,18 +21,18 @@ bool Archive::getBSuccessUseCsv() const
 	return bSuccessUseCsv;
 }
 
-const wstring &Archive::getK_csv_name() const
+wstring Archive::getCsvName() const
 {
-	return k_csv_name;
+	return csvName;
 }
 
-Archive::Archive(const wstring csvName) : GameData(), bSuccessUseCsv(true), k_csv_name(csvName)
+Archive::Archive(const wstring csvName) : GameData(), bSuccessUseCsv(true), csvName(csvName)
 {
 	wifstream inArchive;
 	TextFileOps::Params params;
 
 	params.delimitedFile = &inArchive;
-	params.filename = k_csv_name;
+	params.filename = csvName;
 	numColumns = textFileOps->fetchNumColumns(params) - 1;
 	numRows = textFileOps->fetchNumRows(params) - 1;
 
