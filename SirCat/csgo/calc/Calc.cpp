@@ -137,33 +137,34 @@ Calc::RecoilTable Calc::generateRecoilTable(const bool bIsFullAuto) const
 
 Calc::RecoveryTimes Calc::generateRecoveryTimes(const bool bIsFullAuto) const
 {
-	RecoveryTimes times;
+	RecoveryTimes recoveryTimes;
 
-	times.fill(sirStats[k_recovery_time_final]);
+	recoveryTimes.fill(sirStats[k_recovery_time_final]);
 
 	if (sirStats[k_recovery_time] != sirStats[k_recovery_time_final])
 	{
-		float transitionShots = 3.f;
-		size_t i = 0; //Holds the value for shot indexes to set to initial recovery time
-
-		times[i] = sirStats[k_recovery_time];
+		size_t index = 0u; //Holds the index of the last shot before recovery time lerp
+		size_t lerpPoints = 3u;
 
 		if (bIsFullAuto)
 		{
-			times[++i] = times[++i] = times[i];
+			index += 2u;
 
 			if (sirStats[k_recovery_time] > sirStats[k_recovery_time_final]) //Evaluates to true if weapon is Negev
-				times[++i] = times[++i] = times[++i] = times[++i] = times[++i] = times[++i] = times[++i] = times[i];
+				index += 7u;
 		}
 		else
-			transitionShots += 2.f;
+			lerpPoints += 2u;
 
-		for (int j = 1; j < static_cast<int>(transitionShots); ++j)
-			times[++i] = sirStats[k_recovery_time] + j / transitionShots * (sirStats[k_recovery_time_final]
-																			- sirStats[k_recovery_time]);
+		for (size_t i = 0u; i <= index; ++i) //Sets recovery times before recovery time lerp
+			recoveryTimes[i] = sirStats[k_recovery_time];
+
+		for (size_t lerpNum = 1u; lerpNum < lerpPoints; ++lerpNum) //Lerps recovery time
+			recoveryTimes[index + lerpNum] = sirStats[k_recovery_time] + (sirStats[k_recovery_time_final]
+																		  - sirStats[k_recovery_time]) * lerpNum / lerpPoints;
 	}
 
-	return times;
+	return recoveryTimes;
 }
 
 float Calc::findMaxInterval(const RecoilTable recoilTable, const RecoveryTimes recoveryTimes) const
